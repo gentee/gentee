@@ -1,2 +1,2 @@
 # gentee
-Programming script language for automation
+Programming script language for automation.
