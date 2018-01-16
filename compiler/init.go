@@ -40,16 +40,21 @@ x xX
 z a-zA-Z and unicode letter
 */
 
+type preState struct {
+	Key    string
+	Action int
+}
+
 var (
-	preTable = map[int]map[string]int{
+	preTable = map[int][]preState{
 		stMain: {
-			`z`:   fStart | stIdent,
-			`srt`: fNext,
-			`n;`:  fToken | TokLine,
+			{`z`, fStart | stIdent},
+			{`srt`, fNext},
+			{`n;`, fToken | TokLine},
 		},
 		stIdent: {
-			`z9_`: fNext,
-			``:    fToken | TokIdent,
+			{``, fToken | TokIdent},
+			{`z9_`, fNext},
 		},
 	}
 
@@ -71,16 +76,18 @@ func makeParseTable() {
 	for state, items := range preTable {
 		var (
 			def int
-			ok  bool
 		)
-		if def, ok = items[``]; !ok {
+		if items[0].Key == `` {
+			def = items[0].Action
+		} else {
 			def = stError
 		}
 		for i := 0; i < alphabet; i++ {
 			parseTable[state][i] = def
 		}
-		for key, jump := range items {
-			for _, ch := range key {
+		for _, item := range items {
+			jump := item.Action
+			for _, ch := range item.Key {
 				switch ch {
 				case '9':
 					fromto(state, jump, '0', '9')

@@ -43,9 +43,7 @@ func LexParsing(input []rune) (*Lex, error) {
 	)
 	lp := Lex{Source: append(input, ' '), // added stop-character
 		Lines: make([]int, 0, 10)}
-	/*	if lp.Source[len(lp.Source)-1] > ' ' {
-		lp.Source = append(lp.Source, ' ') // added stop-character
-	}*/
+
 	newToken := func(tokType int) {
 		lp.Tokens = append(lp.Tokens, Token{Type: tokType, Offset: tokOff, Length: off - tokOff})
 	}
@@ -70,19 +68,22 @@ func LexParsing(input []rune) (*Lex, error) {
 			}
 		}
 		todo := parseTable[state][ch]
+		//		fmt.Printf("off %d %x\r\n", off, todo)
 		if lp.Source[off] == 0xa {
 			newLine(off + 1)
 		}
 		if todo&fStart != 0 {
 			tokOff = off
 		}
-		//		fmt.Printf("%v %x %d %d\r\n", lp.Source[off], todo, state, off)
 		if todo&fToken != 0 {
 			if state == stMain { // it means one character token
-				tokOff = off - 1
+				tokOff = off
 			}
 			newToken(todo & 0xffff)
-			state = stMain
+			if state != stMain {
+				state = stMain
+				continue
+			}
 		} else if todo&fNext == 0 {
 			if state = todo & 0xffff; state == stError {
 				tokOff = off
