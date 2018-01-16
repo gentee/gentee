@@ -41,7 +41,7 @@ var (
 	forTestLex = []inputWant{
 		{"	Aufzählung кириллица55	id_0301 \r\nLongName	",
 			`[{1 1 10} {1 12 11} {1 24 7} {2 32 1} {1 34 8}]`},
-		{`name ®`, `[{1 0 4} {3 5 0}] 1:6: unknown character`},
+		{`name b ®`, `[{1 0 4} {1 5 1} {3 7 0}] 1:8: unknown character`},
 		{``, `[]`},
 	}
 )
