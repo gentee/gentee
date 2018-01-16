@@ -14,13 +14,10 @@ type inputWant struct {
 	want  string
 }
 
-func getWant(t *testing.T, v interface{}, want string, err error) bool {
-	if err != nil {
-		t.Error(err)
-		return true
-	}
-	if fmt.Sprint(v) != want {
-		t.Errorf(`get != want %s %s`, fmt.Sprint(v), want)
+func getWant(t *testing.T, v interface{}, want, ext string) bool {
+	get := fmt.Sprint(v) + ext
+	if get != want {
+		t.Errorf(`get != want; %s != %s`, get, want)
 		return true
 	}
 	return false
@@ -28,8 +25,13 @@ func getWant(t *testing.T, v interface{}, want string, err error) bool {
 
 func TestLex(t *testing.T) {
 	for _, item := range forTestLex {
-		tokens, err := Lex([]rune(item.input))
-		if getWant(t, *tokens, item.want, err) {
+		var ext string
+		lp, err := LexParsing([]rune(item.input))
+		if err != nil {
+			line, column := lp.LineColumn(len(lp.Tokens) - 1)
+			ext = fmt.Sprintf(` %d:%d: %s`, line, column, err)
+		}
+		if getWant(t, lp.Tokens, item.want, ext) {
 			return
 		}
 	}
@@ -37,8 +39,9 @@ func TestLex(t *testing.T) {
 
 var (
 	forTestLex = []inputWant{
-		{"	кириллица55	id_0301 \r\nLongName	", `[{1 1 2} {1 1 14} {2 2 0} {1 2 1}]`},
-		{`name`, `[{1 1 1}]`},
+		{"	Aufzählung кириллица55	id_0301 \r\nLongName	",
+			`[{1 1 10} {1 12 11} {1 24 7} {2 32 1} {1 34 8}]`},
+		{`name ®`, `[{1 0 4} {3 5 0}] 1:6: unknown character`},
 		{``, `[]`},
 	}
 )

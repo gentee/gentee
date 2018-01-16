@@ -12,57 +12,86 @@ import (
 // Token is a lexical token.
 type Token struct {
 	Type   int
-	Line   int
-	Column int
+	Offset int
+	Length int
 }
 
-// Lex performs lexical analysis of the input string and returns a sequence of lexical tokens.
-func Lex(input []rune) (*[]Token, error) {
-	var (
-		off, state, lineOff, tokOff int
-	)
-	line := 1
-	input = append(input, ' ')
-	length := len(input)
-	tokens := make([]Token, 0, length/4)
+// Lex contains the result of the lexical parsing
+type Lex struct {
+	Source []rune
+	Tokens []Token
+	Lines  []int // offsets of lines
+}
 
+// LineColumn return the line and the column of the ind-th token
+func (lp *Lex) LineColumn(ind int) (line int, column int) {
+	if len(lp.Tokens) > ind {
+		for ; line < len(lp.Lines); line++ {
+			if lp.Lines[line] > lp.Tokens[ind].Offset {
+				break
+			}
+		}
+		column = lp.Tokens[ind].Offset - lp.Lines[line-1] + 1
+	}
+	return
+}
+
+// LexParsing performs lexical analysis of the input string and returns a sequence of lexical tokens.
+func LexParsing(input []rune) (*Lex, error) {
+	var (
+		off, state, tokOff, line int
+	)
+	lp := Lex{Source: append(input, ' '), // added stop-character
+		Lines: make([]int, 0, 10)}
+	/*	if lp.Source[len(lp.Source)-1] > ' ' {
+		lp.Source = append(lp.Source, ' ') // added stop-character
+	}*/
 	newToken := func(tokType int) {
-		tokens = append(tokens, Token{Type: tokType, Line: line, Column: tokOff + 1})
+		lp.Tokens = append(lp.Tokens, Token{Type: tokType, Offset: tokOff, Length: off - tokOff})
+	}
+	newLine := func(offset int) {
+		lp.Lines = append(lp.Lines, offset)
+		line++
 	}
 
+	newLine(0)
+	length := len(lp.Source)
+	lp.Tokens = make([]Token, 0, 32+length/10)
+
 	for off < length {
-		ch := input[off]
+		ch := lp.Source[off]
 		if ch >= 127 {
 			if unicode.IsLetter(ch) {
 				ch = 127
 			} else {
+				tokOff = off
 				newToken(TokError)
-				return &tokens, ErrLexem
+				return &lp, ErrLexem
 			}
 		}
 		todo := parseTable[state][ch]
-		if input[off] == 0xa {
-			line++
-			lineOff = off + 1
+		if lp.Source[off] == 0xa {
+			newLine(off + 1)
 		}
 		if todo&fStart != 0 {
-			tokOff = off - lineOff
+			tokOff = off
 		}
-		//		fmt.Printf("%v %x %d %d\r\n", input[off], todo, state, off)
+		//		fmt.Printf("%v %x %d %d\r\n", lp.Source[off], todo, state, off)
 		if todo&fToken != 0 {
 			if state == stMain { // it means one character token
-				tokOff = off - lineOff
+				tokOff = off - 1
 			}
 			newToken(todo & 0xffff)
 			state = stMain
 		} else if todo&fNext == 0 {
 			if state = todo & 0xffff; state == stError {
+				tokOff = off
 				newToken(TokError)
-				return &tokens, ErrLexem
+				return &lp, ErrLexem
 			}
 		}
 		off++
 	}
 
-	return &tokens, nil
+	return &lp, nil
 }
