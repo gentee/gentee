@@ -9,6 +9,12 @@ const (
 	TokIdent = iota + 1
 	// TokLine means a new line
 	TokLine
+	// TokInt means an integer number (10-base)
+	TokInt
+	// TokIntHex means an integer number (16-base)
+	TokIntHex
+	// TokIntOct means an integer number (8-base)
+	TokIntOct
 	// TokError can be only the last token
 	TokError
 )
@@ -17,6 +23,10 @@ const (
 	// List of states
 	stMain = iota
 	stIdent
+	stInt
+	stHexOct
+	stHex
+	stOct
 	stError // it must be the last state
 
 	// Flags for lexical parser
@@ -30,6 +40,7 @@ const (
 /* Alphabet for preTable
 as is: _ 0 . ;
 
+7 0-7
 9 0-9
 a a-fA-F
 n \n
@@ -50,11 +61,32 @@ var (
 		stMain: {
 			{`z`, fStart | stIdent},
 			{`srt`, fNext},
+			{`9`, fStart | stInt},
+			{`0`, fStart | stHexOct},
 			{`n;`, fToken | TokLine},
 		},
 		stIdent: {
 			{``, fToken | TokIdent},
 			{`z9_`, fNext},
+		},
+		stInt: {
+			{``, fToken | TokInt},
+			{`9`, fNext},
+		},
+		stHexOct: {
+			{``, fToken | TokInt},
+			{`x`, stHex},
+			{`7`, stOct},
+		},
+		stHex: {
+			{``, fToken | TokIntHex},
+			{`z_`, stError},
+			{`9a`, fNext},
+		},
+		stOct: {
+			{``, fToken | TokIntOct},
+			{`z9_`, stError},
+			{`7`, fNext},
 		},
 	}
 
@@ -89,8 +121,13 @@ func makeParseTable() {
 			jump := item.Action
 			for _, ch := range item.Key {
 				switch ch {
+				case '7':
+					fromto(state, jump, '0', '7')
 				case '9':
 					fromto(state, jump, '0', '9')
+				case 'a':
+					fromto(state, jump, 'a', 'f')
+					fromto(state, jump, 'A', 'F')
 				case 'n':
 					parseTable[state][0xa] = jump
 				case 'r':
@@ -99,6 +136,9 @@ func makeParseTable() {
 					parseTable[state][' '] = jump
 				case 't':
 					parseTable[state][0x9] = jump
+				case 'x':
+					parseTable[state]['x'] = jump
+					parseTable[state]['X'] = jump
 				case 'z':
 					fromto(state, jump, 'a', 'z')
 					fromto(state, jump, 'A', 'Z')

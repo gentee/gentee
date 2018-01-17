@@ -11,6 +11,8 @@ import (
 var (
 	// The list of errors
 
-	// ErrLexem returns when an unknown character has been found
-	ErrLexem = errors.New(`unknown character`)
+	// ErrLetter returns when an unknown character has been found
+	ErrLetter = errors.New(`unknown character`)
+	// ErrWord returns when a sequence of characters is wrong
+	ErrWord = errors.New(`wrong sequence of characters`)
 )

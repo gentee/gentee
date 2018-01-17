@@ -64,7 +64,7 @@ func LexParsing(input []rune) (*Lex, error) {
 			} else {
 				tokOff = off
 				newToken(TokError)
-				return &lp, ErrLexem
+				return &lp, ErrLetter
 			}
 		}
 		todo := parseTable[state][ch]
@@ -88,7 +88,7 @@ func LexParsing(input []rune) (*Lex, error) {
 			if state = todo & 0xffff; state == stError {
 				tokOff = off
 				newToken(TokError)
-				return &lp, ErrLexem
+				return &lp, ErrWord
 			}
 		}
 		off++
