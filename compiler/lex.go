@@ -45,6 +45,11 @@ func LexParsing(input []rune) (*Lex, error) {
 		Lines: make([]int, 0, 10)}
 
 	newToken := func(tokType int) {
+		if tokType == stIdent { // check keywords
+			if keyType, ok := keywords[string(input[tokOff:off])]; ok {
+				tokType = keyType
+			}
+		}
 		lp.Tokens = append(lp.Tokens, Token{Type: tokType, Offset: tokOff, Length: off - tokOff})
 	}
 	newLine := func(offset int) {
@@ -63,7 +68,7 @@ func LexParsing(input []rune) (*Lex, error) {
 				ch = 127
 			} else {
 				tokOff = off
-				newToken(TokError)
+				newToken(tkError)
 				return &lp, ErrLetter
 			}
 		}
@@ -87,7 +92,7 @@ func LexParsing(input []rune) (*Lex, error) {
 		} else if todo&fNext == 0 {
 			if state = todo & 0xffff; state == stError {
 				tokOff = off
-				newToken(TokError)
+				newToken(tkError)
 				return &lp, ErrWord
 			}
 		}

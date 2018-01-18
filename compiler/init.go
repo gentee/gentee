@@ -5,21 +5,6 @@
 package gentee
 
 const (
-	// TokIdent means identifier
-	TokIdent = iota + 1
-	// TokLine means a new line
-	TokLine
-	// TokInt means an integer number (10-base)
-	TokInt
-	// TokIntHex means an integer number (16-base)
-	TokIntHex
-	// TokIntOct means an integer number (8-base)
-	TokIntOct
-	// TokError can be only the last token
-	TokError
-)
-
-const (
 	// List of states
 	stMain = iota
 	stIdent
@@ -30,15 +15,15 @@ const (
 	stError // it must be the last state
 
 	// Flags for lexical parser
-	fStart = 0x10000 // the beginning of the token
-	fToken = 0x20000 // token has been parsed
+	fStart = 0x10000 // the beginning of the tken
+	fToken = 0x20000 // tken has been parsed
 	fNext  = 0x40000 // stay on the state and get the next character
 
 	alphabet = 128
 )
 
 /* Alphabet for preTable
-as is: _ 0 . ;
+as is: _ 0 + - * / ( ) { } = ;
 
 7 0-7
 9 0-9
@@ -57,34 +42,46 @@ type preState struct {
 }
 
 var (
+	keywords = map[string]int{
+		`main`: tkMain,
+	}
 	preTable = map[int][]preState{
 		stMain: {
 			{`z`, fStart | stIdent},
+			{`+`, fToken | tkAdd},
+			{`-`, fToken | tkSub},
+			{`*`, fToken | tkMul},
+			{`/`, fToken | tkDiv},
+			{`(`, fToken | tkLPar},
+			{`)`, fToken | tkRPar},
+			{`{`, fToken | tkLCurly},
+			{`}`, fToken | tkRCurly},
+			{`=`, fToken | tkAssign},
 			{`srt`, fNext},
 			{`9`, fStart | stInt},
 			{`0`, fStart | stHexOct},
-			{`n;`, fToken | TokLine},
+			{`n;`, fToken | tkLine},
 		},
 		stIdent: {
-			{``, fToken | TokIdent},
+			{``, fToken | tkIdent},
 			{`z9_`, fNext},
 		},
 		stInt: {
-			{``, fToken | TokInt},
+			{``, fToken | tkInt},
 			{`9`, fNext},
 		},
 		stHexOct: {
-			{``, fToken | TokInt},
+			{``, fToken | tkInt},
 			{`x`, stHex},
 			{`7`, stOct},
 		},
 		stHex: {
-			{``, fToken | TokIntHex},
+			{``, fToken | tkIntHex},
 			{`z_`, stError},
 			{`9a`, fNext},
 		},
 		stOct: {
-			{``, fToken | TokIntOct},
+			{``, fToken | tkIntOct},
 			{`z9_`, stError},
 			{`7`, fNext},
 		},

@@ -39,6 +39,10 @@ func TestLex(t *testing.T) {
 
 var (
 	forTestLex = []inputWant{
+		{`main ok`,
+			`[{128 0 4} {1 5 2}]`},
+		{`+ - * / () {}=`,
+			`[{64 0 0} {65 2 0} {66 4 0} {67 6 0} {68 8 0} {69 9 0} {70 11 0} {71 12 0} {72 13 0}]`},
 		{`0 0xaB78f 16780 0756 0779`,
 			`[{3 0 1} {4 2 7} {3 10 5} {5 16 4} {6 24 0}] 1:25: wrong sequence of characters`},
 		{"	Aufzählung кириллица55	id_0301 \r\nLongName	",
