@@ -28,5 +28,5 @@ const (
 
 // Keywords
 const (
-	tkMain = iota + 128 // main
+	tkRun = iota + 128 // run
 )
