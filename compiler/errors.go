@@ -8,11 +8,25 @@ import (
 	"errors"
 )
 
-var (
+const (
 	// The list of errors
 
 	// ErrLetter returns when an unknown character has been found
-	ErrLetter = errors.New(`unknown character`)
+	ErrLetter = iota + 1
 	// ErrWord returns when a sequence of characters is wrong
-	ErrWord = errors.New(`wrong sequence of characters`)
+	ErrWord
+	// ErrDecl returns when the unexpexted token has been found on the top level
+	ErrDecl
 )
+
+var (
+	errText = map[int]string{
+		ErrLetter: `unknown character`,
+		ErrWord:   `wrong sequence of characters`,
+		ErrDecl:   `expected declaration: func, run etc`,
+	}
+)
+
+func compError(id int) error {
+	return errors.New(errText[id])
+}

@@ -3,8 +3,3 @@
 // that can be found in the LICENSE file.
 
 package gentee
-
-func init() {
-	makeParseTable()
-	makeCompileTable()
-}

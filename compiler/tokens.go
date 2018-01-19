@@ -15,7 +15,7 @@ const (
 
 // Operators
 const (
-	tkAdd    = iota + 64 // +
+	tkAdd    = iota + 32 // +
 	tkSub                // -
 	tkMul                // *
 	tkDiv                // /
@@ -28,5 +28,6 @@ const (
 
 // Keywords
 const (
-	tkRun = iota + 128 // run
+	tkRun     = iota + 64 // run
+	tkDefault             // is used for preCompileTable
 )
