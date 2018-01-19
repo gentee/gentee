@@ -7,4 +7,5 @@ package gentee
 func init() {
 	makeParseTable()
 	makeCompileTable()
+	initPackages()
 }

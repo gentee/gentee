@@ -77,7 +77,7 @@ func makeCompileTable() {
 					compileTable[state][id] = ptr
 				}
 			default:
-				panic(`corrupted preCompilу table`)
+				panic(`corrupted preCompile table`)
 			}
 		}
 

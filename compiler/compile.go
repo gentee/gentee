@@ -3,3 +3,9 @@
 // that can be found in the LICENSE file.
 
 package gentee
+
+// Compile compiles the source code
+func (*VirtualMachine) Compile(source string) error {
+
+	return nil
+}
