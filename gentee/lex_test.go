@@ -18,9 +18,9 @@ func getWant(t *testing.T, v interface{}, want, ext string) bool {
 	get := fmt.Sprint(v) + ext
 	if get != want {
 		t.Errorf(`get != want; %s != %s`, get, want)
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 func TestLex(t *testing.T) {
@@ -31,7 +31,7 @@ func TestLex(t *testing.T) {
 			line, column := lp.LineColumn(len(lp.Tokens) - 1)
 			ext = fmt.Sprintf(` %d:%d: %s`, line, column, err)
 		}
-		if getWant(t, lp.Tokens, item.want, ext) {
+		if !getWant(t, lp.Tokens, item.want, ext) {
 			return
 		}
 	}

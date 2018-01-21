@@ -42,6 +42,7 @@ var (
 			{tkIdent, cfStay | cmExp, nil},
 			{tkLine, cfSkip, nil},
 			{tkRCurly, cfBack, nil},
+			{tkReturn, cmExpValue, nil},
 		},
 		cmExp: {
 			{tkIdent, cmExpStart, nil},

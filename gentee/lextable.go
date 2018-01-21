@@ -43,7 +43,8 @@ type preState struct {
 
 var (
 	keywords = map[string]int{
-		`run`: tkRun,
+		`return`: tkReturn,
+		`run`:    tkRun,
 	}
 	preTable = map[int][]preState{
 		stMain: {

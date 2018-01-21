@@ -15,13 +15,20 @@ func TestExp(t *testing.T) {
 		if err := vm.Compile(fmt.Sprintf(`run {
 			return %s
 		}`, item.input)); err != nil {
-
+			t.Error(err)
+			return
+		}
+		if get, err := vm.Run(); err != nil {
+			t.Error(err)
+			return
+		} else if !getWant(t, get, item.want, ``) {
+			return
 		}
 	}
 }
 
 var (
 	forTestExp = []inputWant{
-		{``, ``},
+		{`101`, ``},
 	}
 )

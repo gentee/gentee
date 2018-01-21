@@ -28,6 +28,7 @@ const (
 
 // Keywords
 const (
-	tkRun     = iota + 64 // run
-	tkDefault             // is used for preCompileTable
+	tkRun = iota + 64 // run
+	tkReturn
+	tkDefault // is used for preCompileTable
 )
