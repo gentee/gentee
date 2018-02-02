@@ -25,9 +25,13 @@ func newRunTime(vm *VirtualMachine) *RunTime {
 	return rt
 }
 
-func (rt *RunTime) run(idFunc int) {
+func (rt *RunTime) run(idFunc int) error {
+	if idFunc >= len(rt.vm.Funcs) {
+		return runtimeError(rt, ErrRuntime, `run`)
+	}
 	call = CallCode{
+		Code: code,
 		Offset: 0,
-		StackOff: 
+		StackOff: len(rt.Stack)
 	}
 }

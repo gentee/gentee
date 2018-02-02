@@ -28,8 +28,8 @@ const (
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
-
-	// Runtime errors
+	// Runtime error. It means bug
+	ErrRuntime
 
 	// ErrNoRun is returned when there is not run function
 	ErrNoRun
@@ -46,6 +46,7 @@ var (
 		ErrValue:  `unexpected token, expecting value, identifier or calling func`,
 
 		ErrCompiler: `you have found a compiler bug. Let us know, please`,
+		ErrRunTime:  `you have found a runtime bug. Let us know, please`,
 
 		ErrNoRun: `there is not run function`,
 	}
@@ -64,7 +65,7 @@ func compileError(lp *Lex, idError, cur int, ext ...string) error {
 	return fmt.Errorf(` %d:%d: %s%s`, line, column, errorText(idError), more)
 }
 
-func runtimeError(vm *VirtualMachine, idError int, cmd *Cmd) error {
+func runtimeError(rt *RunTime, idError int) error {
 	var line, column int
 	return fmt.Errorf(` %d:%d: %s`, line, column, errorText(idError))
 }
