@@ -6,5 +6,10 @@ package gentee
 
 // Run executes run block
 func (vm *VirtualMachine) Run() (interface{}, error) {
+	if vm.RunID == Undefined {
+		return nil, runtimeError(vm, ErrNoRun, nil)
+	}
+	rt := newRunTime(vm)
+	rt.Run()
 	return nil, nil
 }

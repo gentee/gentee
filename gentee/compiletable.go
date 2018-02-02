@@ -10,8 +10,8 @@ const (
 	cmRun      // run command
 	cmBody     // body of the code
 	cmExp      // expression
-	cmExpStart // begining of the expression
-	cmExpValue // expression returns value
+	cmExpOper  // expecting operator in expression
+	cmExpValue // expecting value in expression
 
 	// Flags
 	cfSkip  = 0x10000 // stay on the current state
@@ -20,7 +20,7 @@ const (
 	cfError = 0x80000 // return error
 )
 
-type compFunc func() error
+type compFunc func(*VirtualMachine, int) error
 
 type cmState struct {
 	Tokens interface{} // can be one token or []token
@@ -32,27 +32,35 @@ var (
 	preCompile = map[int][]cmState{
 		cmMain: {
 			{tkDefault, cfError | ErrDecl, nil},
-			{tkRun, cmRun, nil},
+			{tkRun, cmRun, coRun},
 		},
 		cmRun: {
+			{tkDefault, cfError | ErrCurly, nil},
 			{tkLine, cfSkip, nil},
 			{tkLCurly, cmBody, nil},
 		},
 		cmBody: {
+			{tkDefault, cfError | ErrExp, nil},
 			{tkIdent, cfStay | cmExp, nil},
 			{tkLine, cfSkip, nil},
 			{tkRCurly, cfBack, nil},
-			{tkReturn, cmExpValue, nil},
+			{tkReturn, cmExp, coReturn},
 		},
 		cmExp: {
-			{tkIdent, cmExpStart, nil},
+			{tkDefault, cfError | ErrValue, nil},
+			{tkIdent, cmExpOper, nil},
+			{[]int{tkInt, tkIntHex, tkIntOct}, cmExp, coPush},
+			{tkLine, cfBack, nil},
+			{tkRCurly, cfStay | cmBody, nil},
 		},
-		cmExpStart: {
+		cmExpOper: {
+			{tkDefault, cfStay | cfBack, nil},
 			{tkAssign, cmExpValue, nil},
 		},
 		cmExpValue: {
-			{[]int{tkInt, tkIntHex, tkIntOct}, cmExpStart, nil},
-			//			{tkAssign, cfStay | cmExpStart},
+			{tkDefault, cfStay | cfBack, nil},
+			{[]int{tkInt, tkIntHex, tkIntOct}, cmExpOper, coPush},
+			{tkIdent, cmExpOper, nil},
 		},
 	}
 	compileTable [][tkDefault]*cmState

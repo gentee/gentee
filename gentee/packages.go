@@ -4,15 +4,15 @@
 
 package gentee
 
-// Code contains a source code
-type Code struct {
+// Source contains a source code
+type Source struct {
 	CRC int64
 }
 
 // Package describes a library
 type Package struct {
-	Name  string
-	Codes []Code
+	Name    string
+	Sources []Source
 }
 
 var (

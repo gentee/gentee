@@ -28,8 +28,7 @@ func TestLex(t *testing.T) {
 		var ext string
 		lp, err := LexParsing([]rune(item.input))
 		if err != nil {
-			line, column := lp.LineColumn(len(lp.Tokens) - 1)
-			ext = fmt.Sprintf(` %d:%d: %s`, line, column, err)
+			ext = err.Error()
 		}
 		if !getWant(t, lp.Tokens, item.want, ext) {
 			return
