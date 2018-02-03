@@ -50,8 +50,8 @@ var (
 			{tkDefault, cfError | ErrValue, nil},
 			{tkIdent, cmExpOper, nil},
 			{[]int{tkInt, tkIntHex, tkIntOct}, cmExp, coPush},
-			{tkLine, cfBack, nil},
-			{tkRCurly, cfStay | cmBody, nil},
+			{tkLine, cfBack, coExp},
+			{tkRCurly, cfStay | cmBody, coExp},
 		},
 		cmExpOper: {
 			{tkDefault, cfStay | cfBack, nil},

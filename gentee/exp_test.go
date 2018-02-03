@@ -29,6 +29,6 @@ func TestExp(t *testing.T) {
 
 var (
 	forTestExp = []inputWant{
-		{`101`, ``},
+		{`101`, `102`},
 	}
 )

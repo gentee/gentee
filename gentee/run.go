@@ -11,5 +11,9 @@ func (vm *VirtualMachine) Run() (interface{}, error) {
 		return nil, runtimeError(rt, ErrNoRun)
 	}
 	rt.run(vm.RunID)
-	return nil, nil
+	var result interface{}
+	if len(rt.Stack) > 0 {
+		result = rt.Stack[len(rt.Stack)-1]
+	}
+	return result, nil
 }

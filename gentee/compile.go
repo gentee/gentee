@@ -14,9 +14,21 @@ const (
 	cmdReturn            // return values from the function
 )
 
+type Oper struct {
+	Token int
+	Cmd   *Cmd
+}
+
+var (
+	opers = map[int]int{
+		tkReturn: 0,
+	}
+)
+
 // Compiler is used for saving compiling information
 type Compiler struct {
 	Code  *Code // current code
+	Opers []*Oper
 	Names map[string]*Object
 }
 
@@ -70,8 +82,17 @@ func (vm *VirtualMachine) getLex() *Lex {
 	return vm.Lexeme[len(vm.Lexeme)-1]
 }
 
-func (vm *VirtualMachine) appendCmd(cmd Cmd) {
-	vm.Compiler.Code.ByteCode = append(vm.Compiler.Code.ByteCode, cmd)
+func (comp *Compiler) appendCmd(cmd *Cmd) {
+	comp.Code.ByteCode = append(comp.Code.ByteCode, *cmd)
+}
+
+func coExp(vm *VirtualMachine, cur int) error {
+	comp := &vm.Compiler
+	for len(comp.Opers) > 0 {
+		comp.appendCmd(comp.Opers[len(comp.Opers)-1].Cmd)
+		comp.Opers = comp.Opers[:len(comp.Opers)-1]
+	}
+	return nil
 }
 
 func coPush(vm *VirtualMachine, cur int) error {
@@ -79,7 +100,7 @@ func coPush(vm *VirtualMachine, cur int) error {
 	switch lp.Tokens[cur].Type {
 	case tkInt:
 		v, _ := strconv.ParseInt(lp.getToken(cur), 10, 64)
-		vm.appendCmd(Cmd{ID: cmdPush, Value: v, TokenID: cur})
+		vm.Compiler.appendCmd(&Cmd{ID: cmdPush, Value: v, TokenID: cur})
 		fmt.Println(`INT`, v)
 	case tkIntHex, tkIntOct:
 		fmt.Println(`INTEGER`)
@@ -87,8 +108,17 @@ func coPush(vm *VirtualMachine, cur int) error {
 	return nil
 }
 
+func expCmd(comp *Compiler, cmd *Cmd, token int) {
+	if len(comp.Opers) == 0 || opers[token] > opers[comp.Opers[len(comp.Opers)-1].Token] {
+		comp.Opers = append(comp.Opers, &Oper{Token: token, Cmd: cmd})
+	} else {
+		comp.appendCmd(comp.Opers[len(comp.Opers)-1].Cmd)
+		comp.Opers = comp.Opers[:len(comp.Opers)-1]
+	}
+}
+
 func coReturn(vm *VirtualMachine, cur int) error {
-	vm.appendCmd(Cmd{ID: cmdReturn, Value: 1, TokenID: cur})
+	expCmd(&vm.Compiler, &Cmd{ID: cmdReturn, Value: 1, TokenID: cur}, tkReturn)
 	fmt.Println(`RETURN`)
 	return nil
 }
