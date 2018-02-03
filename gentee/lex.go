@@ -101,3 +101,9 @@ func LexParsing(input []rune) (*Lex, error) {
 
 	return &lp, nil
 }
+
+func (lp *Lex) getToken(cur int) string {
+	// !!! TODO Added checking out of range
+	token := lp.Tokens[cur]
+	return string(lp.Source[token.Offset : token.Offset+token.Length])
+}

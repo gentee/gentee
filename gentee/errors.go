@@ -28,7 +28,7 @@ const (
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
-	// Runtime error. It means bug
+	// ErrRuntime error. It means bug
 	ErrRuntime
 
 	// ErrNoRun is returned when there is not run function
@@ -46,7 +46,7 @@ var (
 		ErrValue:  `unexpected token, expecting value, identifier or calling func`,
 
 		ErrCompiler: `you have found a compiler bug. Let us know, please`,
-		ErrRunTime:  `you have found a runtime bug. Let us know, please`,
+		ErrRuntime:  `you have found a runtime bug. Let us know, please`,
 
 		ErrNoRun: `there is not run function`,
 	}

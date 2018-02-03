@@ -6,10 +6,12 @@ package gentee
 
 import (
 	"fmt"
+	"strconv"
 )
 
 const (
-	cmdPush = 1 + iota // push value into stack
+	cmdPush   = 1 + iota // push value into stack
+	cmdReturn            // return values from the function
 )
 
 // Compiler is used for saving compiling information
@@ -68,16 +70,26 @@ func (vm *VirtualMachine) getLex() *Lex {
 	return vm.Lexeme[len(vm.Lexeme)-1]
 }
 
+func (vm *VirtualMachine) appendCmd(cmd Cmd) {
+	vm.Compiler.Code.ByteCode = append(vm.Compiler.Code.ByteCode, cmd)
+}
+
 func coPush(vm *VirtualMachine, cur int) error {
 	lp := vm.getLex()
 	switch lp.Tokens[cur].Type {
-	case tkInt, tkIntHex, tkIntOct:
+	case tkInt:
+		v, _ := strconv.ParseInt(lp.getToken(cur), 10, 64)
+		vm.appendCmd(Cmd{ID: cmdPush, Value: v, TokenID: cur})
+		fmt.Println(`INT`, v)
+	case tkIntHex, tkIntOct:
 		fmt.Println(`INTEGER`)
 	}
 	return nil
 }
 
 func coReturn(vm *VirtualMachine, cur int) error {
+	vm.appendCmd(Cmd{ID: cmdReturn, Value: 1, TokenID: cur})
+	fmt.Println(`RETURN`)
 	return nil
 }
 
@@ -88,6 +100,7 @@ func newFunc(vm *VirtualMachine, name string) int {
 	}
 	vm.Funcs = append(vm.Funcs, code)
 	vm.Compiler.Code.Children = append(vm.Compiler.Code.Children, code)
+	vm.Compiler.Code = code
 	// !!! TODO insert into Names
 	return len(vm.Funcs) - 1
 }

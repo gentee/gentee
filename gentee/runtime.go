@@ -4,6 +4,10 @@
 
 package gentee
 
+import (
+	"fmt"
+)
+
 type CallCode struct {
 	Code     *Code
 	Offset   int // the offset of the current command in the bytecode
@@ -26,12 +30,31 @@ func newRunTime(vm *VirtualMachine) *RunTime {
 }
 
 func (rt *RunTime) run(idFunc int) error {
-	if idFunc >= len(rt.vm.Funcs) {
-		return runtimeError(rt, ErrRuntime, `run`)
+	if idFunc >= len(rt.VM.Funcs) {
+		return runtimeError(rt, ErrRuntime)
 	}
-	call = CallCode{
-		Code: code,
-		Offset: 0,
-		StackOff: len(rt.Stack)
+	code := rt.VM.Funcs[idFunc]
+	call := CallCode{
+		Code:     code,
+		Offset:   0,
+		StackOff: len(rt.Stack),
 	}
+	fmt.Println(`RUN`, code.ByteCode)
+	rt.Calls = append(rt.Calls, &call)
+	for ; call.Offset < len(code.ByteCode); call.Offset++ {
+		cmd := code.ByteCode[call.Offset]
+		cmdType := cmd.ID >> 24
+		cmdID := cmd.ID & 0xFFFFFF
+		switch cmdType {
+		case cmfStack:
+			switch cmdID {
+			case cmdPush:
+				fmt.Println(`PUSH`, cmd)
+				rt.Stack = append(rt.Stack, cmd.Value)
+			case cmdReturn:
+				fmt.Println(`RET`, cmd)
+			}
+		}
+	}
+	return nil
 }

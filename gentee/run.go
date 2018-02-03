@@ -10,6 +10,6 @@ func (vm *VirtualMachine) Run() (interface{}, error) {
 	if vm.RunID == Undefined {
 		return nil, runtimeError(rt, ErrNoRun)
 	}
-	rt.Run()
+	rt.run(vm.RunID)
 	return nil, nil
 }
