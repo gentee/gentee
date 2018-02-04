@@ -36,6 +36,7 @@ var (
 		},
 		cmRun: {
 			{tkDefault, cfError | ErrCurly, nil},
+			{tkIdent, cfSkip, coRetType},
 			{tkLine, cfSkip, nil},
 			{tkLCurly, cmBody, nil},
 		},

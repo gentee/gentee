@@ -142,3 +142,7 @@ func coRun(vm *VirtualMachine, cur int) error {
 	vm.RunID = newFunc(vm, `run`)
 	return nil
 }
+
+func coRetType(vm *VirtualMachine, cur int) error {
+	return nil
+}

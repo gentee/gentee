@@ -32,7 +32,17 @@ type Code struct {
 	Owner    *Code
 	ByteCode []Cmd
 	Children []*Code
-	LexID    int // the identifier of source code in VirtualMachine
+}
+
+type Func struct {
+	Code
+	Name   string // the name of the function
+	Return int    // the type of the result
+	LexID  int    // the identifier of source code in VirtualMachine
+}
+
+type Type struct {
+	Name string // the name of the type
 }
 
 // VirtualMachine contains information of compiled source code
