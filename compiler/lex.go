@@ -2,10 +2,9 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package gentee
+package compiler
 
 import (
-	//	"fmt"
 	"unicode"
 )
 
@@ -73,7 +72,6 @@ func LexParsing(input []rune) (*Lex, error) {
 			}
 		}
 		todo := parseTable[state][ch]
-		//		fmt.Printf("off %d %x\r\n", off, todo)
 		if lp.Source[off] == 0xa {
 			newLine(off + 1)
 		}

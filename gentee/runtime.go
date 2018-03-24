@@ -14,6 +14,7 @@ type CallCode struct {
 	StackOff int // the offset in the stack
 }
 
+// RunTime is the structure for running compiled functions
 type RunTime struct {
 	VM    *VirtualMachine
 	Stack []interface{} // the stack of values

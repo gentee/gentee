@@ -2,7 +2,11 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package gentee
+package compiler
+
+import (
+	"github.com/gentee/gentee/core"
+)
 
 const (
 	// List of compile states
@@ -20,7 +24,7 @@ const (
 	cfError = 0x80000 // return error
 )
 
-type compFunc func(*VirtualMachine, int) error
+type compFunc func(*core.VirtualMachine, int) error
 
 type cmState struct {
 	Tokens interface{} // can be one token or []token
@@ -32,11 +36,11 @@ var (
 	preCompile = map[int][]cmState{
 		cmMain: {
 			{tkDefault, cfError | ErrDecl, nil},
-			{tkRun, cmRun, coRun},
+			{tkRun, cmRun, nil /*coRun*/},
 		},
 		cmRun: {
 			{tkDefault, cfError | ErrCurly, nil},
-			{tkIdent, cfSkip, coRetType},
+			{tkIdent, cfSkip, nil /*coRetType*/},
 			{tkLine, cfSkip, nil},
 			{tkLCurly, cmBody, nil},
 		},
@@ -45,14 +49,14 @@ var (
 			{tkIdent, cfStay | cmExp, nil},
 			{tkLine, cfSkip, nil},
 			{tkRCurly, cfBack, nil},
-			{tkReturn, cmExp, coReturn},
+			{tkReturn, cmExp, nil /*coReturn*/},
 		},
 		cmExp: {
 			{tkDefault, cfError | ErrValue, nil},
 			{tkIdent, cmExpOper, nil},
-			{[]int{tkInt, tkIntHex, tkIntOct}, cmExp, coPush},
-			{tkLine, cfBack, coExp},
-			{tkRCurly, cfStay | cmBody, coExp},
+			{[]int{tkInt, tkIntHex, tkIntOct}, cmExp, nil /*coPush*/},
+			{tkLine, cfBack, nil /*coExp*/},
+			{tkRCurly, cfStay | cmBody, nil /*coExp*/},
 		},
 		cmExpOper: {
 			{tkDefault, cfStay | cfBack, nil},
@@ -60,7 +64,7 @@ var (
 		},
 		cmExpValue: {
 			{tkDefault, cfStay | cfBack, nil},
-			{[]int{tkInt, tkIntHex, tkIntOct}, cmExpOper, coPush},
+			{[]int{tkInt, tkIntHex, tkIntOct}, cmExpOper, nil /*coPush*/},
 			{tkIdent, cmExpOper, nil},
 		},
 	}

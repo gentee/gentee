@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package gentee
+package compiler
 
 import (
 	"fmt"
@@ -65,7 +65,7 @@ func compileError(lp *Lex, idError, cur int, ext ...string) error {
 	return fmt.Errorf(` %d:%d: %s%s`, line, column, errorText(idError), more)
 }
 
-func runtimeError(rt *RunTime, idError int) error {
+/*func runtimeError(rt *RunTime, idError int) error {
 	var line, column int
 	return fmt.Errorf(` %d:%d: %s`, line, column, errorText(idError))
-}
+}*/

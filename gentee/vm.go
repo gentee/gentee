@@ -5,7 +5,7 @@
 package gentee
 
 const (
-	// Offsets of command's ID  Cmd.ID == (cmf[Flag] << 24) + Index
+	// Offsets of command's ID for Cmd.ID == (cmf[Flag] << 24) + Index
 	cmfStack   = iota // Stack command
 	cmfStdlib         // Stdlib command
 	cmfPackage        // Package command
@@ -18,7 +18,7 @@ const (
 type Cmd struct {
 	ID      int
 	Value   interface{}
-	TokenID int // the index of the token
+	TokenID int // the index of the token in lexeme
 }
 
 // Object is used for getting vars, funcs etc. by the name
@@ -27,14 +27,7 @@ type Object struct {
 	Ptr  interface{} // The pointer to the object
 }
 
-// Code contains information about a compiled block
-type Code struct {
-	Owner    *Code
-	ByteCode []Cmd
-	Children []*Code
-}
-
-type Func struct {
+type FuncObject struct {
 	Code
 	Name   string // the name of the function
 	Return int    // the type of the result
@@ -43,6 +36,14 @@ type Func struct {
 
 type Type struct {
 	Name string // the name of the type
+}
+
+// Code contains information about a compiled block
+type Code struct {
+	Owner    *Code
+	ByteCode []Cmd
+	Objects  map[string]Object
+	Children []*Code
 }
 
 // VirtualMachine contains information of compiled source code
