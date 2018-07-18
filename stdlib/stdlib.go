@@ -8,13 +8,14 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-const (
-	// DefName is the key name for stdlib
-	DefName = ``
-)
-
 // InitStdlib appends stdlib types and fucntions to the virtual machine
 func InitStdlib(vm *core.VirtualMachine) {
-	vm.Packages[DefName] = &core.Package{}
+	vm.Units[core.DefName] = core.InitUnit(core.UnitPackage)
 	InitTypes(vm)
+	InitInt(vm)
+	InitBool(vm)
+
+	vm.Units[core.DefName].NewConst(core.ConstDepth, int64(1000), true)
+	vm.Units[core.DefName].NewConst(core.ConstCycle, int64(16000000), true)
+	vm.Units[core.DefName].NewConst(core.ConstIota, int64(0), false)
 }

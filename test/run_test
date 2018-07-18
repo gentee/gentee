@@ -1,0 +1,223 @@
+run int { 
+  int a = 1
+  int b = 4
+  a++
+  --b
+  return ++a * (--b + a++) + b-- + a + b}
+===== 22
+run int { 
+  int a = 1
+  a <<=4
+  a >>=3
+  a &= 0xff
+  a |= 0x100
+  return a^=0xffff}
+===== 65277
+run int { 
+  int a b c
+  a = 22
+  c = 33;c/=3;c*=5;c%=7
+  return a+=b-=10+c}
+===== 6
+run int { return 1+~(1-0xFE12)*2}
+===== 130081
+run int { return ((1<<0)+ 2 << 1+3) >> 2}
+===== 12
+run int { return 234/17 + 234 % 17 + 20%7 }
+===== 32
+run int {
+  int a = 0xf0 | 1 & 0 
+  return (a | 0x177) & 0x33 ^ 0x122
+}
+===== 273
+const 2*IOTA + IOTA {FIRST SECOND // comment
+  /* comment */
+    THIRD} 
+run int { return THIRD + FIRST - SECOND }
+===== 3
+const 10+23 {TEST TEST2}
+run int { 
+  return TEST + TEST2
+}
+===== 66
+const {
+MY_PAR = (100000 + CYCLE)/10000}
+run int { 
+  return MY_PAR
+}
+===== 1610
+run int { 
+  return 2*DEPTH + 33
+}
+===== 2033
+run int { 
+   return 1+ ?(5>0, 22*3, 5/0) - ?(3==2, 
+      7/0, ?(
+       true, (3+4)*5, 0))
+}
+===== 32
+run int { if 1+3==4 || 100/0 == 1 {
+    if true && 50>12 && 34==23 {
+      return 8
+    }
+    if 10 != 10 || 5<3 || 7==7 {return 9}
+    return 10
+}
+return 0
+}
+===== 9
+run bool { return 8==8 && 100!=99 && 6<20}
+===== true
+run bool { return 8==9 || false || 100!=100}
+===== false
+run bool { return true || false && 10<5 || 7>0}
+===== true
+func factorial(int i) int {
+  if i <= 1 {return 1}
+  return i*factorial(i-1)
+}
+run int { return factorial(10)}
+===== 3628800
+run int { 
+  int i; while i<0x10 {i = i+1};return i 
+}
+===== 16
+run int { 
+  int i = 67+89
+  int k = i+10
+  return i-k
+}
+===== -10
+run int { 
+  int i
+  bool b
+  if b=!b {i=7}
+  return i
+}
+===== 7
+run int { 
+  int i j k
+  i = j = 5+(k=60/5)*2
+  return (k+j)*2 + i
+}
+===== 111
+func param(int par) int {par=par+23;return par}
+run int { 
+  return param(8)
+}
+===== 31
+func ifelse(int par) int {
+  if -par == 10 {
+    return 100
+  } elif par < 0 { return 2 } 
+  elif par <= 2 { return 3
+  } elif par > 89 { return 4 } elif par >= 83 {
+    return 5
+  } 
+  else { return par + 7 }
+  return 200
+}
+run int { 
+  return ifelse(-10) + ifelse(-5) + ifelse(2) + 
+     ifelse(83) + ifelse(100)+ifelse(10)
+}
+===== 131
+run int { 
+  if true {
+     if !true { return 77 } else {
+     if 10==-(-10) { if 7!=8 {return 99}
+  }}}
+  return 0
+}
+===== 99
+func name(int itype inext, int third) int {
+  return (itype+inext)*third
+}
+func name(int par ipar) int {
+  return par+ipar
+}
+func name(int itype) int {
+  return itype*2
+}
+run int { 
+  return name(2) + name(3, 7) + name(1,2,4)
+}
+===== 26
+func name() int {
+  return 5
+}
+func name(int itype) int {
+  return itype+2
+}
+run int { 
+  return name(101)*name()
+}
+===== 515
+run int { 
+  if true {
+    34
+    return 12/4+1
+  }
+  return 0
+}
+===== 4
+run bool { 
+  return true
+}
+===== true
+run int { 
+  /* return 100 */
+  return 10 + /*test*/ 20 /**test**/ + /*
+  comment
+   */ 17 /*Comments*/
+}
+/* comment */
+===== 47
+// comment
+run int { 
+  // return 100
+  return 10 +  // Comments
+   20 // Comments
+  return 22
+}
+// comment
+===== 30
+run int 
+{ 
+  -10
+  ()
+  Add(10,20)
+  return 78
+}
+===== 78
+run int { return Add(10, 5)+Mul( 1, 20) +Sub(Mul(7,Div(121,Add(1,1)+ 9)), Sign(3))-10}
+===== 105
+run int { return Add(Sign(-10), 67+33)}
+===== 110
+run int { return 2*    
+4-  
+    -(57 
+      - 0xaa)*
+    2}
+===== -218
+
+run int { return 3*(45-(30+2)/(6-((2 + 2)*2 - 4)))}
+===== 87
+run int { return 5+(45-30)*(1+3)/(6-1-1) + 10}
+===== 30
+run int { return 9-5 + 2*6/4 }
+===== 7
+run int { return 10+34/2 - -6*3 }
+===== 45
+run int { return -0XaB }
+===== -171
+run { -(-200) }
+===== <nil>
+run {}
+===== <nil>
+run {return}
+===== <nil>
+run int {return 77}
+===== 77
+run int {return 0647}
+===== 423

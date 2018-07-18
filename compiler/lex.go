@@ -6,41 +6,16 @@ package compiler
 
 import (
 	"unicode"
+
+	"github.com/gentee/gentee/core"
 )
 
-// Token is a lexical token.
-type Token struct {
-	Type   int
-	Offset int
-	Length int
-}
-
-// Lex contains the result of the lexical parsing
-type Lex struct {
-	Source []rune
-	Tokens []Token
-	Lines  []int // offsets of lines
-}
-
-// LineColumn return the line and the column of the ind-th token
-func (lp *Lex) LineColumn(ind int) (line int, column int) {
-	if len(lp.Tokens) > ind {
-		for ; line < len(lp.Lines); line++ {
-			if lp.Lines[line] > lp.Tokens[ind].Offset {
-				break
-			}
-		}
-		column = lp.Tokens[ind].Offset - lp.Lines[line-1] + 1
-	}
-	return
-}
-
 // LexParsing performs lexical analysis of the input string and returns a sequence of lexical tokens.
-func LexParsing(input []rune) (*Lex, error) {
+func LexParsing(input []rune) (*core.Lex, int) {
 	var (
 		off, state, tokOff, line int
 	)
-	lp := Lex{Source: append(input, ' '), // added stop-character
+	lp := core.Lex{Source: append(input, ' '), // added stop-character
 		Lines: make([]int, 0, 10)}
 
 	newToken := func(tokType int) {
@@ -49,16 +24,22 @@ func LexParsing(input []rune) (*Lex, error) {
 				tokType = keyType
 			}
 		}
-		lp.Tokens = append(lp.Tokens, Token{Type: tokType, Offset: tokOff, Length: off - tokOff})
+		length := off - tokOff
+		if length == 0 { // one-byte token
+			length = 1
+		}
+		lp.Tokens = append(lp.Tokens, core.Token{Type: tokType, Offset: tokOff, Length: length})
 	}
 	newLine := func(offset int) {
-		lp.Lines = append(lp.Lines, offset)
-		line++
+		if len(lp.Lines) == 0 || lp.Lines[len(lp.Lines)-1] != offset {
+			lp.Lines = append(lp.Lines, offset)
+			line++
+		}
 	}
 
 	newLine(0)
 	length := len(lp.Source)
-	lp.Tokens = make([]Token, 0, 32+length/10)
+	lp.Tokens = make([]core.Token, 0, 32+length/10)
 
 	for off < length {
 		ch := lp.Source[off]
@@ -68,7 +49,7 @@ func LexParsing(input []rune) (*Lex, error) {
 			} else {
 				tokOff = off
 				newToken(tkError)
-				return &lp, compileError(&lp, ErrLetter, len(lp.Tokens)-1)
+				return &lp, ErrLetter
 			}
 		}
 		todo := parseTable[state][ch]
@@ -81,9 +62,14 @@ func LexParsing(input []rune) (*Lex, error) {
 		if todo&fToken != 0 {
 			if state == stMain { // it means one character token
 				tokOff = off
+			} else if todo&fNext != 0 {
+				off++
 			}
 			newToken(todo & 0xffff)
 			if state != stMain {
+				/*				if todo&fNext != 0 {
+								off++
+							}*/
 				state = stMain
 				continue
 			}
@@ -91,16 +77,19 @@ func LexParsing(input []rune) (*Lex, error) {
 			if state = todo & 0xffff; state == stError {
 				tokOff = off
 				newToken(tkError)
-				return &lp, compileError(&lp, ErrWord, len(lp.Tokens)-1)
+				return &lp, ErrWord
+			}
+			if todo&fStay != 0 {
+				continue
 			}
 		}
 		off++
 	}
 
-	return &lp, nil
+	return &lp, ErrSuccess
 }
 
-func (lp *Lex) getToken(cur int) string {
+func getToken(lp *core.Lex, cur int) string {
 	// !!! TODO Added checking out of range
 	token := lp.Tokens[cur]
 	return string(lp.Source[token.Offset : token.Offset+token.Length])

@@ -12,18 +12,37 @@ const (
 	stHexOct
 	stHex
 	stOct
+	stDiv
+	stCommentLine
+	stComment
+	stCommentEnd
+	stEqual
+	stNot
+	stGreater
+	stLess
+	stOr
+	stAnd
+	stAdd
+	stSub
+	stMul
+	stRShift
+	stLShift
+	stXor
+	stMod
+
 	stError // it must be the last state
 
 	// Flags for lexical parser
 	fStart = 0x10000 // the beginning of the tken
 	fToken = 0x20000 // tken has been parsed
 	fNext  = 0x40000 // stay on the state and get the next character
+	fStay  = 0x80000 // stay on the current character
 
 	alphabet = 128
 )
 
 /* Alphabet for preTable
-as is: _ 0 + - * / ( ) { } = ;
+as is: _ 0 + - * / ( ) { } = ; , | & < > ! ? ^ % ~
 
 7 0-7
 9 0-9
@@ -43,21 +62,39 @@ type preState struct {
 
 var (
 	keywords = map[string]int{
+		`elif`:   tkElif,
+		`else`:   tkElse,
+		`false`:  tkFalse,
+		`func`:   tkFunc,
+		`if`:     tkIf,
+		`while`:  tkWhile,
 		`return`: tkReturn,
 		`run`:    tkRun,
+		`true`:   tkTrue,
+		`const`:  tkConst,
 	}
 	preTable = map[int][]preState{
 		stMain: {
 			{`z`, fStart | stIdent},
-			{`+`, fToken | tkAdd},
-			{`-`, fToken | tkSub},
-			{`*`, fToken | tkMul},
-			{`/`, fToken | tkDiv},
+			{`+`, fStart | stAdd},
+			{`-`, fStart | stSub},
+			{`*`, fStart | stMul},
+			{`/`, fStart | stDiv},
 			{`(`, fToken | tkLPar},
 			{`)`, fToken | tkRPar},
 			{`{`, fToken | tkLCurly},
 			{`}`, fToken | tkRCurly},
-			{`=`, fToken | tkAssign},
+			{`=`, fStart | stEqual},
+			{`&`, fStart | stAnd},
+			{`|`, fStart | stOr},
+			{`^`, fStart | stXor},
+			{`%`, fStart | stMod},
+			{`>`, fStart | stGreater},
+			{`<`, fStart | stLess},
+			{`~`, fToken | tkBitNot},
+			{`!`, fStart | stNot},
+			{`?`, fToken | tkQuestion},
+			{`,`, fToken | tkComma},
 			{`srt`, fNext},
 			{`9`, fStart | stInt},
 			{`0`, fStart | stHexOct},
@@ -85,6 +122,82 @@ var (
 			{``, fToken | tkIntOct},
 			{`z9_`, stError},
 			{`7`, fNext},
+		},
+		stDiv: {
+			{``, fToken | tkDiv},
+			{`=`, fNext | fToken | tkDivEq},
+			{`/`, stCommentLine},
+			{`*`, stComment},
+		},
+		stCommentLine: {
+			{``, fNext},
+			{`n`, fStay | stMain},
+		},
+		stComment: {
+			{``, fNext},
+			{`*`, stCommentEnd},
+		},
+		stCommentEnd: {
+			{``, fStay | stComment},
+			{`/`, stMain},
+		},
+		stEqual: {
+			{``, fToken | tkAssign},
+			{`=`, fNext | fToken | tkEqual},
+		},
+		stNot: {
+			{``, fToken | tkNot},
+			{`=`, fNext | fToken | tkNotEqual},
+		},
+		stGreater: {
+			{``, fToken | tkGreater},
+			{`>`, stRShift},
+			{`=`, fNext | fToken | tkGreaterEqual},
+		},
+		stLess: {
+			{``, fToken | tkLess},
+			{`<`, stLShift},
+			{`=`, fNext | fToken | tkLessEqual},
+		},
+		stOr: {
+			{``, fToken | tkBitOr},
+			{`=`, fNext | fToken | tkBitOrEq},
+			{`|`, fNext | fToken | tkOr},
+		},
+		stAnd: {
+			{``, fToken | tkBitAnd},
+			{`=`, fNext | fToken | tkBitAndEq},
+			{`&`, fNext | fToken | tkAnd},
+		},
+		stAdd: {
+			{``, fToken | tkAdd},
+			{`=`, fNext | fToken | tkAddEq},
+			{`+`, fNext | fToken | tkInc},
+		},
+		stSub: {
+			{``, fToken | tkSub},
+			{`=`, fNext | fToken | tkSubEq},
+			{`-`, fNext | fToken | tkDec},
+		},
+		stMul: {
+			{``, fToken | tkMul},
+			{`=`, fNext | fToken | tkMulEq},
+		},
+		stRShift: {
+			{``, fToken | tkRShift},
+			{`=`, fNext | fToken | tkRShiftEq},
+		},
+		stLShift: {
+			{``, fToken | tkLShift},
+			{`=`, fNext | fToken | tkLShiftEq},
+		},
+		stXor: {
+			{``, fToken | tkBitXor},
+			{`=`, fNext | fToken | tkBitXorEq},
+		},
+		stMod: {
+			{``, fToken | tkMod},
+			{`=`, fNext | fToken | tkModEq},
 		},
 	}
 

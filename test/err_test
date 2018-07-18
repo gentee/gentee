@@ -1,0 +1,159 @@
+run bool { bool a; return ++a}
+===== 1:27: wrong type of operands, expecting int type
+run int { int a; return --a++}
+===== 1:28: expecting l-value in the left operand of assign operator
+run int { int a= 10; return a+=10+a*=3}
+===== 1:36: expecting l-value in the left operand of assign operator
+run int { return 5<<-1}
+===== 1:19: right operand of shift cannot be less than zero
+run { DEPTH = 1}
+=====  1:13: expecting l-value in the left operand of assign operator
+run { int a = IOTA}
+=====  1:15: IOTA can be only used in const expression
+const {OOOPS = IOTA}
+run {}
+=====  1:16: IOTA can be only used in const expression
+const true { OOOPS = QQQ+1}
+run {}
+=====  1:20: unexpected token, expecting the name of the identifier
+func myFunc() {
+  myFunc()
+}
+run { myFunc()}
+=====  2:3: maximum depth of recursion has been reached
+run { while true{}}
+=====  1:7: maximum cycle count has been reached
+const { CONST = CONST+1}
+run {}
+=====  1:17: unknown identifier CONST
+const { CONST }
+run {}
+===== 1:15: unexpected token, expecting =
+const { MyCONST }
+run {}
+===== 1:9: The name of constant must consist of only capital letters
+func MYFUNc(int iPARAM1 PaRAM2 UNI_ПАР3) { return}
+run { MYFUNc(10, 20, 30)}
+===== 1:32: The name of variable or function can't consists of only capital letters
+func MYFUNC() { return}
+run { MYFUNC(10)}
+===== 1:6: The name of variable or function can't consists of only capital letters
+run { int A = 1}
+===== 1:11: The name of variable or function can't consists of only capital letters
+run { 3-?(1 > 0,30,false)}
+===== 1:9: different types of exp1 and exp2 in ?(cond, exp1, exp2)
+run { ?(20,30,40)}
+===== 1:7: operator ? must be called as ?(boolean condition, exp1, exp2)
+run { int a = 1+?(true,20)}
+===== 1:17: operator ? must be called as ?(boolean condition, exp1, exp2)
+run { bool a = true || 2 }
+===== 1:21: wrong type of operands, expecting boolean type
+run { a = 10 $ 2 }
+===== 1:14: wrong sequence of characters
+run { 
+  true 10
+}
+===== 2:8: unexpected token, expecting operator
+run { 
+  while true if 
+}
+===== 2:14: unexpected token, expecting operator
+run { 
+  while {10}
+}
+===== 2:9: unexpected token, expecting expression or statement
+run { 
+  int int
+}
+===== 2:7: "int" has already been used as the name of the function, type or variable
+run int { 
+  bool b
+  if true {int i j=7}
+}
+===== 3:19: unexpected token, expecting the name of the identifier
+run { 
+  int my 
+  if true { int q my }
+}
+===== 3:19: "my" has already been used as the name of the function, type or variable
+run int { 
+  8+4 = 32
+}
+===== 2:7: expecting l-value in the left operand of assign operator
+func param(int par) int {par=true}
+run int { 
+  return param(8)
+}
+===== 1:29: assign different types
+run int {
+    return 46 + test * 45
+}
+===== 2:17: unknown identifier test
+func name(int par) int {return par} 
+run int {
+    return name(20, 30)
+}
+===== 3:12: function name(int, int) has not been found
+func name(int int) {} 
+===== 1:15: "int" has already been used as the name of the function, type or variable
+func name(int double double) {} 
+===== 1:22: "double" has already been used as the name of the function, type or variable
+func name(int par) {} 
+func name(int par2) {} 
+===== 2:6: function name(int) has already been defined
+func int(int q,) {} 
+===== 1:16: unexpected token, expecting type
+func int(int q z, qwer) {} 
+===== 1:19: unexpected token, expecting type
+func int(int q, int) {} 
+===== 1:20: unexpected token, expecting the name of the identifier
+func name 
+===== 1:10: unexpected end of the source
+func {}
+===== 1:6: unexpected token, expecting the name of the identifier
+run { if 45+67 {}}
+===== 1:12: wrong type of expression, expecting boolean type
+run { 45 { 57}}
+===== 1:10: unexpected token, expecting expression or statement
+run { false + 0x7}
+===== 1:13: function Add(bool, int) has not been found
+run int { return false}
+===== 1:11: function returns wrong type
+run { /* comment
+line*/
+10 /* comment
+line
+*/
+===== 3:3: unexpected end of the source
+// run { 10 // 20 }
+===== 0:0: source code is empty
+run { 10 // comment }
+===== 1:9: unexpected end of the source
+run { 648438734873493434340}
+===== 1:7: the number 648438734873493434340 is out of range
+run { ((5-8)*6}
+===== 1:15: there is an unclosed left parenthesis
+run { (5-7)*2)}
+===== 1:14: extra right parenthesis
+run { 2 + 5 / 0 }
+===== 1:13: divided by zero
+run {-}
+===== 1:7: unexpected token, expecting value, identifier or calling func
+run int {10}
+===== 1:1: function must return a value
+run bool { return 22 }
+===== 1:12: function returns wrong type
+run {    
+===== 1:6: unexpected end of the source
+run }
+===== 1:5: unexpected token, expecting {
+run {return 10}
+===== 1:6: function cannot return any value
+run wrong {}
+===== 1:5: unexpected token, expecting type
+run int {0x999}
+===== 1:1: function must return a value
+run { 0779 }
+===== 1:10: wrong sequence of characters
+run { b® }
+===== 1:8: unknown character
