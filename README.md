@@ -4,6 +4,10 @@ Gentee is a free open source script programming language. The Gentee programming
 
 At this moment, Gentee is **under construction** but all current tests are successful.
 
+## Documentation
+
+Browse the [online documentation here](https://gentee.github.io). It describes features that have already been realized.
+
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
