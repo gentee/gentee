@@ -10,7 +10,7 @@ Browse the [online documentation here](https://gentee.github.io). It describes f
 
 ## Support
 
-If you have any questions and suggestions or would like to help in the development, add your issue in [Issues](https://github.com/gentee/gentee/issues).
+If you have any questions and suggestions or would like to help in the development, [add your issue here](https://github.com/gentee/gentee/issues).
 
 ## License
 
