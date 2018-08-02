@@ -8,6 +8,10 @@ At this moment, Gentee is **under construction** but all current tests are succe
 
 Browse the [online documentation here](https://gentee.github.io). It describes features that have already been realized.
 
+## Support
+
+If you have any questions and suggestions or would like to help in development, add your issue in [Issues](https://github.com/gentee/gentee/issues).
+
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
