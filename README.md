@@ -16,4 +16,4 @@ If you have any questions and suggestions or would like to help in the developme
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2013-present, Alexey Krivonogov
+Copyright (c) 2018-present, Alexey Krivonogov
