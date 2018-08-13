@@ -18,6 +18,9 @@ func (unit *Unit) NewEmbed(Func interface{}) {
 	)
 	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
 	name = name[strings.LastIndexByte(name, '.')+1:]
+	if isLow := strings.Index(name, `º`); isLow >= 0 {
+		name = name[:isLow] // Cut off ºType in the case like AddºStr
+	}
 
 	t := reflect.TypeOf(Func)
 	if t.NumOut() >= 1 {

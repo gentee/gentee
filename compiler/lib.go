@@ -7,7 +7,7 @@ package compiler
 import (
 	"unicode"
 
-	"github.com/gentee/gentee/core"
+	"bitbucket.org/novostrim/go-gentee/core"
 )
 
 func isBoolResult(cmd core.ICmd) bool {

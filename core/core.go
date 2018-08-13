@@ -51,16 +51,18 @@ const (
 
 // Token is a lexical token.
 type Token struct {
-	Type   int
+	Type   int32
+	Index  int32 // index in Lex.Strings if Type is tkStr
 	Offset int
 	Length int
 }
 
 // Lex contains the result of the lexical parsing
 type Lex struct {
-	Source []rune
-	Tokens []Token
-	Lines  []int // offsets of lines
+	Source  []rune
+	Tokens  []Token
+	Lines   []int    // offsets of lines
+	Strings []string // array of constant strings
 }
 
 // ICmd is an interface for stack commands

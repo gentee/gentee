@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/gentee/gentee/compiler"
-	"github.com/gentee/gentee/core"
-	"github.com/gentee/gentee/stdlib"
+	"bitbucket.org/novostrim/go-gentee/compiler"
+	"bitbucket.org/novostrim/go-gentee/core"
+	"bitbucket.org/novostrim/go-gentee/stdlib"
 )
 
 // Workspace is a common structure for compiling and executing

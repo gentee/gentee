@@ -62,6 +62,8 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 		name = `int`
 	case `bool`:
 		name = `bool`
+	case `string`:
+		name = `str`
 	default:
 		return nil
 	}

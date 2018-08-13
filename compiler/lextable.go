@@ -29,20 +29,27 @@ const (
 	stLShift
 	stXor
 	stMod
+	stStrQuote
+	stStrEscapeQuote
+	stStrDoubleQuote
+	stStrBackSlash
 
 	stError // it must be the last state
 
 	// Flags for lexical parser
-	fStart = 0x10000 // the beginning of the tken
-	fToken = 0x20000 // tken has been parsed
-	fNext  = 0x40000 // stay on the state and get the next character
-	fStay  = 0x80000 // stay on the current character
+	fStart    = 0x10000  // the beginning of the token
+	fToken    = 0x20000  // tken has been parsed
+	fNext     = 0x40000  // stay on the state and get the next character
+	fStay     = 0x80000  // stay on the current character
+	fStartBuf = 0x100000 // start temporary buffer
+	fPushBuf  = 0x200000 // append a character to temporary buffer
+	fBuf      = 0x400000 // save temporary buffer
 
 	alphabet = 128
 )
 
 /* Alphabet for preTable
-as is: _ 0 + - * / ( ) { } = ; , | & < > ! ? ^ % ~
+as is: _ 0 + - * / ( ) { } = ; , | & < > ! ? ^ % ~ ` " \
 
 7 0-7
 9 0-9
@@ -94,6 +101,8 @@ var (
 			{`~`, fToken | tkBitNot},
 			{`!`, fStart | stNot},
 			{`?`, fToken | tkQuestion},
+			{"`", fStart | fStartBuf | stStrQuote},
+			{`"`, fStart | fStartBuf | stStrDoubleQuote},
 			{`,`, fToken | tkComma},
 			{`srt`, fNext},
 			{`9`, fStart | stInt},
@@ -198,6 +207,22 @@ var (
 		stMod: {
 			{``, fToken | tkMod},
 			{`=`, fNext | fToken | tkModEq},
+		},
+		stStrQuote: {
+			{``, fNext | fPushBuf},
+			{"`", stStrEscapeQuote},
+		},
+		stStrEscapeQuote: {
+			{``, fToken | fStay | fBuf | tkStr},
+			{"`", fPushBuf | stStrQuote},
+		},
+		stStrDoubleQuote: {
+			{``, fNext | fPushBuf},
+			{`"`, fToken | fNext | fBuf | tkStr},
+			{`\`, stStrBackSlash | fPushBuf},
+		},
+		stStrBackSlash: {
+			{``, stStrDoubleQuote | fPushBuf},
 		},
 	}
 

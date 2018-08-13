@@ -1,3 +1,22 @@
+run str {
+  return "left \z"
+} 
+===== 2:10: invalid syntax of double quotes string
+run str {
+  str(10) += `abc`
+}
+===== 2:6: unexpected token, expecting the name of the identifier
+run int {return int(`text`)}
+=====  1:17: converting string to integer is invalid
+const {EMPTY}
+=====  1:13: unexpected token, expecting =
+const {int OOOPS = 1}
+=====  1:8: The name of constant must consist of only capital letters
+run int { 
+  int a b=2 c
+  return a + b+c
+}
+===== 2:10: unexpected token, expecting the name of the identifier
 run bool { bool a; return ++a}
 ===== 1:27: wrong type of operands, expecting int type
 run int { int a; return --a++}

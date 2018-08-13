@@ -11,6 +11,7 @@ const (
 	tkIntHex            // integer number (16-base)
 	tkIntOct            // integer number (8-base)
 	tkType              // type name
+	tkStr               // string
 	tkError             // tkError can be only the last tken
 )
 

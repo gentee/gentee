@@ -7,8 +7,9 @@ package compiler
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
-	"github.com/gentee/gentee/core"
+	"bitbucket.org/novostrim/go-gentee/core"
 )
 
 // Compiler contains information of the compilation process
@@ -64,8 +65,8 @@ var (
 		tkBitAndEq:     {5, true, `BitAnd`},
 		tkBitOrEq:      {5, true, `BitOr`},
 		tkBitXorEq:     {5, true, `BitXor`},
-		tkAnd:          {7, true, ``},
-		tkOr:           {8, true, ``},
+		tkAnd:          {7, false, ``},
+		tkOr:           {8, false, ``},
 		tkBitOr:        {9, false, `BitOr`},
 		tkBitXor:       {10, false, `BitXor`},
 		tkBitAnd:       {11, false, `BitAnd`},
@@ -142,7 +143,7 @@ main:
 		next := compileTable[state][token.Type]
 		cmpl.states = &stackState
 		cmpl.newState = 0
-		//	fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type, getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
+		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type, getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
 		flag := next.Action & 0xff0000
 		if flag&cfError != 0 {
 			return cmpl.Error(next.Action & 0xffff)
@@ -924,6 +925,17 @@ func coPush(cmpl *compiler) error {
 	case tkFalse, tkTrue:
 		v = lp.Tokens[cmpl.pos].Type == tkTrue
 		vType = `bool`
+	case tkStr:
+		v = lp.Strings[lp.Tokens[cmpl.pos].Index]
+		if token[0] == '"' {
+			v, err = strconv.Unquote(`"` + strings.Replace(strings.Replace(v.(string),
+				"\n", `\n`, -1), "\r", `\r`, -1) + `"`)
+			if err != nil {
+				return cmpl.Error(ErrDoubleQuotes)
+			}
+		}
+		fmt.Println(`STR TOKEN`, lp.Tokens[cmpl.pos].Index, v)
+		vType = `str`
 	}
 	appendExp(cmpl, &core.CmdValue{Value: v,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
@@ -932,15 +944,15 @@ func coPush(cmpl *compiler) error {
 }
 
 func coUnaryOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, cmpl.getLex().Tokens[cmpl.pos].Type|tkUnary)
+	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type)|tkUnary)
 }
 
 func coUnaryPostOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, cmpl.getLex().Tokens[cmpl.pos].Type|tkUnary|tkPost)
+	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type)|tkUnary|tkPost)
 }
 
 func coOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, cmpl.getLex().Tokens[cmpl.pos].Type)
+	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type))
 }
 
 func coCallFunc(cmpl *compiler) error {

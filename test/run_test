@@ -1,3 +1,23 @@
+run str { 
+  str stest = "те\nст `string`
+ line"
+  stest += " ooops\u263a "
+  return stest + "" + "finish"
+}
+===== те\nст `string`\n line ooops☺ finish
+run str { 
+  str test = `тест`
+  str stemp = str(`тест` == test)
+  return (stemp += str(test<`auto`)) + str(test!=`Тест`) + str(int( `aB`>=`aa`)) + 
+         str(int(`-234`) == -234) + str(int( int(`0xfF`) <= 255 )) + str(bool(0))
+}
+===== truefalsetrue0true1false
+run str { 
+  str stemp = ```begin end```
+  return `tes``t тест` + ` ` + `` + `new
+ line ` + stemp
+}
+===== tes`t тест new\n line `begin end`
 run int { 
   int a = 1
   int b = 4

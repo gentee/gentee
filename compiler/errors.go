@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gentee/gentee/core"
+	"bitbucket.org/novostrim/go-gentee/core"
 )
 
 const (
@@ -82,6 +82,8 @@ const (
 	ErrIota
 	// ErrIntOper is returned when ++ or -- gets not int value
 	ErrIntOper
+	// ErrDoubleQuotes is return when there is a wrong command of backslash in double quotes strings
+	ErrDoubleQuotes
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -122,6 +124,7 @@ var (
 		ErrMustAssign:     `unexpected token, expecting =`,
 		ErrIota:           `IOTA can be only used in const expression`,
 		ErrIntOper:        `wrong type of operands, expecting int type`,
+		ErrDoubleQuotes:   `invalid syntax of double quotes string`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

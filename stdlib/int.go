@@ -6,28 +6,31 @@ package stdlib
 
 import (
 	"fmt"
+	"strconv"
 
-	"github.com/gentee/gentee/core"
+	"bitbucket.org/novostrim/go-gentee/core"
 )
 
 // InitInt appends stdlib int functions to the virtual machine
 func InitInt(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		Add,     // binary +
-		Div,     // binary /
-		Equal,   // binary ==
-		Greater, // binary >
-		Less,    // binary <
-		Mod,     // binary %
-		Mul,     // binary *
-		Sign,    // unary sign -
-		Sub,     // binary -
-		BitOr,   // bitwise OR
-		BitXor,  // bitwise XOR
-		BitAnd,  // bitwise AND
-		LShift,  // binary <<
-		RShift,  // binary >>
-		BitNot,  // unary bitwise NOT
+		Add,      // binary +
+		Div,      // binary /
+		Equal,    // binary ==
+		Greater,  // binary >
+		Less,     // binary <
+		Mod,      // binary %
+		Mul,      // binary *
+		Sign,     // unary sign -
+		Sub,      // binary -
+		BitOr,    // bitwise OR
+		BitXor,   // bitwise XOR
+		BitAnd,   // bitwise AND
+		LShift,   // binary <<
+		RShift,   // binary >>
+		BitNot,   // unary bitwise NOT
+		strºInt,  // str( int )
+		boolºInt, // bool( int )
 	} {
 		vm.Units[core.DefName].NewEmbed(item)
 	}
@@ -115,4 +118,14 @@ func Sign(val int64) int64 {
 // Sub subtracts one number from another
 func Sub(left, right int64) int64 {
 	return left - right
+}
+
+// strºInt converts integer value to string
+func strºInt(val int64) string {
+	return strconv.FormatInt(val, 10)
+}
+
+// boolºInt converts integer value to boolean 0->false, not 0 -> true
+func boolºInt(val int64) bool {
+	return val != 0
 }

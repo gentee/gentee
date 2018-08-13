@@ -7,7 +7,7 @@ package compiler
 import (
 	"unicode"
 
-	"github.com/gentee/gentee/core"
+	"bitbucket.org/novostrim/go-gentee/core"
 )
 
 // LexParsing performs lexical analysis of the input string and returns a sequence of lexical tokens.
@@ -16,9 +16,18 @@ func LexParsing(input []rune) (*core.Lex, int) {
 		off, state, tokOff, line int
 	)
 	lp := core.Lex{Source: append(input, ' '), // added stop-character
-		Lines: make([]int, 0, 10)}
+		Lines: make([]int, 0, 10), Strings: []string{``}}
+	buf := make([]rune, 0, 4096)
 
 	newToken := func(tokType int) {
+		var index int
+		if tokType&fBuf != 0 {
+			if len(buf) > 0 {
+				index = len(lp.Strings)
+				lp.Strings = append(lp.Strings, string(buf))
+			}
+		}
+		tokType &= 0xffff
 		if tokType == stIdent { // check keywords
 			if keyType, ok := keywords[string(input[tokOff:off])]; ok {
 				tokType = keyType
@@ -28,7 +37,8 @@ func LexParsing(input []rune) (*core.Lex, int) {
 		if length == 0 { // one-byte token
 			length = 1
 		}
-		lp.Tokens = append(lp.Tokens, core.Token{Type: tokType, Offset: tokOff, Length: length})
+		lp.Tokens = append(lp.Tokens, core.Token{Type: int32(tokType), Index: int32(index),
+			Offset: tokOff, Length: length})
 	}
 	newLine := func(offset int) {
 		if len(lp.Lines) == 0 || lp.Lines[len(lp.Lines)-1] != offset {
@@ -59,17 +69,20 @@ func LexParsing(input []rune) (*core.Lex, int) {
 		if todo&fStart != 0 {
 			tokOff = off
 		}
+		if todo&fStartBuf != 0 {
+			buf = buf[:0]
+		}
+		if todo&fPushBuf != 0 {
+			buf = append(buf, lp.Source[off])
+		}
 		if todo&fToken != 0 {
 			if state == stMain { // it means one character token
 				tokOff = off
 			} else if todo&fNext != 0 {
 				off++
 			}
-			newToken(todo & 0xffff)
+			newToken(todo)
 			if state != stMain {
-				/*				if todo&fNext != 0 {
-								off++
-							}*/
 				state = stMain
 				continue
 			}

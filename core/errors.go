@@ -21,6 +21,8 @@ const (
 	ErrCycle
 	// ErrShift is returned when << or >> are used with the negative right operand
 	ErrShift
+	// ErrStrToInt is returned when the conversion string to integer is invalid
+	ErrStrToInt
 
 	// ErrRuntime error. It means bug
 	ErrRuntime
@@ -33,6 +35,7 @@ var (
 		ErrDivZero:  `divided by zero`,
 		ErrCycle:    `maximum cycle count has been reached`,
 		ErrShift:    `right operand of shift cannot be less than zero`,
+		ErrStrToInt: `converting string to integer is invalid`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

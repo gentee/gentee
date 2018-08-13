@@ -5,7 +5,7 @@
 package stdlib
 
 import (
-	"github.com/gentee/gentee/core"
+	"bitbucket.org/novostrim/go-gentee/core"
 )
 
 // InitStdlib appends stdlib types and fucntions to the virtual machine
@@ -14,6 +14,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitTypes(vm)
 	InitInt(vm)
 	InitBool(vm)
+	InitStr(vm)
 
 	vm.Units[core.DefName].NewConst(core.ConstDepth, int64(1000), true)
 	vm.Units[core.DefName].NewConst(core.ConstCycle, int64(16000000), true)

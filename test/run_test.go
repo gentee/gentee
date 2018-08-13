@@ -10,13 +10,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gentee/gentee/workspace"
+	"bitbucket.org/novostrim/go-gentee/workspace"
 )
 
 func getWant(v interface{}, want string) error {
 	get := fmt.Sprint(v)
+	want = strings.Replace(want, `\n`, "\n", -1)
 	if get != want {
-		return fmt.Errorf(`get != want; %s != %s`, get, want)
+		return fmt.Errorf("get != want; %s != %s", get, want)
 	}
 	return nil
 }

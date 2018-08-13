@@ -244,7 +244,6 @@ func (unit *Unit) NewObject(obj IObject) {
 	} else {
 		curName.SetNext(obj)
 	}
-	unit.Names[name] = obj
 }
 
 // NewType adds a new type to Unit
