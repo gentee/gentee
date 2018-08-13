@@ -7,7 +7,7 @@ package stdlib
 import (
 	"reflect"
 
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 type initType struct {

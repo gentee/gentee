@@ -5,7 +5,7 @@
 package stdlib
 
 import (
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 // InitStdlib appends stdlib types and fucntions to the virtual machine

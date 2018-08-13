@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"bitbucket.org/novostrim/go-gentee/workspace"
+	"github.com/gentee/gentee/workspace"
 )
 
 func getWant(v interface{}, want string) error {

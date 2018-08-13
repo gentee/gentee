@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 // InitStr appends stdlib int functions to the virtual machine

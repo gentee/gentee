@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 // Compiler contains information of the compilation process

@@ -7,7 +7,7 @@ package compiler
 import (
 	"unicode"
 
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 // LexParsing performs lexical analysis of the input string and returns a sequence of lexical tokens.

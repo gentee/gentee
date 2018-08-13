@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 const (

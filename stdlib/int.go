@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 // InitInt appends stdlib int functions to the virtual machine

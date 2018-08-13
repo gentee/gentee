@@ -5,7 +5,7 @@
 package stdlib
 
 import (
-	"bitbucket.org/novostrim/go-gentee/core"
+	"github.com/gentee/gentee/core"
 )
 
 // InitBool appends stdlib bool functions to the virtual machine
