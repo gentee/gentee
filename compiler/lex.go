@@ -5,6 +5,7 @@
 package compiler
 
 import (
+	"strings"
 	"unicode"
 
 	"github.com/gentee/gentee/core"
@@ -50,7 +51,28 @@ func LexParsing(input []rune) (*core.Lex, int) {
 	newLine(0)
 	length := len(lp.Source)
 	lp.Tokens = make([]core.Token, 0, 32+length/10)
-
+	expDepth := make([]int, 0, 16)
+	// Skip the first lines with # character
+	var hashMode bool
+	for lp.Source[off] == '#' || hashMode {
+		start := off
+		for ; off < length && lp.Source[off] != 0xa; off++ {
+		}
+		if off >= length {
+			break
+		}
+		off++
+		line := string(lp.Source[start:off])
+		if strings.TrimSpace(line) == `###` {
+			hashMode = !hashMode
+		} else if start != 0 || lp.Source[1] != '!' {
+			if !hashMode {
+				line = line[1:]
+			}
+			lp.Header += line
+		}
+		newLine(off)
+	}
 	for off < length {
 		ch := lp.Source[off]
 		if ch >= 127 {
@@ -81,7 +103,30 @@ func LexParsing(input []rune) (*core.Lex, int) {
 			} else if todo&fNext != 0 {
 				off++
 			}
+			if todo&fPopBuf != 0 {
+				// delete the last character
+				buf = buf[:len(buf)-1]
+			}
+			if len(expDepth) > 0 && todo&0xffff == tkRCurly {
+				// the end of the string expression
+				buf = buf[:0]
+				state = expDepth[len(expDepth)-1]
+				expDepth = expDepth[:len(expDepth)-1]
+				lp.Tokens = append(lp.Tokens, core.Token{Type: tkRPar, Offset: tokOff})
+				lp.Tokens = append(lp.Tokens, core.Token{Type: tkStrExp, Offset: tokOff})
+				off++
+				continue
+			}
 			newToken(todo)
+			if todo&fExp != 0 {
+				lp.Tokens = append(lp.Tokens, core.Token{Type: tkStrExp, Offset: tokOff})
+				lp.Tokens = append(lp.Tokens, core.Token{Type: tkLPar, Offset: tokOff})
+				strState := stStrDoubleQuote
+				if lp.Source[off-2] == '$' {
+					strState = stStrQuote
+				}
+				expDepth = append(expDepth, strState)
+			}
 			if state != stMain {
 				state = stMain
 				continue

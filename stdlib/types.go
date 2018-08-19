@@ -22,6 +22,6 @@ func InitTypes(vm *core.VirtualMachine) {
 		{`bool`, reflect.TypeOf(true)},
 		{`str`, reflect.TypeOf(``)},
 	} {
-		vm.Units[core.DefName].NewType(item.name, item.original)
+		vm.StdLib().NewType(item.name, item.original)
 	}
 }

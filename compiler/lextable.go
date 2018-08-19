@@ -31,19 +31,22 @@ const (
 	stMod
 	stStrQuote
 	stStrEscapeQuote
+	stStrExp
 	stStrDoubleQuote
 	stStrBackSlash
 
 	stError // it must be the last state
 
 	// Flags for lexical parser
-	fStart    = 0x10000  // the beginning of the token
-	fToken    = 0x20000  // tken has been parsed
-	fNext     = 0x40000  // stay on the state and get the next character
-	fStay     = 0x80000  // stay on the current character
-	fStartBuf = 0x100000 // start temporary buffer
-	fPushBuf  = 0x200000 // append a character to temporary buffer
-	fBuf      = 0x400000 // save temporary buffer
+	fStart    = 0x10000   // the beginning of the token
+	fToken    = 0x20000   // tken has been parsed
+	fNext     = 0x40000   // stay on the state and get the next character
+	fStay     = 0x80000   // stay on the current character
+	fStartBuf = 0x100000  // start temporary buffer
+	fPushBuf  = 0x200000  // append a character to temporary buffer
+	fBuf      = 0x400000  // save temporary buffer
+	fExp      = 0x800000  // start expression inside the string
+	fPopBuf   = 0x1000000 // pop the last string character
 
 	alphabet = 128
 )
@@ -211,10 +214,15 @@ var (
 		stStrQuote: {
 			{``, fNext | fPushBuf},
 			{"`", stStrEscapeQuote},
+			{"$", stStrExp | fPushBuf},
 		},
 		stStrEscapeQuote: {
 			{``, fToken | fStay | fBuf | tkStr},
 			{"`", fPushBuf | stStrQuote},
+		},
+		stStrExp: {
+			{``, fPushBuf | stStrQuote},
+			{`{`, fToken | fPopBuf | fNext | fBuf | tkStr | fExp},
 		},
 		stStrDoubleQuote: {
 			{``, fNext | fPushBuf},
@@ -223,6 +231,7 @@ var (
 		},
 		stStrBackSlash: {
 			{``, stStrDoubleQuote | fPushBuf},
+			{`{`, fToken | fPopBuf | fNext | fBuf | tkStr | fExp},
 		},
 	}
 

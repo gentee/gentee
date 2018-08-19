@@ -15,7 +15,8 @@ const (
 
 // VirtualMachine contains information of compiled source code
 type VirtualMachine struct {
-	Units map[string]*Unit
+	Units []*Unit
+	Names map[string]int
 }
 
 // UnitType is used for types of runs or packages
@@ -40,7 +41,8 @@ type Unit struct {
 // NewVM returns a new virtual machine
 func NewVM() *VirtualMachine {
 	vm := VirtualMachine{
-		Units: make(map[string]*Unit),
+		Names: make(map[string]int),
+		Units: make([]*Unit, 0, 32),
 	}
 	return &vm
 }
@@ -73,10 +75,20 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 	return nil
 }
 
+// StdLib returns the pointer to Standard Library Unit
+func (vm *VirtualMachine) StdLib() *Unit {
+	return vm.Units[vm.Names[DefName]]
+}
+
+// Unit returns the pointer to Unit by its name
+func (vm *VirtualMachine) Unit(name string) *Unit {
+	return vm.Units[vm.Names[name]]
+}
+
 // Run executes run block
 func (vm *VirtualMachine) Run(name string) (interface{}, error) {
 	rt := newRunTime(vm)
-	unit := vm.Units[name]
+	unit := vm.Unit(name)
 	if unit == nil || unit.Type == UnitPackage {
 		return nil, runtimeError(rt, ErrRunIndex)
 	}

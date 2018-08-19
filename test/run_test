@@ -1,3 +1,23 @@
+#! gentee
+###
+  variable = value
+###
+run int { 
+  str st = "four"
+  return *`begin ${ `10` + "value\{20}"}`+*st
+}
+===== 19
+run str { 
+  return "\{1} \{"expression\{1-3}"}"
+}
+===== 1 expression-2
+run str { 
+  str stest = `${"str"}$qqq ${10}qq ${ "abc" > `${0+2}` } `
+  return stest + `end${
+  33*2
+  }`
+}
+===== str$qqq 10qq true end66
 run str { 
   str stest = "те\nст `string`
  line"

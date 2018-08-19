@@ -35,7 +35,7 @@ func newRunTime(vm *VirtualMachine) *RunTime {
 
 	for _, item := range []string{ConstDepth, ConstCycle} {
 		// TODO: Insert redefinition of constants here
-		rt.runCmd(vm.Units[DefName].Names[item].(*ConstObject).Exp)
+		rt.runCmd(vm.StdLib().Names[item].(*ConstObject).Exp)
 		rt.Consts[item] = rt.Stack[len(rt.Stack)-1]
 	}
 	return rt

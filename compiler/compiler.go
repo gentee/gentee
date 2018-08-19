@@ -88,8 +88,10 @@ var (
 		tkBitNot | tkUnary:       {30, true, `BitNot`},
 		tkSub | tkUnary:          {30, true, `Sign`},
 		tkNot | tkUnary:          {30, true, `Not`},
+		tkMul | tkUnary:          {30, true, `Len`},
 		tkInc | tkUnary:          {30, true, ``},
 		tkDec | tkUnary:          {30, true, ``},
+		tkStrExp:                 {35, false, `ExpStr`},
 		tkLPar:                   {50, true, ``},
 		tkRPar:                   {50, true, ``},
 	}
@@ -143,7 +145,8 @@ main:
 		next := compileTable[state][token.Type]
 		cmpl.states = &stackState
 		cmpl.newState = 0
-		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type, getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
+		//		fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type,
+		//getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
 		flag := next.Action & 0xff0000
 		if flag&cfError != 0 {
 			return cmpl.Error(next.Action & 0xffff)
@@ -219,7 +222,8 @@ main:
 	if cmpl.runID != core.Undefined {
 		cmpl.unit.Type = core.UnitRun
 		cmpl.unit.RunID = cmpl.runID
-		vm.Units[``] = cmpl.unit
+		vm.Units = append(vm.Units, cmpl.unit)
+		vm.Names[``] = len(vm.Units) - 1
 	} else {
 		cmpl.unit.Type = core.UnitPackage
 		// TODO: append to vm.Packages
@@ -299,7 +303,7 @@ func getFunc(cmpl *compiler, name string, params []*core.TypeObject) (obj core.I
 		}
 		return nil
 	}
-	if obj = checkUnit(cmpl.vm.Units[core.DefName]); obj == nil {
+	if obj = checkUnit(cmpl.vm.StdLib()); obj == nil {
 		obj = checkUnit(cmpl.unit)
 	}
 	return obj
@@ -352,7 +356,7 @@ func getType(cmpl *compiler) (obj core.IObject, err error) {
 	token := getToken(cmpl.getLex(), cmpl.pos)
 	findType(cmpl.unit.Names[token])
 	if obj == nil {
-		findType(cmpl.vm.Units[core.DefName].Names[token])
+		findType(cmpl.vm.StdLib().Names[token])
 	}
 	if obj == nil {
 		return nil, cmpl.Error(ErrType)
@@ -383,7 +387,7 @@ func coVar(cmpl *compiler) error {
 	if isCapital(token) {
 		return cmpl.Error(ErrCapitalLetters)
 	}
-	if cmpl.vm.Units[core.DefName].Names[token] != nil ||
+	if cmpl.vm.StdLib().Names[token] != nil ||
 		cmpl.unit.Names[token] != nil {
 		return cmpl.Error(ErrUsedName, token)
 	}
@@ -573,7 +577,7 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 func popBuf(cmpl *compiler) error {
 	expBuf := cmpl.expbuf[len(cmpl.expbuf)-1]
 	prior := priority[expBuf.Oper]
-	obj := cmpl.vm.Units[core.DefName].Names[prior.Name]
+	obj := cmpl.vm.StdLib().Names[prior.Name]
 	switch expBuf.Oper {
 	case tkAnd, tkOr:
 		if len(cmpl.exp) < 2 {
@@ -591,6 +595,28 @@ func popBuf(cmpl *compiler) error {
 		icmd := &core.CmdBlock{ID: uint32(id),
 			Result: right.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Children: []core.ICmd{left, right}}
+		cmpl.exp[len(cmpl.exp)-2] = icmd
+		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
+	case tkStrExp:
+		if len(cmpl.exp) < 2 {
+			return cmpl.Error(ErrValue)
+		}
+		right := cmpl.exp[len(cmpl.exp)-1]
+		left := cmpl.exp[len(cmpl.exp)-2]
+		for obj != nil {
+			params := obj.GetParams()
+			if len(params) == 2 && left.GetResult() == params[0] &&
+				right.GetResult() == params[1] {
+				break
+			}
+			obj = obj.GetNext()
+		}
+		if obj == nil {
+			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
+				left.GetResult(), right.GetResult()})
+		}
+		icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
+			Object: obj, Result: obj.Result(), Left: left, Right: right}
 		cmpl.exp[len(cmpl.exp)-2] = icmd
 		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
 	case tkAssign, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq, tkBitAndEq,
@@ -650,7 +676,7 @@ func popBuf(cmpl *compiler) error {
 		icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Object: obj, Result: obj.Result(), Left: left, Right: right}
 		if expBuf.Oper == tkNotEqual || expBuf.Oper == tkLessEqual || expBuf.Oper == tkGreaterEqual {
-			objNot := cmpl.vm.Units[core.DefName].Names[`Not`]
+			objNot := cmpl.vm.StdLib().Names[`Not`]
 			for objNot != nil {
 				params := objNot.GetParams()
 				if len(params) == 1 && obj.Result() == params[0] {
@@ -690,7 +716,7 @@ func popBuf(cmpl *compiler) error {
 			Result: top.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Children: []core.ICmd{top}}
 		cmpl.exp[len(cmpl.exp)-1] = icmd
-	case tkSub | tkUnary, tkNot | tkUnary, tkBitNot | tkUnary:
+	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitNot | tkUnary:
 		if len(cmpl.exp) == 0 {
 			return cmpl.Error(ErrValue)
 		}
@@ -703,7 +729,8 @@ func popBuf(cmpl *compiler) error {
 			obj = obj.GetNext()
 		}
 		if obj == nil {
-			return cmpl.Error(ErrCompiler, `popBuf unary`)
+			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name,
+				[]*core.TypeObject{top.GetResult()})
 		}
 		icmd := &core.CmdUnary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Object: obj, Result: obj.Result(), Operand: cmpl.exp[len(cmpl.exp)-1]}
@@ -934,12 +961,11 @@ func coPush(cmpl *compiler) error {
 				return cmpl.Error(ErrDoubleQuotes)
 			}
 		}
-		fmt.Println(`STR TOKEN`, lp.Tokens[cmpl.pos].Index, v)
 		vType = `str`
 	}
 	appendExp(cmpl, &core.CmdValue{Value: v,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
-		Result:    cmpl.vm.Units[core.DefName].Names[vType].(*core.TypeObject)})
+		Result:    cmpl.vm.StdLib().Names[vType].(*core.TypeObject)})
 	return nil
 }
 
@@ -970,7 +996,7 @@ func coExpVar(cmpl *compiler) error {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrIota)
 		}
 		if constObj, ok = cmpl.unit.Names[token]; !ok {
-			constObj, _ = cmpl.vm.Units[core.DefName].Names[token]
+			constObj, _ = cmpl.vm.StdLib().Names[token]
 		}
 		if constObj != nil {
 			appendExp(cmpl, &core.CmdConst{

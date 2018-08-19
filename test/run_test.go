@@ -1,4 +1,4 @@
-// Copyright 2018 The Gentee Authors. All rights reserved.
+// Copyright 2018 Alexey Krivonogov. All rights reserved.
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
@@ -43,7 +43,7 @@ func TestRun(t *testing.T) {
 			}
 
 			want := strings.TrimSpace(strings.TrimLeft(line, `=`))
-			err = workspace.Compile(strings.Join(source, "\n"))
+			_, err = workspace.Compile(strings.Join(source, "\n"), ``)
 			source = source[:0]
 			if err != nil && err.Error() != strings.TrimSpace(want) {
 				return testErr(err)

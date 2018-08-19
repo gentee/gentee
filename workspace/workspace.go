@@ -28,23 +28,27 @@ func New() *Workspace {
 }
 
 // Compile compiles the source code
-func (workspace *Workspace) Compile(input string) error {
-	return compiler.Compile(workspace.VM, input, ``)
+func (workspace *Workspace) Compile(input, name string) (*core.Unit, error) {
+	if err := compiler.Compile(workspace.VM, input, name); err != nil {
+		return nil, err
+	}
+	return workspace.VM.Units[len(workspace.VM.Units)-1], nil
 }
 
 // CompileFile compiles the source file
-func (workspace *Workspace) CompileFile(filename string) error {
+func (workspace *Workspace) CompileFile(filename string) (*core.Unit, error) {
 	absname, err := filepath.Abs(filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	input, err := ioutil.ReadFile(absname)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return compiler.Compile(workspace.VM, string(input), absname)
+	return workspace.Compile(string(input), absname)
 }
 
+// Run executes the unit with specified name
 func (workspace *Workspace) Run(name string) (interface{}, error) {
 	return workspace.VM.Run(name)
 }

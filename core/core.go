@@ -63,6 +63,7 @@ type Lex struct {
 	Tokens  []Token
 	Lines   []int    // offsets of lines
 	Strings []string // array of constant strings
+	Header  string   // # header
 }
 
 // ICmd is an interface for stack commands

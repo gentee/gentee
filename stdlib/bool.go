@@ -11,11 +11,12 @@ import (
 // InitBool appends stdlib bool functions to the virtual machine
 func InitBool(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		strºBool, // str( bool )
-		intºBool, // int( bool )
-		Not,      // unary boolean not
+		strºBool,    // str( bool )
+		intºBool,    // int( bool )
+		Not,         // unary boolean not
+		ExpStrºBool, // expression in string
 	} {
-		vm.Units[core.DefName].NewEmbed(item)
+		vm.StdLib().NewEmbed(item)
 	}
 }
 
@@ -38,4 +39,9 @@ func intºBool(val bool) int64 {
 		return 1
 	}
 	return 0
+}
+
+// ExpStrºBool adds string and boolean in string expression
+func ExpStrºBool(left string, right bool) string {
+	return left + strºBool(right)
 }

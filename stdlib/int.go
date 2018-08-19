@@ -14,25 +14,26 @@ import (
 // InitInt appends stdlib int functions to the virtual machine
 func InitInt(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		Add,      // binary +
-		Div,      // binary /
-		Equal,    // binary ==
-		Greater,  // binary >
-		Less,     // binary <
-		Mod,      // binary %
-		Mul,      // binary *
-		Sign,     // unary sign -
-		Sub,      // binary -
-		BitOr,    // bitwise OR
-		BitXor,   // bitwise XOR
-		BitAnd,   // bitwise AND
-		LShift,   // binary <<
-		RShift,   // binary >>
-		BitNot,   // unary bitwise NOT
-		strºInt,  // str( int )
-		boolºInt, // bool( int )
+		Add,        // binary +
+		Div,        // binary /
+		Equal,      // binary ==
+		Greater,    // binary >
+		Less,       // binary <
+		Mod,        // binary %
+		Mul,        // binary *
+		Sign,       // unary sign -
+		Sub,        // binary -
+		BitOr,      // bitwise OR
+		BitXor,     // bitwise XOR
+		BitAnd,     // bitwise AND
+		LShift,     // binary <<
+		RShift,     // binary >>
+		BitNot,     // unary bitwise NOT
+		strºInt,    // str( int )
+		boolºInt,   // bool( int )
+		ExpStrºInt, // expression in string
 	} {
-		vm.Units[core.DefName].NewEmbed(item)
+		vm.StdLib().NewEmbed(item)
 	}
 }
 
@@ -128,4 +129,9 @@ func strºInt(val int64) string {
 // boolºInt converts integer value to boolean 0->false, not 0 -> true
 func boolºInt(val int64) bool {
 	return val != 0
+}
+
+// ExpStrºInt adds string and integer in string expression
+func ExpStrºInt(left string, right int64) string {
+	return left + strºInt(right)
 }

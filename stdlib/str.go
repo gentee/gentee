@@ -18,15 +18,22 @@ func InitStr(vm *core.VirtualMachine) {
 		AddºStr,     // binary +
 		EqualºStr,   // binary ==
 		GreaterºStr, // binary >
+		LenºStr,     // teh length of str
 		LessºStr,    // binary <
 		intºStr,     // int( str )
 		boolºStr,    // bool( str )
+		ExpStr,      // expression in string
 	} {
-		vm.Units[core.DefName].NewEmbed(item)
+		vm.StdLib().NewEmbed(item)
 	}
 }
 
-// AddºStr add two integer value
+// ExpStr adds two strings in string expression
+func ExpStr(left, right string) string {
+	return left + right
+}
+
+// AddºStr adds two integer value
 func AddºStr(left, right string) string {
 	return left + right
 }
@@ -39,6 +46,11 @@ func EqualºStr(left, right string) bool {
 // GreaterºStr returns true if left > right
 func GreaterºStr(left, right string) bool {
 	return left > right
+}
+
+// LenºStr returns teh length of the string
+func LenºStr(param string) int64 {
+	return int64(len(param))
 }
 
 // LessºStr returns true if left < right

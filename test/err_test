@@ -1,3 +1,32 @@
+###
+# test
+run int { 
+  return 2
+}
+===== 0:0: source code is empty
+#!gentee
+#
+run int { 
+  return "2+3"
+}
+===== 4:3: function returns wrong type
+run int { 
+  return *20
+}
+===== 2:10: function Len(int) has not been found
+run str { 
+  return "\{ if true {}}`
+}
+===== 2:14: unexpected token, expecting value, identifier or calling func
+run str { 
+  return `${10
+  20}`
+}
+===== 3:3: unexpected token, expecting operator
+run str { 
+  return `end${}`
+}
+===== 2:16: unexpected token, expecting value, identifier or calling func
 run str {
   return "left \z"
 } 

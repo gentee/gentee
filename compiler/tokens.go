@@ -56,6 +56,7 @@ const (
 	tkBitXorEq                 // ^=
 	tkInc                      // ++
 	tkDec                      // --
+	tkStrExp                   // expression inside the string
 )
 
 // Keywords

@@ -140,7 +140,7 @@ var (
 		cmExp: {
 			{tkDefault, cfError | ErrValue, nil, 0},
 			{[]int{tkInt, tkIntHex, tkIntOct, tkFalse, tkTrue, tkStr}, cmExpOper, coPush, 1},
-			{[]int{tkSub, tkNot, tkBitNot, tkInc, tkDec}, cfSkip, coUnaryOperator, 0},
+			{[]int{tkSub, tkMul, tkNot, tkBitNot, tkInc, tkDec}, cfSkip, coUnaryOperator, 0},
 			{[]int{tkLPar, tkRPar}, cfSkip, coOperator, 0},
 			{tkLine, cfBack, coExpEnd, 0},
 			{tkLCurly, cfStay | cfBack, coExpEnd, 0},
@@ -154,6 +154,7 @@ var (
 		},
 		cmExpOper: {
 			{tkDefault, cfError | ErrOper, nil, 0},
+			{tkStrExp, cfBack, coOperator, 0},
 			{[]int{tkAdd, tkDiv, tkMod, tkMul, tkSub, tkEqual, tkNotEqual, tkGreater, tkGreaterEqual,
 				tkLess, tkLessEqual, tkAssign, tkOr, tkAnd, tkBitOr, tkBitAnd, tkBitXor, tkLShift,
 				tkRShift, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq,
