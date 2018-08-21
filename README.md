@@ -22,19 +22,19 @@ Wndows: gentee.exe scipts/myscript.g
 ```
 * Also, you can associate the *gentee* program with script files in your operating system.
 
-## Gentee compiler
+### Gentee compiler
 
 ```gentee [-t] <scriptname> (<scriptname>)```
 
 By default, the program prints the output of the script to the console and returns 0 if successful.
 
-### Command line parameters
+#### Command line parameters
 
 * **scriptname** - full or relative path to the script file. If several scripts are specified, then they will be executed sequentially.
-* **-t** - test the script. When using this parameter, the script must have the **result** parameter in the header with the expected value ((example)[https://github.com/gentee/gentee/blob/master/test/scripts/ok.g]). In this mode, the program does not output the result of 
+* **-t** - test the script. When using this parameter, the script must have the **result** parameter in the header with the expected value ([example](https://github.com/gentee/gentee/blob/master/test/scripts/ok.g)). In this mode, the program does not output the result of 
 the script execution to the console. If the result does not match, an error message is displayed and an error code 4 is returned.
 
-### Error code
+#### Error code
 
 Code | Description
 -----|----------
