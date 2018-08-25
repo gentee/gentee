@@ -17,7 +17,7 @@ func getWant(v interface{}, want string) error {
 	get := fmt.Sprint(v)
 	want = strings.Replace(want, `\n`, "\n", -1)
 	if get != want {
-		return fmt.Errorf("get != want; %s != %s", get, want)
+		return fmt.Errorf("get != want;\n%s !=\n%s", get, want)
 	}
 	return nil
 }
@@ -43,7 +43,7 @@ func TestRun(t *testing.T) {
 			}
 
 			want := strings.TrimSpace(strings.TrimLeft(line, `=`))
-			_, err = workspace.Compile(strings.Join(source, "\n"), ``)
+			unit, err := workspace.Compile(strings.Join(source, "\n"), ``)
 			source = source[:0]
 			if err != nil && err.Error() != strings.TrimSpace(want) {
 				return testErr(err)
@@ -51,7 +51,7 @@ func TestRun(t *testing.T) {
 			if err != nil {
 				continue
 			}
-			result, err := workspace.Run(``)
+			result, err := workspace.Run(unit.Name)
 			if err == nil {
 				if err = getWant(result, want); err != nil {
 					return testErr(err)

@@ -102,13 +102,18 @@ func init() {
 	makeCompileTable()
 }
 
+func (cmpl *compiler) curOwner() *core.CmdBlock {
+	return cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+}
+
 // Compile compiles the source code
-func Compile(vm *core.VirtualMachine, input, name string) error {
+func Compile(vm *core.VirtualMachine, input, path string) error {
 	var (
 		state int
 	)
 
 	lp, errID := LexParsing([]rune(input))
+	lp.Path = path
 	cmpl := &compiler{
 		vm: vm,
 		unit: &core.Unit{
@@ -145,8 +150,8 @@ main:
 		next := compileTable[state][token.Type]
 		cmpl.states = &stackState
 		cmpl.newState = 0
-		//		fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type,
-		//getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
+		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type,
+		//	getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
 		flag := next.Action & 0xff0000
 		if flag&cfError != 0 {
 			return cmpl.Error(next.Action & 0xffff)
@@ -222,8 +227,20 @@ main:
 	if cmpl.runID != core.Undefined {
 		cmpl.unit.Type = core.UnitRun
 		cmpl.unit.RunID = cmpl.runID
-		vm.Units = append(vm.Units, cmpl.unit)
-		vm.Names[``] = len(vm.Units) - 1
+		if len(cmpl.unit.Name) == 0 {
+			cmpl.unit.Name = path
+		}
+		if unitIndex, ok := vm.Names[cmpl.unit.Name]; ok {
+			if vm.Units[unitIndex].Lexeme[0].Path != path {
+				return cmpl.Error(ErrLink, cmpl.unit.Name)
+			}
+			vm.Units[unitIndex] = cmpl.unit
+			vm.Compiled = unitIndex
+		} else {
+			vm.Units = append(vm.Units, cmpl.unit)
+			vm.Compiled = len(vm.Units) - 1
+			vm.Names[cmpl.unit.Name] = vm.Compiled
+		}
 	} else {
 		cmpl.unit.Type = core.UnitPackage
 		// TODO: append to vm.Packages
@@ -279,6 +296,20 @@ func coRun(cmpl *compiler) error {
 		return cmpl.Error(ErrRun)
 	}
 	cmpl.runID = newFunc(cmpl, `run`)
+	return nil
+}
+
+func coRunName(cmpl *compiler) error {
+	token := getToken(cmpl.getLex(), cmpl.pos)
+	if len(cmpl.unit.Name) != 0 {
+		cmpl.newState = cmLCurly
+		return coRetType(cmpl)
+	} else if _, err := getType(cmpl); err != nil {
+		cmpl.unit.Name = token
+	} else {
+		cmpl.newState = cmLCurly
+		return coRetType(cmpl)
+	}
 	return nil
 }
 
@@ -391,7 +422,7 @@ func coVar(cmpl *compiler) error {
 		cmpl.unit.Names[token] != nil {
 		return cmpl.Error(ErrUsedName, token)
 	}
-	block := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+	block := cmpl.curOwner()
 	for block != nil {
 		if _, ok := block.VarNames[token]; ok {
 			return cmpl.Error(ErrUsedName, token)
@@ -420,7 +451,7 @@ func coConst(cmpl *compiler) error {
 func coConstEnum(cmpl *compiler) error {
 	if cmpl.callback {
 		if cmpl.expConst == nil {
-			owner := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+			owner := cmpl.curOwner()
 			cmpl.expConst = owner.Children[0]
 			cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
 			cmpl.newState = cmConstListStart
@@ -474,7 +505,7 @@ func coRetType(cmpl *compiler) error {
 }
 
 func appendCmd(cmpl *compiler, cmd core.ICmd) {
-	owner := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+	owner := cmpl.curOwner()
 	if cmd.GetType() == core.CtStack {
 		cmd.(*core.CmdBlock).Parent = owner
 	}
@@ -508,6 +539,13 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 						params := make([]*core.TypeObject, 0)
 						for i := 0; i < numParams; i++ {
 							params = append(params, cmpl.exp[prevToken.LenExp+i].GetResult())
+						}
+						if nameFunc == `$` {
+							if len(cmpl.expbuf) == 1 && cmpl.curOwner().ID != core.StackReturn {
+								nameFunc = `Command`
+							} else {
+								nameFunc = `CommandOutput`
+							}
 						}
 						if nameFunc == `?` {
 							if numParams != 3 || !isBoolResult(cmpl.exp[prevToken.LenExp]) {
@@ -760,15 +798,14 @@ func coExpEnd(cmpl *compiler) error {
 		return cmpl.Error(ErrCompiler, `coExpEnd`)
 	}
 	if len(cmpl.exp) > 0 {
-		cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock).Children =
-			append(cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock).Children, cmpl.exp[len(cmpl.exp)-1])
+		cmpl.curOwner().Children = append(cmpl.curOwner().Children, cmpl.exp[len(cmpl.exp)-1])
 	}
 	return nil
 }
 
 func coWhile(cmpl *compiler) error {
 	if cmpl.callback {
-		cmd := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+		cmd := cmpl.curOwner()
 		if cmd.ID == core.StackWhile {
 			if len(cmd.Children) == 1 {
 				if !isBoolResult(cmd.Children[0]) {
@@ -795,7 +832,7 @@ func coWhile(cmpl *compiler) error {
 
 func coIf(cmpl *compiler) error {
 	if cmpl.callback {
-		cmd := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+		cmd := cmpl.curOwner()
 		if cmd.ID == core.StackIf {
 			if len(cmd.Children) == 1 {
 				if !isBoolResult(cmd.Children[0]) {
@@ -824,10 +861,10 @@ func coIf(cmpl *compiler) error {
 }
 
 func coElse(cmpl *compiler) error {
-	cmd := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+	cmd := cmpl.curOwner()
 	if cmd.ID != core.StackIf {
 		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-		cmd = cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+		cmd = cmpl.curOwner()
 	}
 	cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
@@ -838,7 +875,7 @@ func coElse(cmpl *compiler) error {
 
 func coElif(cmpl *compiler) error {
 	if cmpl.callback {
-		cmd := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+		cmd := cmpl.curOwner()
 		if cmd.ID == core.StackIf {
 			if !isBoolResult(cmd.Children[len(cmd.Children)-1]) {
 				cmpl.pos = cmd.Children[len(cmd.Children)-1].GetToken()
@@ -859,7 +896,7 @@ func coElif(cmpl *compiler) error {
 }
 
 func coIfEnd(cmpl *compiler) error {
-	if cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock).ID != core.StackIf {
+	if cmpl.curOwner().ID != core.StackIf {
 		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
 	}
 	return nil
@@ -878,7 +915,7 @@ func coVarExp(cmpl *compiler) error {
 
 func coReturn(cmpl *compiler) error {
 	if cmpl.callback {
-		owner := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+		owner := cmpl.curOwner()
 		funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
 		switch len(owner.Children) {
 		case 0:
@@ -907,7 +944,7 @@ func coReturn(cmpl *compiler) error {
 
 func coConstExp(cmpl *compiler) error {
 	if cmpl.callback {
-		owner := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+		owner := cmpl.curOwner()
 		constObj := &core.ConstObject{
 			Object: core.Object{
 				Name:  cmpl.curConst,
@@ -1007,7 +1044,7 @@ func coExpVar(cmpl *compiler) error {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
 		}
 	} else {
-		block := cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
+		block := cmpl.curOwner()
 		for block != nil {
 			if ind, ok := block.VarNames[token]; ok {
 				appendExp(cmpl, &core.CmdVar{Block: block, Index: ind,
@@ -1020,6 +1057,17 @@ func coExpVar(cmpl *compiler) error {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
 		}
 	}
+	return nil
+}
+
+func coExpEnv(cmpl *compiler) error {
+	token := getToken(cmpl.getLex(), cmpl.pos)
+	getEnv := cmpl.vm.StdLib().Names[`GetEnv`]
+	icmd := &core.CmdValue{Value: token[1:],
+		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
+		Result:    getEnv.Result()}
+	appendExp(cmpl, &core.CmdUnary{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
+		Object: getEnv, Result: getEnv.Result(), Operand: icmd})
 	return nil
 }
 

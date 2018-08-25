@@ -88,7 +88,8 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 		}
 		rt.Stack = rt.Stack[:lenStack]
 		result = reflect.ValueOf(cmd.GetObject().(*EmbedObject).Func).Call(pars)
-		if len(result) > 1 && result[len(result)-1].Interface() != nil {
+		last := result[len(result)-1].Interface()
+		if last != nil && reflect.TypeOf(last).String() == `*errors.errorString` {
 			var (
 				line, column int
 				lex          *Lex

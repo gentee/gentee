@@ -1,10 +1,39 @@
+run str {
+  return $GOPATH
+}
+===== %GOPATH
+run hello {
+  $ echo test
+}
+===== <nil>
+run str {
+  str name = $ echo count: %{ "10 1" + ` 2` }
+  return $ echo %{name} %{20+10}!
+}
+===== count: 10 1 2\n 30!\n
+run hello str {
+  str name = "world"
+  return $ echo Hello, %{name}!
+}
+===== Hello, world!\n
+run str { 
+  $ dir
+  str ret = $ echo `result "value"` тест  tt
+  ret += $ echo "your name"
+  return ret + $ echo 10 a 'b' {} ()
+}
+===== result "value" тест tt\nyour name\n10 a b {} ()\n
+run myname str { 
+  return `checking run myname`
+}
+===== checking run myname
 #! gentee
 ###
   variable = value
 ###
 run int { 
   str st = "four"
-  return *`begin ${ `10` + "value\{20}"}`+*st
+  return *`begin %{ `10` + "value\{20}"}`+*st
 }
 ===== 19
 run str { 
@@ -12,8 +41,8 @@ run str {
 }
 ===== 1 expression-2
 run str { 
-  str stest = `${"str"}$qqq ${10}qq ${ "abc" > `${0+2}` } `
-  return stest + `end${
+  str stest = `%{"str"}$qqq %{10}qq %{ "abc" > `%{0+2}` } `
+  return stest + `end%{
   33*2
   }`
 }

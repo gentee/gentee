@@ -45,7 +45,7 @@ const (
 	StackOr
 	// StackQuestion is ?(condition, exp1, exp2)
 	StackQuestion
-	// StackInc is ++ --
+	// StackIncDec is ++ --
 	StackIncDec
 )
 
@@ -64,6 +64,7 @@ type Lex struct {
 	Lines   []int    // offsets of lines
 	Strings []string // array of constant strings
 	Header  string   // # header
+	Path    string   // full path to the source
 }
 
 // ICmd is an interface for stack commands

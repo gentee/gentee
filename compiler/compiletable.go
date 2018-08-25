@@ -83,7 +83,7 @@ var (
 		},
 		cmRun: {
 			{tkDefault, cfError | ErrLCurly, nil, 0},
-			{tkIdent, cmLCurly, coRetType, 0},
+			{tkIdent, cfSkip, coRunName, 0},
 			{tkLine, cfSkip, nil, 0},
 			{tkLCurly, cmBody, nil, 0},
 		},
@@ -146,6 +146,7 @@ var (
 			{tkLCurly, cfStay | cfBack, coExpEnd, 0},
 			{tkRCurly, cfBack | cfStay, coExpEnd, 0},
 			{tkIdent, cmExpIdent, nil, 1},
+			{tkEnv, cmExpOper, coExpEnv, 1},
 			{tkQuestion, cmExpIdent, nil, 1},
 		},
 		cmExpIdent: {

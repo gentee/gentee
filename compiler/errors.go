@@ -84,6 +84,8 @@ const (
 	ErrIntOper
 	// ErrDoubleQuotes is return when there is a wrong command of backslash in double quotes strings
 	ErrDoubleQuotes
+	// ErrLink is return when the script with the same name but different path is already linked
+	ErrLink
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -125,6 +127,7 @@ var (
 		ErrIota:           `IOTA can be only used in const expression`,
 		ErrIntOper:        `wrong type of operands, expecting int type`,
 		ErrDoubleQuotes:   `invalid syntax of double quotes string`,
+		ErrLink:           `script %s has already been linked`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

@@ -15,8 +15,9 @@ const (
 
 // VirtualMachine contains information of compiled source code
 type VirtualMachine struct {
-	Units []*Unit
-	Names map[string]int
+	Units    []*Unit
+	Names    map[string]int
+	Compiled int // the index of the latest compiled unit
 }
 
 // UnitType is used for types of runs or packages
@@ -36,6 +37,7 @@ type Unit struct {
 	Names   map[string]IObject
 	Lexeme  []*Lex // The array of source code
 	RunID   int    // The index of run function. Undefined (-1) - run has not yet been defined
+	Name    string // The name of the unit
 }
 
 // NewVM returns a new virtual machine

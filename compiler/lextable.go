@@ -34,6 +34,10 @@ const (
 	stStrExp
 	stStrDoubleQuote
 	stStrBackSlash
+	stCmd
+	stCmdLine
+	stCmdLineExp
+	stEnvIdent
 
 	stError // it must be the last state
 
@@ -52,7 +56,7 @@ const (
 )
 
 /* Alphabet for preTable
-as is: _ 0 + - * / ( ) { } = ; , | & < > ! ? ^ % ~ ` " \
+as is: _ 0 + - * / ( ) { } = ; , | & < > ! ? ^ % ~ ` " \ $
 
 7 0-7
 9 0-9
@@ -104,6 +108,7 @@ var (
 			{`~`, fToken | tkBitNot},
 			{`!`, fStart | stNot},
 			{`?`, fToken | tkQuestion},
+			{`$`, fStart | stCmd},
 			{"`", fStart | fStartBuf | stStrQuote},
 			{`"`, fStart | fStartBuf | stStrDoubleQuote},
 			{`,`, fToken | tkComma},
@@ -214,7 +219,7 @@ var (
 		stStrQuote: {
 			{``, fNext | fPushBuf},
 			{"`", stStrEscapeQuote},
-			{"$", stStrExp | fPushBuf},
+			{"%", stStrExp | fPushBuf},
 		},
 		stStrEscapeQuote: {
 			{``, fToken | fStay | fBuf | tkStr},
@@ -232,6 +237,24 @@ var (
 		stStrBackSlash: {
 			{``, stStrDoubleQuote | fPushBuf},
 			{`{`, fToken | fPopBuf | fNext | fBuf | tkStr | fExp},
+		},
+		stCmd: {
+			{``, stError},
+			{`s`, fToken | tkCmdLine | fStartBuf},
+			{`z`, stEnvIdent},
+		},
+		stCmdLine: {
+			{``, fNext | fPushBuf},
+			{`n`, fToken | fStay | fBuf | tkStr},
+			{"%", stCmdLineExp | fPushBuf},
+		},
+		stCmdLineExp: {
+			{``, fPushBuf | stCmdLine},
+			{`{`, fToken | fPopBuf | fNext | fBuf | tkStr | fExp},
+		},
+		stEnvIdent: {
+			{``, fToken | tkEnv},
+			{`z9_`, fNext},
 		},
 	}
 

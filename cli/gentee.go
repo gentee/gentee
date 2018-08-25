@@ -54,7 +54,7 @@ func main() {
 		)
 		unit, err = workspace.CompileFile(script)
 		isError(errCompile)
-		result, err = workspace.Run(``)
+		result, err = workspace.Run(unit.Name)
 		isError(errRun)
 		resultStr := fmt.Sprint(result)
 		if testMode {

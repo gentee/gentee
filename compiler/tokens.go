@@ -12,6 +12,7 @@ const (
 	tkIntOct            // integer number (8-base)
 	tkType              // type name
 	tkStr               // string
+	tkEnv               // os environment
 	tkError             // tkError can be only the last tken
 )
 
@@ -57,6 +58,7 @@ const (
 	tkInc                      // ++
 	tkDec                      // --
 	tkStrExp                   // expression inside the string
+	tkCmdLine                  // $
 )
 
 // Keywords

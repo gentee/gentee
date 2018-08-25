@@ -73,6 +73,7 @@ func LexParsing(input []rune) (*core.Lex, int) {
 		}
 		newLine(off)
 	}
+	var cmdLine bool
 	for off < length {
 		ch := lp.Source[off]
 		if ch >= 127 {
@@ -107,6 +108,14 @@ func LexParsing(input []rune) (*core.Lex, int) {
 				// delete the last character
 				buf = buf[:len(buf)-1]
 			}
+			if todo&0xffff == tkCmdLine {
+				lp.Tokens = append(lp.Tokens, core.Token{Type: tkIdent, Offset: tokOff, Length: 1})
+				lp.Tokens = append(lp.Tokens, core.Token{Type: tkLPar, Offset: tokOff})
+				cmdLine = true
+				state = stCmdLine
+				off++
+				continue
+			}
 			if len(expDepth) > 0 && todo&0xffff == tkRCurly {
 				// the end of the string expression
 				buf = buf[:0]
@@ -121,11 +130,20 @@ func LexParsing(input []rune) (*core.Lex, int) {
 			if todo&fExp != 0 {
 				lp.Tokens = append(lp.Tokens, core.Token{Type: tkStrExp, Offset: tokOff})
 				lp.Tokens = append(lp.Tokens, core.Token{Type: tkLPar, Offset: tokOff})
-				strState := stStrDoubleQuote
-				if lp.Source[off-2] == '$' {
+				var strState int
+				switch state {
+				case stCmdLineExp:
+					strState = stCmdLine
+				case stStrBackSlash:
+					strState = stStrDoubleQuote
+				default: // stStrExp
 					strState = stStrQuote
 				}
 				expDepth = append(expDepth, strState)
+			}
+			if cmdLine && todo&0xffff == tkStr && ch == 0xa {
+				lp.Tokens = append(lp.Tokens, core.Token{Type: tkRPar, Offset: tokOff})
+				cmdLine = false
 			}
 			if state != stMain {
 				state = stMain

@@ -16,6 +16,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitInt(vm)
 	InitBool(vm)
 	InitStr(vm)
+	InitSystem(vm)
 
 	vm.StdLib().NewConst(core.ConstDepth, int64(1000), true)
 	vm.StdLib().NewConst(core.ConstCycle, int64(16000000), true)

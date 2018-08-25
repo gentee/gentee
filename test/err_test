@@ -1,3 +1,19 @@
+run { 
+  $=
+}
+===== 2:4: wrong sequence of characters
+run { 
+  str a = $ ""
+}
+===== 2:11: empty $ command
+run { 
+  $ 
+}
+===== 2:3: empty $ command
+run str { 
+  return $ echo "my test
+}
+===== 2:10: unclosed quotation mark in $ command
 ###
 # test
 run int { 
@@ -19,12 +35,12 @@ run str {
 }
 ===== 2:14: unexpected token, expecting value, identifier or calling func
 run str { 
-  return `${10
+  return `%{10
   20}`
 }
 ===== 3:3: unexpected token, expecting operator
 run str { 
-  return `end${}`
+  return `end%{}`
 }
 ===== 2:16: unexpected token, expecting value, identifier or calling func
 run str {
@@ -97,7 +113,7 @@ run { int a = 1+?(true,20)}
 run { bool a = true || 2 }
 ===== 1:21: wrong type of operands, expecting boolean type
 run { a = 10 $ 2 }
-===== 1:14: wrong sequence of characters
+===== 1:7: unknown identifier a
 run { 
   true 10
 }
@@ -197,8 +213,8 @@ run }
 ===== 1:5: unexpected token, expecting {
 run {return 10}
 ===== 1:6: function cannot return any value
-run wrong {}
-===== 1:5: unexpected token, expecting type
+run wrong test {}
+===== 1:11: unexpected token, expecting type
 run int {0x999}
 ===== 1:1: function must return a value
 run { 0779 }

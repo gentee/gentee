@@ -18,7 +18,7 @@ func InitStr(vm *core.VirtualMachine) {
 		AddºStr,     // binary +
 		EqualºStr,   // binary ==
 		GreaterºStr, // binary >
-		LenºStr,     // teh length of str
+		LenºStr,     // the length of str
 		LessºStr,    // binary <
 		intºStr,     // int( str )
 		boolºStr,    // bool( str )

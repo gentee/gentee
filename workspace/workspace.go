@@ -28,11 +28,11 @@ func New() *Workspace {
 }
 
 // Compile compiles the source code
-func (workspace *Workspace) Compile(input, name string) (*core.Unit, error) {
-	if err := compiler.Compile(workspace.VM, input, name); err != nil {
+func (workspace *Workspace) Compile(input, path string) (*core.Unit, error) {
+	if err := compiler.Compile(workspace.VM, input, path); err != nil {
 		return nil, err
 	}
-	return workspace.VM.Units[len(workspace.VM.Units)-1], nil
+	return workspace.VM.Units[workspace.VM.Compiled], nil
 }
 
 // CompileFile compiles the source file

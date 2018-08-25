@@ -7,6 +7,7 @@ package test
 import (
 	"os"
 	"os/exec"
+	"strconv"
 	"testing"
 )
 
@@ -36,6 +37,13 @@ func TestCli(t *testing.T) {
 	}
 	if err = getWant(out, "ok 777\n"); err != nil {
 		t.Error(err)
+		return
+	}
+	cmd = exec.Command(outputFile, `scripts/runname.g`, `scripts/ok.g`)
+	stdout, err = cmd.CombinedOutput()
+	out = string(stdout)
+	if out != "test\nERROR: 3:1: script ok has already been linked\n" {
+		t.Error(strconv.Quote(out))
 		return
 	}
 }
