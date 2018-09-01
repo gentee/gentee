@@ -90,9 +90,8 @@ type CmdValue struct {
 // CmdVar pushes the value of the variable into stack
 type CmdVar struct {
 	CmdCommon
-	Block  *CmdBlock // pointer to the block of the variable
-	Index  int       // the index of the variable in the block
-	LValue bool
+	Block *CmdBlock // pointer to the block of the variable
+	Index int       // the index of the variable in the block
 }
 
 // CmdConst pushes a value of the constant into stack

@@ -61,7 +61,7 @@ func main() {
 			for _, line := range strings.Split(unit.Lexeme[0].Header, "\n") {
 				ret := regexp.MustCompile(`\s*result\s*=\s*(.*)$`).FindStringSubmatch(line)
 				if len(ret) == 2 {
-					if ret[1] == resultStr {
+					if ret[1] == strings.TrimSpace(resultStr) {
 						return
 					}
 				}

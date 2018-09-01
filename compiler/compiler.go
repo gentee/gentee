@@ -54,17 +54,17 @@ type ExpBuf struct {
 
 var (
 	priority = map[int]Priority{
-		tkAssign:       {5, true, ``},
-		tkAddEq:        {5, true, `Add`},
-		tkSubEq:        {5, true, `Sub`},
-		tkMulEq:        {5, true, `Mul`},
-		tkDivEq:        {5, true, `Div`},
-		tkModEq:        {5, true, `Mod`},
-		tkLShiftEq:     {5, true, `LShift`},
-		tkRShiftEq:     {5, true, `RShift`},
-		tkBitAndEq:     {5, true, `BitAnd`},
-		tkBitOrEq:      {5, true, `BitOr`},
-		tkBitXorEq:     {5, true, `BitXor`},
+		tkAssign:       {5, true, `Assign`},
+		tkAddEq:        {5, true, `AssignAdd`},
+		tkSubEq:        {5, true, `AssignSub`},
+		tkMulEq:        {5, true, `AssignMul`},
+		tkDivEq:        {5, true, `AssignDiv`},
+		tkModEq:        {5, true, `AssignMod`},
+		tkLShiftEq:     {5, true, `AssignLShift`},
+		tkRShiftEq:     {5, true, `AssignRShift`},
+		tkBitAndEq:     {5, true, `AssignBitAnd`},
+		tkBitOrEq:      {5, true, `AssignBitOr`},
+		tkBitXorEq:     {5, true, `AssignBitXor`},
 		tkAnd:          {7, false, ``},
 		tkOr:           {8, false, ``},
 		tkBitOr:        {9, false, `BitOr`},
@@ -664,29 +664,37 @@ func popBuf(cmpl *compiler) error {
 		}
 		right := cmpl.exp[len(cmpl.exp)-1]
 		left := cmpl.exp[len(cmpl.exp)-2]
-		if left.GetResult() != right.GetResult() {
-			return cmpl.ErrorPos(expBuf.Pos, ErrAssign)
+
+		if expBuf.Oper == tkAssign && left.GetType() == core.CtUnary {
+			if left.GetObject() == cmpl.vm.StdLib().Names[`GetEnv`] {
+				setEnv := cmpl.vm.StdLib().Names[`SetEnv`]
+				icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
+					Object: setEnv,
+					Result: setEnv.Result(), Left: left.(*core.CmdUnary).Operand, Right: right}
+				cmpl.exp[len(cmpl.exp)-2] = icmd
+				cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
+				break
+			}
 		}
 		if left.GetType() != core.CtVar {
 			return cmpl.ErrorPos(expBuf.Pos, ErrLValue)
 		}
-		if len(prior.Name) > 0 {
-			for obj != nil {
-				params := obj.GetParams()
-				if len(params) == 2 && left.GetResult() == params[0] &&
-					right.GetResult() == params[1] {
-					break
-				}
-				obj = obj.GetNext()
+		for obj != nil {
+			params := obj.GetParams()
+			if len(params) == 2 && left.GetResult() == params[0] &&
+				right.GetResult() == params[1] {
+				break
 			}
-			if obj == nil {
-				return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
-					left.GetResult(), right.GetResult()})
-			}
-			right = &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-				Object: obj, Result: obj.Result(), Left: left, Right: right}
+			obj = obj.GetNext()
 		}
-		icmd := &core.CmdBlock{ID: core.StackAssign,
+		if obj == nil {
+			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
+				left.GetResult(), right.GetResult()})
+		}
+		//			right = &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
+		//				Object: obj, Result: obj.Result(), Left: left, Right: right}
+		//		}
+		icmd := &core.CmdBlock{ID: core.StackAssign, Object: obj,
 			Result: right.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Children: []core.ICmd{left, right}}
 		cmpl.exp[len(cmpl.exp)-2] = icmd

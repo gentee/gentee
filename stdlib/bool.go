@@ -11,13 +11,20 @@ import (
 // InitBool appends stdlib bool functions to the virtual machine
 func InitBool(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		strºBool,    // str( bool )
-		intºBool,    // int( bool )
-		Not,         // unary boolean not
-		ExpStrºBool, // expression in string
+		strºBool,        // str( bool )
+		intºBool,        // int( bool )
+		Not,             // unary boolean not
+		ExpStrºBool,     // expression in string
+		AssignºBoolBool, // bool = bool
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
+}
+
+// AssignºBoolBool assign one boolean to another
+func AssignºBoolBool(vars []interface{}, cmdVar *core.CmdVar, value bool) bool {
+	vars[cmdVar.Index] = value
+	return vars[cmdVar.Index].(bool)
 }
 
 // Not changes true to false or false to true

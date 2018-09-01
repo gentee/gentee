@@ -35,7 +35,7 @@ func TestCli(t *testing.T) {
 		t.Error(err, out)
 		return
 	}
-	if err = getWant(out, "ok 777\n"); err != nil {
+	if err = getWant(out, "ok 777\n\n"); err != nil {
 		t.Error(err)
 		return
 	}

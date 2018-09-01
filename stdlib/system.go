@@ -19,6 +19,7 @@ func InitSystem(vm *core.VirtualMachine) {
 		Command,       // $( str )
 		CommandOutput, // $( str )
 		GetEnv,        // get environment variable
+		SetEnv,        // set environment variable
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -88,5 +89,12 @@ func CommandOutput(cmdLine string) (string, error) {
 
 // GetEnv return the value of the environment variable
 func GetEnv(name string) string {
-	return `%` + name
+	return os.Getenv(name)
+}
+
+// SetEnv assign the value to the environment variable
+func SetEnv(name string, value interface{}) (string, error) {
+	ret := fmt.Sprint(value)
+	err := os.Setenv(name, ret)
+	return ret, err
 }

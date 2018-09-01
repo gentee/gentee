@@ -6,6 +6,7 @@ package stdlib
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -15,17 +16,45 @@ import (
 // InitStr appends stdlib int functions to the virtual machine
 func InitStr(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		AddºStr,     // binary +
-		EqualºStr,   // binary ==
-		GreaterºStr, // binary >
-		LenºStr,     // the length of str
-		LessºStr,    // binary <
-		intºStr,     // int( str )
-		boolºStr,    // bool( str )
-		ExpStr,      // expression in string
+		AddºStr,          // binary +
+		EqualºStr,        // binary ==
+		GreaterºStr,      // binary >
+		LenºStr,          // the length of str
+		LessºStr,         // binary <
+		intºStr,          // int( str )
+		boolºStr,         // bool( str )
+		ExpStr,           // expression in string
+		AssignºStrStr,    // str = str
+		AssignAddºStrStr, // str += str
+		AssignºStrBool,   // str = bool
+		AssignºStrInt,    // str = int
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
+}
+
+// AssignºStrStr assigns one string to another
+func AssignºStrStr(vars []interface{}, cmdVar *core.CmdVar, value string) string {
+	vars[cmdVar.Index] = value
+	return vars[cmdVar.Index].(string)
+}
+
+// AssignAddºStrStr appends one string to another
+func AssignAddºStrStr(vars []interface{}, cmdVar *core.CmdVar, value string) string {
+	vars[cmdVar.Index] = vars[cmdVar.Index].(string) + value
+	return vars[cmdVar.Index].(string)
+}
+
+// AssignºStrBool assigns boolean to string
+func AssignºStrBool(vars []interface{}, cmdVar *core.CmdVar, value bool) string {
+	vars[cmdVar.Index] = fmt.Sprint(value)
+	return vars[cmdVar.Index].(string)
+}
+
+// AssignºStrInt assigns integer to string
+func AssignºStrInt(vars []interface{}, cmdVar *core.CmdVar, value int64) string {
+	vars[cmdVar.Index] = fmt.Sprint(value)
+	return vars[cmdVar.Index].(string)
 }
 
 // ExpStr adds two strings in string expression

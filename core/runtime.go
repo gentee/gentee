@@ -41,6 +41,16 @@ func newRunTime(vm *VirtualMachine) *RunTime {
 	return rt
 }
 
+func (rt *RunTime) getVars(block *CmdBlock) ([]interface{}, error) {
+	var i int
+	for i = len(rt.Blocks) - 1; i >= 0; i-- {
+		if rt.Blocks[i].Block == block {
+			return rt.Blocks[i].Vars, nil
+		}
+	}
+	return nil, runtimeError(rt, ErrRuntime)
+}
+
 func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	var (
 		result []reflect.Value
@@ -117,6 +127,8 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 }
 
 func (rt *RunTime) runCmd(cmd ICmd) (err error) {
+	var vars []interface{}
+
 	rt.Calls = append(rt.Calls, cmd)
 	switch cmd.GetType() {
 	case CtFunc, CtBinary, CtUnary:
@@ -140,18 +152,10 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 		}
 	case CtVar:
 		cmdVar := cmd.(*CmdVar)
-		if !cmdVar.LValue {
-			var i int
-			for i = len(rt.Blocks) - 1; i >= 0; i-- {
-				if rt.Blocks[i].Block == cmdVar.Block {
-					rt.Stack = append(rt.Stack, rt.Blocks[i].Vars[cmdVar.Index])
-					break
-				}
-			}
-			if i < 0 {
-				return runtimeError(rt, ErrRuntime)
-			}
+		if vars, err = rt.getVars(cmdVar.Block); err != nil {
+			return err
 		}
+		rt.Stack = append(rt.Stack, vars[cmdVar.Index])
 	case CtStack:
 		cmdStack := cmd.(*CmdBlock)
 		lenStack := len(rt.Stack)
@@ -183,37 +187,52 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			lenStack++
 		case StackIncDec:
 			cmdVar := cmdStack.Children[0].(*CmdVar)
-			var i int
-			for i = len(rt.Blocks) - 1; i >= 0; i-- {
-				if rt.Blocks[i].Block == cmdVar.Block {
-					var post bool
-					val := rt.Blocks[i].Vars[cmdVar.Index].(int64)
-					shift := int64(cmdStack.ParCount)
-					if (shift & 0x1) == 0 {
-						post = true
-						shift /= 2
-					}
-					rt.Blocks[i].Vars[cmdVar.Index] = val + shift
-					if !post {
-						val += shift
-					}
-					rt.Stack = append(rt.Stack, val)
-					lenStack++
-					break
-				}
+			if vars, err = rt.getVars(cmdVar.Block); err != nil {
+				return err
 			}
+			var post bool
+			val := vars[cmdVar.Index].(int64)
+			shift := int64(cmdStack.ParCount)
+			if (shift & 0x1) == 0 {
+				post = true
+				shift /= 2
+			}
+			vars[cmdVar.Index] = val + shift
+			if !post {
+				val += shift
+			}
+			rt.Stack = append(rt.Stack, val)
+			lenStack++
 		case StackAssign:
 			if err = rt.runCmd(cmdStack.Children[1]); err != nil {
 				return err
 			}
 			cmdVar := cmdStack.Children[0].(*CmdVar)
-			var i int
-			for i = len(rt.Blocks) - 1; i >= 0; i-- {
-				if rt.Blocks[i].Block == cmdVar.Block {
-					rt.Blocks[i].Vars[cmdVar.Index] = rt.Stack[len(rt.Stack)-1]
-					break
-				}
+			if vars, err = rt.getVars(cmdVar.Block); err != nil {
+				return err
 			}
+			pars := []reflect.Value{reflect.ValueOf(vars), reflect.ValueOf(cmdVar),
+				reflect.ValueOf(rt.Stack[len(rt.Stack)-1])}
+			result := reflect.ValueOf(cmd.GetObject().(*EmbedObject).Func).Call(pars)
+			last := result[len(result)-1].Interface()
+			if last != nil && reflect.TypeOf(last).String() == `*errors.errorString` {
+				var (
+					line, column int
+					lex          *Lex
+				)
+				for i := len(rt.Calls) - 1; i >= 0 && lex == nil; i-- {
+					if rt.Calls[i].GetObject() == nil {
+						continue
+					}
+					if lex = rt.Calls[i].GetObject().GetLex(); lex != nil {
+						line, column = lex.LineColumn(cmd.GetToken())
+						break
+					}
+				}
+				return fmt.Errorf(`%d:%d: %s`, line, column, result[len(result)-1].Interface().(error))
+			}
+			rt.Stack[len(rt.Stack)-1] = result[0].Interface()
+			//			vars[cmdVar.Index] = rt.Stack[len(rt.Stack)-1]
 			lenStack++
 		case StackIf:
 			var i int

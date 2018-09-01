@@ -60,8 +60,6 @@ const (
 	ErrUsedName
 	// ErrUnknownIdent is returned when the compiler gets unknown identifier
 	ErrUnknownIdent
-	// ErrAssign is returned when assign operator is used for different types
-	ErrAssign
 	// ErrLValue is returned when left operand of assign is not l-value
 	ErrLValue
 	// ErrOper is return when there is not operator
@@ -115,7 +113,6 @@ var (
 		ErrFuncExists:     `function %s has already been defined`,
 		ErrUsedName:       `"%s" has already been used as the name of the function, type or variable`,
 		ErrUnknownIdent:   `unknown identifier %s`,
-		ErrAssign:         `assign different types`,
 		ErrLValue:         `expecting l-value in the left operand of assign operator`,
 		ErrOper:           `unexpected token, expecting operator`,
 		ErrBoolOper:       `wrong type of operands, expecting boolean type`,

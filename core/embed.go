@@ -31,6 +31,10 @@ func (unit *Unit) NewEmbed(Func interface{}) {
 		for i := 0; i < inCount; i++ {
 			inTypes[i] = unit.TypeByGoType(t.In(i))
 		}
+		if strings.HasPrefix(name, `Assign`) {
+			inTypes = inTypes[1:]
+			inTypes[0] = outType
+		}
 	}
 	unit.NewObject(&EmbedObject{
 		Object: Object{

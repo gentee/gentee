@@ -46,6 +46,7 @@ type Object struct {
 type TypeObject struct {
 	Object
 	Original reflect.Type // Original golang type
+	Pointer  bool         // True in case of passing by reference
 }
 
 // EmbedObject contains information about the golang function

@@ -1,7 +1,16 @@
 run str {
-  return $GOPATH
+  $BOOL = 10 == 10; str bs = 10 != 10
+  $INT = 123; str is = 321
+  $STR = `string`
+  return $BOOL + $INT + $STR + bs + is
 }
-===== %GOPATH
+===== true123stringfalse321
+run bool {
+  str stemp = `My Go path: %{$GOPATH}`
+  $MYVAR = stemp
+  return stemp == $MYVAR
+}
+===== true
 run hello {
   $ echo test
 }

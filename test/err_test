@@ -1,3 +1,7 @@
+run { int i = 20
+   i /= 0
+}
+===== 2:6: divided by zero
 run { 
   $=
 }
@@ -148,7 +152,7 @@ func param(int par) int {par=true}
 run int { 
   return param(8)
 }
-===== 1:29: assign different types
+===== 1:29: function Assign(int, bool) has not been found
 run int {
     return 46 + test * 45
 }
