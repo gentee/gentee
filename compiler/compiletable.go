@@ -139,7 +139,7 @@ var (
 		},
 		cmExp: {
 			{tkDefault, cfError | ErrValue, nil, 0},
-			{[]int{tkInt, tkIntHex, tkIntOct, tkFalse, tkTrue, tkStr}, cmExpOper, coPush, 1},
+			{[]int{tkInt, tkFalse, tkTrue, tkStr}, cmExpOper, coPush, 1},
 			{[]int{tkSub, tkMul, tkNot, tkBitNot, tkInc, tkDec}, cfSkip, coUnaryOperator, 0},
 			{[]int{tkLPar, tkRPar}, cfSkip, coOperator, 0},
 			{tkLine, cfBack, coExpEnd, 0},

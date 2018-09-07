@@ -4,75 +4,62 @@
 
 package compiler
 
-const (
-	// List of states
-	stMain = iota
-	stIdent
-	stInt
-	stHexOct
-	stHex
-	stOct
-	stDiv
-	stCommentLine
-	stComment
-	stCommentEnd
-	stEqual
-	stNot
-	stGreater
-	stLess
-	stOr
-	stAnd
-	stAdd
-	stSub
-	stMul
-	stRShift
-	stLShift
-	stXor
-	stMod
-	stStrQuote
-	stStrEscapeQuote
-	stStrExp
-	stStrDoubleQuote
-	stStrBackSlash
-	stCmd
-	stCmdLine
-	stCmdLineExp
-	stEnvIdent
+import (
+	"unicode"
 
-	stError // it must be the last state
-
-	// Flags for lexical parser
-	fStart    = 0x10000   // the beginning of the token
-	fToken    = 0x20000   // tken has been parsed
-	fNext     = 0x40000   // stay on the state and get the next character
-	fStay     = 0x80000   // stay on the current character
-	fStartBuf = 0x100000  // start temporary buffer
-	fPushBuf  = 0x200000  // append a character to temporary buffer
-	fBuf      = 0x400000  // save temporary buffer
-	fExp      = 0x800000  // start expression inside the string
-	fPopBuf   = 0x1000000 // pop the last string character
-
-	alphabet = 128
+	"github.com/gentee/gentee/core"
 )
 
-/* Alphabet for preTable
-as is: _ 0 + - * / ( ) { } = ; , | & < > ! ? ^ % ~ ` " \ $
-
-7 0-7
-9 0-9
-a a-fA-F
-n \n
-r \r
-s space
-t \t
-x xX
-z a-zA-Z and unicode letter
-*/
-
-type preState struct {
-	Key    string
-	Action int
+type lexItem struct {
+	Pattern interface{} // rune or string or []string or []rune
+	Action  int
+	Func    lexFunc
 }
+
+type lexFunc func(*lexEngine, int, int)
+
+const (
+	alphabet = 128
+
+	lexMain = iota + 1
+	lexIdent
+	lexOctHex
+	lexInt
+	lexOct
+	lexHex
+	lexStrQuote
+	lexStrDouble
+	lexCommentLine
+	lexComment
+	lexCmd
+	lexCmdLine
+	lexMustIdent
+
+	lexBack
+	lexBackNext
+	lexError
+)
+
+const (
+	fBack   = 0x010000 << iota // go to back further when callback
+	fNewBuf                    // Start a new buffer
+	fSkip                      // Skip next rune
+)
+
+const (
+	fullAlphabet = alphabet + 4
+	forP         = alphabet
+	forL         = alphabet + 1
+	forS         = alphabet + 2
+	forD         = alphabet + 3 // default action
+
+	isP = 1 << iota // IsPrint
+	isL             // IsLetter
+	isD             // IsDigit
+	isS             // IsSpace
+	isO             // IsOctetDigit
+	isH             // IsHexDigit
+)
 
 var (
 	keywords = map[string]int{
@@ -87,230 +74,348 @@ var (
 		`true`:   tkTrue,
 		`const`:  tkConst,
 	}
-	preTable = map[int][]preState{
-		stMain: {
-			{`z`, fStart | stIdent},
-			{`+`, fStart | stAdd},
-			{`-`, fStart | stSub},
-			{`*`, fStart | stMul},
-			{`/`, fStart | stDiv},
-			{`(`, fToken | tkLPar},
-			{`)`, fToken | tkRPar},
-			{`{`, fToken | tkLCurly},
-			{`}`, fToken | tkRCurly},
-			{`=`, fStart | stEqual},
-			{`&`, fStart | stAnd},
-			{`|`, fStart | stOr},
-			{`^`, fStart | stXor},
-			{`%`, fStart | stMod},
-			{`>`, fStart | stGreater},
-			{`<`, fStart | stLess},
-			{`~`, fToken | tkBitNot},
-			{`!`, fStart | stNot},
-			{`?`, fToken | tkQuestion},
-			{`$`, fStart | stCmd},
-			{"`", fStart | fStartBuf | stStrQuote},
-			{`"`, fStart | fStartBuf | stStrDoubleQuote},
-			{`,`, fToken | tkComma},
-			{`srt`, fNext},
-			{`9`, fStart | stInt},
-			{`0`, fStart | stHexOct},
-			{`n;`, fToken | tkLine},
+
+	charType [alphabet]int
+
+	preBack     = lexItem{nil, lexBack, nil}
+	preError    = lexItem{nil, lexError | ErrLetter, nil}
+	preLexTable = map[int][]lexItem{
+		lexMain: { // main
+			{nil, lexError | ErrLetter, nil},
+			{'S', 0, nil},
+			{[]rune{'\n', ';'}, 0, newLine},
+			{[]rune{'{', '(', ')', ',', '?', '~'}, 0, newSymbol},
+			{[]string{`+=`, `++`, `+`}, 0, newOper},
+			{[]string{`-=`, `--`, `-`}, 0, newOper},
+			{[]string{`*=`, `*`}, 0, newOper},
+			{[]string{`==`, `=`}, 0, newOper},
+			{[]string{`!=`, `!`}, 0, newOper},
+			{[]string{`<<=`, `<=`, `<<`, `<`}, 0, newOper},
+			{[]string{`>>=`, `>=`, `>>`, `>`}, 0, newOper},
+			{[]string{`||`, `|=`, `|`}, 0, newOper},
+			{[]string{`&&`, `&=`, `&`}, 0, newOper},
+			{[]string{`%=`, `%`}, 0, newOper},
+			{[]string{`^=`, `^`}, 0, newOper},
+			{'$', lexCmd, nil},
+			{':', 0, colon},
+			{'}', 0, endExp},
+			{[]string{`//`, `/*`, `/=`, `/`}, 0, newDiv},
+			{'`', lexStrQuote | fNewBuf, nil},
+			{'"', lexStrDouble | fNewBuf, nil},
+			{'L', lexIdent, newIdent},
+			{'D', lexInt, newInt},
+			{'0', lexOctHex, newInt},
 		},
-		stIdent: {
-			{``, fToken | tkIdent},
-			{`z9_`, fNext},
+		lexIdent: { // identifier
+			{[]rune{'L', 'D', '_'}, 0, nil},
 		},
-		stInt: {
-			{``, fToken | tkInt},
-			{`9`, fNext},
+		lexOctHex: { // number
+			{[]rune{'x', 'X'}, lexHex, nil},
+			{'O', lexOct, nil},
 		},
-		stHexOct: {
-			{``, fToken | tkInt},
-			{`x`, stHex},
-			{`7`, stOct},
+		lexInt: { // integer
+			{[]rune{'L', '_'}, lexError | ErrWord, nil},
+			{'D', 0, nil},
 		},
-		stHex: {
-			{``, fToken | tkIntHex},
-			{`z_`, stError},
-			{`9a`, fNext},
+		lexOct: { // octal integer
+			{[]rune{'L', 'D', '_'}, lexError | ErrWord, nil},
+			{'O', 0, nil},
 		},
-		stOct: {
-			{``, fToken | tkIntOct},
-			{`z9_`, stError},
-			{`7`, fNext},
+		lexHex: { // hex integer
+			{[]rune{'L', '_'}, lexError | ErrWord, nil},
+			{'H', 0, nil},
 		},
-		stDiv: {
-			{``, fToken | tkDiv},
-			{`=`, fNext | fToken | tkDivEq},
-			{`/`, stCommentLine},
-			{`*`, stComment},
+		lexStrQuote: {
+			{nil, 0, pushBuf},
+			{[]string{"``", "`"}, 0, endStr},
+			{`%{`, 0, expStr},
+			{`${`, lexMustIdent, newExpEnv},
 		},
-		stCommentLine: {
-			{``, fNext},
-			{`n`, fStay | stMain},
+		lexStrDouble: {
+			{nil, 0, pushBuf},
+			{'\\', 0, backSlash},
+			{'"', 0, newStr},
 		},
-		stComment: {
-			{``, fNext},
-			{`*`, stCommentEnd},
+		lexCommentLine: {
+			{nil, 0, nil},
+			{'\n', lexBack, nil},
 		},
-		stCommentEnd: {
-			{``, fStay | stComment},
-			{`/`, stMain},
+		lexComment: {
+			{nil, 0, nil},
+			{`*/`, lexBackNext, nil},
 		},
-		stEqual: {
-			{``, fToken | tkAssign},
-			{`=`, fNext | fToken | tkEqual},
+		lexCmd: {
+			{nil, lexError | ErrWord, nil},
+			{'L', lexIdent | fBack, newEnv},
+			{' ', lexCmdLine | fBack, newCmdLine},
 		},
-		stNot: {
-			{``, fToken | tkNot},
-			{`=`, fNext | fToken | tkNotEqual},
+		lexCmdLine: {
+			{nil, 0, pushBuf},
+			{`%{`, 0, expStr},
+			{`${`, lexMustIdent, newExpEnv},
+			{'\n', lexBack, nil},
 		},
-		stGreater: {
-			{``, fToken | tkGreater},
-			{`>`, stRShift},
-			{`=`, fNext | fToken | tkGreaterEqual},
-		},
-		stLess: {
-			{``, fToken | tkLess},
-			{`<`, stLShift},
-			{`=`, fNext | fToken | tkLessEqual},
-		},
-		stOr: {
-			{``, fToken | tkBitOr},
-			{`=`, fNext | fToken | tkBitOrEq},
-			{`|`, fNext | fToken | tkOr},
-		},
-		stAnd: {
-			{``, fToken | tkBitAnd},
-			{`=`, fNext | fToken | tkBitAndEq},
-			{`&`, fNext | fToken | tkAnd},
-		},
-		stAdd: {
-			{``, fToken | tkAdd},
-			{`=`, fNext | fToken | tkAddEq},
-			{`+`, fNext | fToken | tkInc},
-		},
-		stSub: {
-			{``, fToken | tkSub},
-			{`=`, fNext | fToken | tkSubEq},
-			{`-`, fNext | fToken | tkDec},
-		},
-		stMul: {
-			{``, fToken | tkMul},
-			{`=`, fNext | fToken | tkMulEq},
-		},
-		stRShift: {
-			{``, fToken | tkRShift},
-			{`=`, fNext | fToken | tkRShiftEq},
-		},
-		stLShift: {
-			{``, fToken | tkLShift},
-			{`=`, fNext | fToken | tkLShiftEq},
-		},
-		stXor: {
-			{``, fToken | tkBitXor},
-			{`=`, fNext | fToken | tkBitXorEq},
-		},
-		stMod: {
-			{``, fToken | tkMod},
-			{`=`, fNext | fToken | tkModEq},
-		},
-		stStrQuote: {
-			{``, fNext | fPushBuf},
-			{"`", stStrEscapeQuote},
-			{"%", stStrExp | fPushBuf},
-		},
-		stStrEscapeQuote: {
-			{``, fToken | fStay | fBuf | tkStr},
-			{"`", fPushBuf | stStrQuote},
-		},
-		stStrExp: {
-			{``, fPushBuf | stStrQuote},
-			{`{`, fToken | fPopBuf | fNext | fBuf | tkStr | fExp},
-		},
-		stStrDoubleQuote: {
-			{``, fNext | fPushBuf},
-			{`"`, fToken | fNext | fBuf | tkStr},
-			{`\`, stStrBackSlash | fPushBuf},
-		},
-		stStrBackSlash: {
-			{``, stStrDoubleQuote | fPushBuf},
-			{`{`, fToken | fPopBuf | fNext | fBuf | tkStr | fExp},
-		},
-		stCmd: {
-			{``, stError},
-			{`s`, fToken | tkCmdLine | fStartBuf},
-			{`z`, stEnvIdent},
-		},
-		stCmdLine: {
-			{``, fNext | fPushBuf},
-			{`n`, fToken | fStay | fBuf | tkStr},
-			{"%", stCmdLineExp | fPushBuf},
-		},
-		stCmdLineExp: {
-			{``, fPushBuf | stCmdLine},
-			{`{`, fToken | fPopBuf | fNext | fBuf | tkStr | fExp},
-		},
-		stEnvIdent: {
-			{``, fToken | tkEnv},
-			{`z9_`, fNext},
+		lexMustIdent: {
+			{nil, lexError | ErrEnvName, nil},
+			{'L', lexIdent | fBack, nil}, //newExpEnv},
 		},
 	}
-
-	parseTable [][alphabet]int
+	lexTable = make(map[int][fullAlphabet]*lexItem)
 )
 
-func makeParseTable() {
-
-	fromto := func(state, jump int, from, to rune) {
-		for i := from; i <= to; i++ {
-			parseTable[state][i] = jump
+func fillCharType() {
+	for i := 0; i < alphabet; i++ {
+		var val int
+		r := rune(i)
+		if unicode.IsPrint(r) {
+			val = isP
 		}
+		if unicode.IsLetter(r) {
+			val |= isL
+			if (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F') {
+				val |= isH
+			}
+		}
+		if unicode.IsDigit(r) {
+			val |= isD | isH
+			if r <= '7' {
+				val |= isO
+			}
+		}
+		if unicode.IsSpace(r) {
+			val |= isS
+		}
+		charType[i] = val
 	}
-	parseTable = make([][alphabet]int, stError)
-	for state, items := range preTable {
-		var (
-			def int
-		)
-		if items[0].Key == `` {
-			def = items[0].Action
-		} else {
-			def = stError
-		}
-		for i := 0; i < alphabet; i++ {
-			parseTable[state][i] = def
-		}
-		for _, item := range items {
-			jump := item.Action
-			for _, ch := range item.Key {
-				switch ch {
-				case '7':
-					fromto(state, jump, '0', '7')
-				case '9':
-					fromto(state, jump, '0', '9')
-				case 'a':
-					fromto(state, jump, 'a', 'f')
-					fromto(state, jump, 'A', 'F')
-				case 'n':
-					parseTable[state][0xa] = jump
-				case 'r':
-					parseTable[state][0xd] = jump
-				case 's':
-					parseTable[state][' '] = jump
-				case 't':
-					parseTable[state][0x9] = jump
-				case 'x':
-					parseTable[state]['x'] = jump
-					parseTable[state]['X'] = jump
-				case 'z':
-					fromto(state, jump, 'a', 'z')
-					fromto(state, jump, 'A', 'Z')
-					parseTable[state][alphabet-1] = jump
-				default:
-					parseTable[state][ch] = jump
-				}
+}
+
+func setJump(jumps *[fullAlphabet]*lexItem, in rune, ptr *lexItem) {
+	for i := 0; i < alphabet; i++ {
+		switch in {
+		case 'L':
+			if charType[i]&isL != 0 {
+				(*jumps)[i] = ptr
+			}
+		case 'S':
+			if charType[i]&isS != 0 {
+				(*jumps)[i] = ptr
+			}
+		case 'D':
+			if charType[i]&isD != 0 {
+				(*jumps)[i] = ptr
+			}
+		case 'O':
+			if charType[i]&isO != 0 {
+				(*jumps)[i] = ptr
+			}
+		case 'H':
+			if charType[i]&isH != 0 {
+				(*jumps)[i] = ptr
+			}
+		default:
+			if in == rune(i) {
+				(*jumps)[in] = ptr
 			}
 		}
 	}
+	// for runes which are greater then 127
+	switch in {
+	case 'P':
+		(*jumps)[forP] = ptr
+	case 'L':
+		(*jumps)[forL] = ptr
+	case 'S':
+		(*jumps)[forS] = ptr
+	}
+}
+
+func makeLexTable() {
+	fillCharType()
+	for state, items := range preLexTable {
+		var (
+			def   *lexItem
+			jumps [fullAlphabet]*lexItem
+		)
+		if items[0].Pattern == nil {
+			def = &items[0]
+		} else {
+			def = &preBack
+		}
+		for i := 0; i < fullAlphabet; i++ {
+			if i < alphabet && charType[i] == 0 {
+				jumps[i] = &preError
+			} else {
+				jumps[i] = def
+			}
+		}
+		for i, item := range items {
+			switch v := item.Pattern.(type) {
+			case rune:
+				setJump(&jumps, v, &preLexTable[state][i])
+			case string:
+				setJump(&jumps, rune(v[0]), &preLexTable[state][i])
+			case []string:
+				setJump(&jumps, rune(v[0][0]), &preLexTable[state][i])
+			case []rune:
+				for _, r := range v {
+					setJump(&jumps, r, &preLexTable[state][i])
+				}
+			default:
+				continue
+			}
+		}
+		lexTable[state] = jumps
+	}
+}
+
+func newIdent(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		tokType := tkIdent
+		if keyType, ok := keywords[string(lex.Lex.Source[start:off])]; ok {
+			tokType = keyType
+		}
+		lex.Lex.NewToken(tokType, start, off-start)
+	}
+}
+
+func newLine(lex *lexEngine, start, off int) {
+	if lex.Colon {
+		lex.Colon = false
+		lex.Lex.NewTokens(off, tkRCurly)
+	}
+	lex.Lex.NewTokens(off, tkLine)
+}
+
+func newSymbol(lex *lexEngine, start, off int) {
+	lex.Lex.NewTokens(off, oper2tk[string(lex.Lex.Source[off:off+1])])
+}
+
+func newOper(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		return
+	}
+	oper := string(lex.Lex.Source[start : off+1])
+	lex.Lex.NewToken(oper2tk[oper], start, len(oper))
+}
+
+func newInt(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		lex.Lex.NewToken(tkInt, start, off-start)
+	}
+}
+
+func newStr(lex *lexEngine, start, off int) {
+	start = lex.Stack[len(lex.Stack)-1].Offset
+	var index int
+	if len(lex.Buf) > 0 {
+		index = len(lex.Lex.Strings)
+		lex.Lex.Strings = append(lex.Lex.Strings, string(lex.Buf))
+	}
+	lex.Lex.Tokens = append(lex.Lex.Tokens, core.Token{Type: int32(tkStr), Index: int32(index),
+		Offset: start, Length: off - start})
+	lex.Buf = lex.Buf[:0]
+	if !lex.Callback {
+		lex.State = lexBackNext
+	}
+}
+
+func endStr(lex *lexEngine, start, off int) {
+	if off-start == 1 {
+		lex.Buf = append(lex.Buf, lex.Lex.Source[off])
+	} else {
+		newStr(lex, start, off)
+	}
+}
+
+func expStr(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		return
+	}
+	prev := lex.Stack[len(lex.Stack)-1]
+	newStr(lex, prev.Offset, off)
+	lex.Lex.NewTokens(off, tkStrExp, tkLPar)
+	lex.State = lexMain
+}
+
+func endExp(lex *lexEngine, start, off int) {
+	if len(lex.Stack) != 0 {
+		prev := lex.Stack[len(lex.Stack)-1]
+		if prev.State == lexStrQuote || prev.State == lexStrDouble || prev.State == lexCmdLine {
+			lex.Lex.NewTokens(off, tkRPar, tkStrExp)
+			lex.State = lexBackNext
+			return
+		}
+	}
+	newSymbol(lex, start, off)
+}
+
+func backSlash(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		return
+	}
+	if lex.Lex.Source[off+1] == '{' {
+		expStr(lex, start, off+1)
+		lex.State |= fSkip
+	} else {
+		lex.Buf = append(lex.Buf, lex.Lex.Source[off], lex.Lex.Source[off+1])
+		lex.State = fSkip
+	}
+}
+
+func pushBuf(lex *lexEngine, start, off int) {
+	lex.Buf = append(lex.Buf, lex.Lex.Source[off])
+}
+
+func newCmdLine(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		newStr(lex, start, off)
+		lex.Lex.NewTokens(start, tkRPar)
+		return
+	}
+	lex.Lex.NewTokens(start-1, tkIdent, tkLPar)
+	lex.Buf = lex.Buf[:0]
+}
+
+func newDiv(lex *lexEngine, start, off int) {
+	oper := string(lex.Lex.Source[start : off+1])
+	token := oper2tk[oper]
+	switch token {
+	case tkDiv, tkDivEq:
+		lex.Lex.NewToken(token, start, len(oper))
+	case tkCommentLine:
+		lex.State = lexCommentLine
+	case tkComment:
+		lex.State = lexComment
+	}
+}
+
+func newEnv(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		lex.Lex.NewToken(tkEnv, start, off-start)
+	}
+}
+
+func newExpEnv(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		prev := lex.Stack[len(lex.Stack)-1]
+		newStr(lex, prev.Offset, start)
+		lex.Lex.NewTokens(off, tkStrExp)
+		if lex.Lex.Source[off] != '}' {
+			lex.Error = ErrEnvName
+		}
+		lex.Lex.NewToken(tkEnv, start+1, off-start-1)
+		lex.Lex.NewTokens(off, tkStrExp)
+		lex.State = lexBackNext
+	}
+}
+
+func colon(lex *lexEngine, start, off int) {
+	if len(lex.Stack) > 0 {
+		lex.Error = ErrColon
+	}
+	if lex.Colon {
+		lex.Error = ErrDoubleColon
+	}
+	lex.Lex.NewTokens(off, tkLCurly)
+	lex.Colon = true
 }

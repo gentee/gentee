@@ -1,3 +1,27 @@
+run int : if true: return 20; return 30
+===== 1:18: colon has already been specified in this line
+run int { 
+  return 10 + 20 :
+}
+===== 2:18: unexpected token, expecting expression or statement
+run str { 
+  return `text` + : `right` 
+}
+===== 2:19: unexpected token, expecting value, identifier or calling func
+run str { 
+  return `text%{ : }` 
+}
+===== 2:18: ':' can't be used in expressions
+run str { return "\{ if true : "test" } text" }
+===== 1:30: ':' can't be used in expressions
+run str { return `a${ $$ }c` }
+===== 1:22: wrong environment name, expecting ${NAME}
+run str { return $ a${}c }
+===== 1:23: wrong environment name, expecting ${NAME}
+run str { return `${test }c` }
+===== 1:25: wrong environment name, expecting ${NAME}
+run str { return `a${ test}` }
+===== 1:22: wrong environment name, expecting ${NAME}
 run { int i = 20
    i /= 0
 }

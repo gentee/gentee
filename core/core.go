@@ -297,3 +297,15 @@ func (lp Lex) LineColumn(ind int) (line int, column int) {
 	}
 	return
 }
+
+// NewToken appends a new token to lexems
+func (lp *Lex) NewToken(token, offset, length int) {
+	lp.Tokens = append(lp.Tokens, Token{Type: int32(token), Offset: offset, Length: length})
+}
+
+// NewTokens appends one-byte new tokens to lexems
+func (lp *Lex) NewTokens(offset int, tokens ...int) {
+	for _, token := range tokens {
+		lp.Tokens = append(lp.Tokens, Token{Type: int32(token), Offset: offset, Length: 1})
+	}
+}

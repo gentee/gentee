@@ -98,7 +98,7 @@ var (
 )
 
 func init() {
-	makeParseTable()
+	makeLexTable()
 	makeCompileTable()
 }
 
@@ -989,7 +989,7 @@ func coPush(cmpl *compiler) error {
 	lp := cmpl.getLex()
 	token := getToken(lp, cmpl.pos)
 	switch lp.Tokens[cmpl.pos].Type {
-	case tkInt, tkIntHex, tkIntOct:
+	case tkInt:
 		if v, err = strconv.ParseInt(token, 0, 64); err != nil {
 			return cmpl.Error(ErrOutOfRange, token)
 		}
@@ -1071,7 +1071,7 @@ func coExpVar(cmpl *compiler) error {
 func coExpEnv(cmpl *compiler) error {
 	token := getToken(cmpl.getLex(), cmpl.pos)
 	getEnv := cmpl.vm.StdLib().Names[`GetEnv`]
-	icmd := &core.CmdValue{Value: token[1:],
+	icmd := &core.CmdValue{Value: token,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
 		Result:    getEnv.Result()}
 	appendExp(cmpl, &core.CmdUnary{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},

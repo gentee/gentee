@@ -16,10 +16,6 @@ const (
 
 	// ErrSuccess means no error
 	ErrSuccess = iota
-	// ErrLetter is returned when an unknown character has been found
-	ErrLetter
-	// ErrWord is returned when a sequence of characters is wrong
-	ErrWord
 	// ErrDecl is returned when the unexpexted token has been found on the top level
 	ErrDecl
 	// ErrLCurly is returned when the unexpexted token, expecting {
@@ -87,12 +83,27 @@ const (
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
+
+	// ErrLetter is returned when an unknown character has been found
+	ErrLetter = 0x100
+	// ErrWord is returned when a sequence of characters is wrong
+	ErrWord = 0x200
+	// ErrEnvName is returned when a environment name ${NAME} is wrong
+	ErrEnvName = 0x300
+	// ErrColon is returned when ':' is used on not the first level
+	ErrColon = 0x400
+	// ErrDoubleColon is returned where there are two colons in one line
+	ErrDoubleColon = 0x500
 )
 
 var (
 	errText = map[int]string{
-		ErrLetter:         `unknown character`,
-		ErrWord:           `wrong sequence of characters`,
+		ErrLetter:      `unknown character`,
+		ErrWord:        `wrong sequence of characters`,
+		ErrEnvName:     `wrong environment name, expecting ${NAME}`,
+		ErrColon:       `':' can't be used in expressions`,
+		ErrDoubleColon: `colon has already been specified in this line`,
+
 		ErrLCurly:         `unexpected token, expecting {`,
 		ErrEnd:            `unexpected end of the source`,
 		ErrDecl:           `expected declaration: func, run etc`,

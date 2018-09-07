@@ -33,7 +33,19 @@ func TestRun(t *testing.T) {
 		}
 		list := strings.Split(string(input), "\n")
 		source := make([]string, 0, 32)
+		on := true
 		for i, line := range list {
+			if on && strings.HasPrefix(line, `OFF`) {
+				on = false
+				continue
+			}
+			if !on {
+				if strings.HasPrefix(line, `ON`) {
+					on = true
+				}
+				continue
+			}
+
 			if !strings.HasPrefix(line, `=====`) {
 				source = append(source, line)
 				continue

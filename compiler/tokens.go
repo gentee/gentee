@@ -5,15 +5,15 @@
 package compiler
 
 const (
-	tkIdent  = iota + 1 // identifier
-	tkLine              // a new line
-	tkInt               // integer number (10-base)
-	tkIntHex            // integer number (16-base)
-	tkIntOct            // integer number (8-base)
-	tkType              // type name
-	tkStr               // string
-	tkEnv               // os environment
-	tkError             // tkError can be only the last tken
+	tkIdent       = iota + 1 // identifier
+	tkLine                   // a new line
+	tkInt                    // integer number (10-base)
+	tkType                   // type name
+	tkStr                    // string
+	tkEnv                    // os environment
+	tkCommentLine            // // comment
+	tkComment                // /* comment */
+	tkError                  // tkError can be only the last tken
 )
 
 // Operators
@@ -59,6 +59,7 @@ const (
 	tkDec                      // --
 	tkStrExp                   // expression inside the string
 	tkCmdLine                  // $
+	tkColon                    // :
 )
 
 // Keywords
@@ -81,4 +82,52 @@ const (
 	tkUnary    = 0x10000 // flag for unary commands
 	tkCallFunc = 0x20000 // temporary calling function
 	tkPost     = 0x40000 // flag for post unary commands
+)
+
+var (
+	oper2tk = map[string]int{
+		`+`:   tkAdd,
+		`-`:   tkSub,
+		`*`:   tkMul,
+		`/`:   tkDiv,
+		`=`:   tkAssign,
+		`,`:   tkComma,
+		`(`:   tkLPar,
+		`)`:   tkRPar,
+		`{`:   tkLCurly,
+		`}`:   tkRCurly,
+		`==`:  tkEqual,
+		`!`:   tkNot,
+		`!=`:  tkNotEqual,
+		`<`:   tkLess,
+		`<=`:  tkLessEqual,
+		`>`:   tkGreater,
+		`>=`:  tkGreaterEqual,
+		`&&`:  tkAnd,
+		`||`:  tkOr,
+		`?`:   tkQuestion,
+		`&`:   tkBitAnd,
+		`|`:   tkBitOr,
+		`^`:   tkBitXor,
+		`%`:   tkMod,
+		`<<`:  tkLShift,
+		`>>`:  tkRShift,
+		`~`:   tkBitNot,
+		`+=`:  tkAddEq,
+		`-=`:  tkSubEq,
+		`*=`:  tkMulEq,
+		`/=`:  tkDivEq,
+		`%=`:  tkModEq,
+		`<<=`: tkLShiftEq,
+		`>>=`: tkRShiftEq,
+		`&=`:  tkBitAndEq,
+		`|=`:  tkBitOrEq,
+		`^=`:  tkBitXorEq,
+		`++`:  tkInc,
+		`--`:  tkDec,
+		`$`:   tkCmdLine,
+		`//`:  tkCommentLine,
+		`/*`:  tkComment,
+		`:`:   tkColon,
+	}
 )
