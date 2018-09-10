@@ -89,7 +89,7 @@ main:
 		pLexItem := lexTable[state][ch]
 		lex.State = 0
 		lex.Callback = false
-		flag = pLexItem.Action & 0xffffff00
+		flag = pLexItem.Action & 0xffff00
 		if flag&fNewBuf != 0 {
 			lex.Buf = lex.Buf[:0]
 		}
@@ -127,7 +127,7 @@ main:
 			pLexItem.Func(&lex, start, off)
 			if lex.State != 0 {
 				action = lex.State & 0xff
-				flag = lex.State & 0xffffff00
+				flag = lex.State & 0xffff00
 			}
 		}
 		switch action {
