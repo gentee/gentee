@@ -1,0 +1,3 @@
+run str {
+    return VERSION
+}

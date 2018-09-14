@@ -15,9 +15,14 @@ const (
 	ConstCycle = `CYCLE`
 	// ConstIota is the name of iota for constants
 	ConstIota = `IOTA`
+	// ConstVersion is the version of Gentee compiler
+	ConstVersion = `VERSION`
 
 	// NotIota means that constant doesn't use IOTA
 	NotIota = -1
+
+	// Version is the current version of the compiler
+	Version = `1.0.0-alpha.1`
 )
 
 // NewConst adds a new ConstObject to Unit

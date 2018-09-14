@@ -2,35 +2,38 @@
 
 Gentee is a free open source script programming language. The Gentee programming language is designed to create scripts to automate repetitive actions and processes on your computer. If you use or plan to use .bat files, bash, PowerShell or special programs to automate actions, then try doing the same thing with Gentee. 
 
-At this moment, Gentee is **under construction** but all current tests are successful.
+At this moment, the language is **under construction** but it supports all the features described in the documentation.
 
 ## Documentation
 
-Browse the [online documentation here](https://gentee.github.io). It describes features that have already been realized.
+All documentation is available on [GitHub pages](https://github.com/gentee/gentee.github.io). It describes features that have already been realized.
+- [Gentee programming language (English)](https://gentee.github.io/)
+- [Язык программирования Gentee (Русский)](https://gentee.github.io/ru/)
 
 ## How to run Gentee scripts
 
-* Build the *gentee* executable file from *cli/gentee.go* using go compiler.
+* [Download the binary version](https://github.com/gentee/gentee/releases) of Gentee compiler for your operating system or build the *gentee* executable file from *cli/gentee.go* using [https://golang.org/dl/](go compiler).
 ```
 cd ...github.com/gentee/cli/gentee
 go build
 ```
 * Specify the script file when running *gentee*. The script file can have any extension.
 ```
-Linux: ./gentee scipts/myscript.g 
-Wndows: gentee.exe scipts/myscript.g
+Linux: ./gentee myscript.g 
+Wndows: gentee.exe myscript.g
 ```
 * Also, you can associate the *gentee* program with script files in your operating system.
 
-### Gentee compiler
+### Gentee compiler/interpreter
 
-```gentee [-t] <scriptname> (<scriptname>)```
+```gentee [-v] [-t] <scriptname> (<scriptname>)```
 
 By default, the program prints the output of the script to the console and returns 0 if successful.
 
 #### Command line parameters
 
 * **scriptname** - full or relative path to the script file. If several scripts are specified, then they will be executed sequentially.
+* **-v** - show the current version of Gentee language.
 * **-t** - test the script. When using this parameter, the script must have the **result** parameter in the header with the expected value ([example](https://github.com/gentee/gentee/blob/master/test/scripts/ok.g)). In this mode, the program does not output the result of 
 the script execution to the console. If the result does not match, an error message is displayed and an error code 4 is returned.
 

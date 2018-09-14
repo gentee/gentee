@@ -5,7 +5,6 @@
 package core
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -48,7 +47,7 @@ func (rt *RunTime) getVars(block *CmdBlock) ([]interface{}, error) {
 			return rt.Blocks[i].Vars, nil
 		}
 	}
-	return nil, runtimeError(rt, ErrRuntime)
+	return nil, runtimeError(rt, block, ErrRuntime)
 }
 
 func (rt *RunTime) callFunc(cmd ICmd) (err error) {
@@ -56,19 +55,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 		result []reflect.Value
 	)
 	if int64(len(rt.Calls)) == rt.Consts[ConstDepth].(int64) {
-		var (
-			line, column int
-			lex          *Lex
-		)
-		for i := len(rt.Calls) - 1; i >= 0 && lex == nil; i-- {
-			if rt.Calls[i].GetObject() != nil {
-				if lex = rt.Calls[i].GetObject().GetLex(); lex != nil {
-					line, column = lex.LineColumn(cmd.GetToken())
-					break
-				}
-			}
-		}
-		return fmt.Errorf(`%d:%d: %s`, line, column, ErrorText(ErrDepth))
+		return runtimeError(rt, cmd, ErrDepth)
 	}
 	pars := make([]reflect.Value, 0)
 	lenStack := len(rt.Stack)
@@ -100,20 +87,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 		result = reflect.ValueOf(cmd.GetObject().(*EmbedObject).Func).Call(pars)
 		last := result[len(result)-1].Interface()
 		if last != nil && reflect.TypeOf(last).String() == `*errors.errorString` {
-			var (
-				line, column int
-				lex          *Lex
-			)
-			for i := len(rt.Calls) - 1; i >= 0 && lex == nil; i-- {
-				if rt.Calls[i].GetObject() == nil {
-					continue
-				}
-				if lex = rt.Calls[i].GetObject().GetLex(); lex != nil {
-					line, column = lex.LineColumn(cmd.GetToken())
-					break
-				}
-			}
-			return fmt.Errorf(`%d:%d: %s`, line, column, result[len(result)-1].Interface().(error))
+			return runtimeError(rt, cmd, result[len(result)-1].Interface().(error))
 		}
 		rt.Stack = append(rt.Stack, result[0].Interface())
 	case ObjFunc:
@@ -121,7 +95,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 			return
 		}
 	default:
-		return runtimeError(rt, ErrRuntime)
+		return runtimeError(rt, cmd, ErrRuntime)
 	}
 	return
 }
@@ -151,11 +125,9 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			rt.Consts[name] = rt.Stack[len(rt.Stack)-1]
 		}
 	case CtVar:
-		cmdVar := cmd.(*CmdVar)
-		if vars, err = rt.getVars(cmdVar.Block); err != nil {
+		if err = getVar(rt, cmd.(*CmdVar)); err != nil {
 			return err
 		}
-		rt.Stack = append(rt.Stack, vars[cmdVar.Index])
 	case CtStack:
 		cmdStack := cmd.(*CmdBlock)
 		lenStack := len(rt.Stack)
@@ -204,35 +176,9 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			rt.Stack = append(rt.Stack, val)
 			lenStack++
 		case StackAssign:
-			if err = rt.runCmd(cmdStack.Children[1]); err != nil {
+			if err = setVar(rt, cmdStack); err != nil {
 				return err
 			}
-			cmdVar := cmdStack.Children[0].(*CmdVar)
-			if vars, err = rt.getVars(cmdVar.Block); err != nil {
-				return err
-			}
-			pars := []reflect.Value{reflect.ValueOf(vars), reflect.ValueOf(cmdVar),
-				reflect.ValueOf(rt.Stack[len(rt.Stack)-1])}
-			result := reflect.ValueOf(cmd.GetObject().(*EmbedObject).Func).Call(pars)
-			last := result[len(result)-1].Interface()
-			if last != nil && reflect.TypeOf(last).String() == `*errors.errorString` {
-				var (
-					line, column int
-					lex          *Lex
-				)
-				for i := len(rt.Calls) - 1; i >= 0 && lex == nil; i-- {
-					if rt.Calls[i].GetObject() == nil {
-						continue
-					}
-					if lex = rt.Calls[i].GetObject().GetLex(); lex != nil {
-						line, column = lex.LineColumn(cmd.GetToken())
-						break
-					}
-				}
-				return fmt.Errorf(`%d:%d: %s`, line, column, result[len(result)-1].Interface().(error))
-			}
-			rt.Stack[len(rt.Stack)-1] = result[0].Interface()
-			//			vars[cmdVar.Index] = rt.Stack[len(rt.Stack)-1]
 			lenStack++
 		case StackIf:
 			var i int
@@ -267,19 +213,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					}
 					cycle--
 					if cycle == 0 {
-						var (
-							line, column int
-							lex          *Lex
-						)
-						for i := len(rt.Calls) - 1; i >= 0 && lex == nil; i-- {
-							if rt.Calls[i].GetObject() != nil {
-								if lex = rt.Calls[i].GetObject().GetLex(); lex != nil {
-									line, column = lex.LineColumn(cmdStack.GetToken())
-									break
-								}
-							}
-						}
-						return fmt.Errorf(`%d:%d: %s`, line, column, ErrorText(ErrCycle))
+						return runtimeError(rt, cmdStack, ErrCycle)
 					}
 					continue
 				}
@@ -295,8 +229,13 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				}
 				rt.Stack = rt.Stack[:len(rt.Stack)-cmdStack.ParCount]
 				for i := cmdStack.ParCount; i < len(cmdStack.Vars); i++ {
-					rtBlock.Vars = append(rtBlock.Vars,
-						reflect.New(cmdStack.Vars[i].Original).Elem().Interface())
+					var value interface{}
+					if cmdStack.Vars[i].GetName() == `char` {
+						value = ' '
+					} else {
+						value = reflect.New(cmdStack.Vars[i].Original).Elem().Interface()
+					}
+					rtBlock.Vars = append(rtBlock.Vars, value)
 				}
 			}
 			rt.Blocks = append(rt.Blocks, rtBlock)

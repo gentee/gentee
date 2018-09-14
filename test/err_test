@@ -1,3 +1,48 @@
+run { str s; s[ 50 + 50 ] = 'A' }
+===== 1:20: index out of range
+run char { str s = `ok`; return s[-1] }
+===== 1:35: index out of range
+run { str s; s[ true || false ] }
+===== 1:31: wrong type of index, expecting int type
+run { int a ; a[ 2*3 ] }
+===== 1:15: int variable does not support indexing
+run { VERSION[0 + 2 + 3] }
+===== 1:7: unexpected token, expecting a variable for indexing
+run { str a; a[ 1, 2 ] }
+===== 1:18: there is an unclosed left square bracket
+run { str a; a[] }
+===== 1:16: there is not index value
+run { int a = 10 + [] }
+===== 1:20: unexpected token, expecting a variable for indexing
+run { 10+2, 34 }
+===== 1:11: unexpected token, expecting operator
+run { '\a' + '\d' }
+===== 1:14: char literal has wrong format
+run { '\X22' }
+===== 1:7: char literal has wrong format
+run { char ch; ch = 'asd' }
+===== 1:21: char literal has wrong format
+run { char ch = '' }
+===== 1:17: char literal has wrong format
+run int { return 0x
+===== 1:18: the number 0x is out of range
+run str { return '\
+===== 1:17: unexpected end of the source
+const IOTA {
+  MY DEPTH
+}
+run {} 
+===== 2:6: constant DEPTH has already been defined!
+const {
+  VERSION = `1.0.1`
+}
+run str { return VERSION} 
+===== 2:3: constant VERSION has already been defined!
+run str {
+  $ go build my.go
+  return $ echo skip
+} 
+===== 2:3: exit status 1
 run int : if true: return 20; return 30
 ===== 1:18: colon has already been specified in this line
 run int { 

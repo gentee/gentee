@@ -87,11 +87,17 @@ type CmdValue struct {
 	Result *TypeObject
 }
 
+type CmdRet struct {
+	Cmd  ICmd        // the value of the index
+	Type *TypeObject // the type of the result
+}
+
 // CmdVar pushes the value of the variable into stack
 type CmdVar struct {
 	CmdCommon
-	Block *CmdBlock // pointer to the block of the variable
-	Index int       // the index of the variable in the block
+	Block   *CmdBlock // pointer to the block of the variable
+	Index   int       // the index of the variable in the block
+	Indexes []CmdRet  // the indexes list of the variable
 }
 
 // CmdConst pushes a value of the constant into stack
@@ -165,7 +171,11 @@ func (cmd *CmdVar) GetType() CmdType {
 
 // GetResult returns result
 func (cmd *CmdVar) GetResult() *TypeObject {
-	return cmd.Block.Vars[cmd.Index]
+	typeVar := cmd.Block.Vars[cmd.Index]
+	if cmd.Indexes != nil {
+		typeVar = cmd.Indexes[len(cmd.Indexes)-1].Type
+	}
+	return typeVar
 }
 
 // GetToken returns teh index of the token

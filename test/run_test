@@ -1,5 +1,36 @@
+run str { 
+  str s = `01 Ê123`
+  s += s[2] = '\u0102'
+  return s
+}
+===== 01ĂÊ123Ă
+run str { 
+  int a = 1
+  char tmp = '\u0398'
+  str s = `0Ê123`
+  return s[2] + s[3-(2+1)] + s[2*a/2] + tmp
+}
+===== 10ÊΘ
+const {
+  CHAR = '\u0102'
+  CHAR2 = 'Ê'
+}
+run str : return CHAR + CHAR2
+===== ĂÊ
+run str {
+  char empty
+  str out = "\{'a'} " + str('a'!='\n') + ` %{'b'}` + str(int(empty)) + str(empty)
+  return out + `%{'\n'< '1'} %{'ф' >= 'Ф'} %{'a'<='A'} %{int(' ') + int('\u03B1')}`
+} 
+===== a true b32 true true false 977
+run str {
+  char my_ch = '\u03b1'
+  str ch = 'a' + (' ' + '=' + '\t') + '\'' + '\"' + '\\' + '\x7A' + my_ch
+  return ch += '0'
+} 
+===== a =	'"\zα0
 run int {
-  if true : int a = 10; if false : a= 20; else : a+=30
+  if true : int a = 10; if false {a= 20} else {a+=30}
   return a
 } 
 ===== 40
@@ -15,7 +46,7 @@ the second line`
 run int {
   int i 
   if i>10 : i = 10
-  else : i = 6; if true : i+=4
+  else : i = 6; i+=4
   return i
 }
 ===== 10

@@ -32,7 +32,6 @@ func (unit *Unit) NewEmbed(Func interface{}) {
 			inTypes[i] = unit.TypeByGoType(t.In(i))
 		}
 		if strings.HasPrefix(name, `Assign`) {
-			inTypes = inTypes[1:]
 			inTypes[0] = outType
 		}
 	}

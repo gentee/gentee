@@ -68,6 +68,8 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 		name = `bool`
 	case `string`:
 		name = `str`
+	case `int32`:
+		name = `char`
 	default:
 		return nil
 	}
@@ -92,7 +94,7 @@ func (vm *VirtualMachine) Run(name string) (interface{}, error) {
 	rt := newRunTime(vm)
 	unit := vm.Unit(name)
 	if unit == nil || unit.Type == UnitPackage {
-		return nil, runtimeError(rt, ErrRunIndex)
+		return nil, runtimeError(rt, nil, ErrRunIndex)
 	}
 	funcRun := unit.Objects[unit.RunID].(*FuncObject)
 	if err := rt.runCmd(&funcRun.Block); err != nil {
@@ -101,7 +103,7 @@ func (vm *VirtualMachine) Run(name string) (interface{}, error) {
 	var result interface{}
 	if funcRun.Block.Result != nil {
 		if len(rt.Stack) == 0 {
-			return nil, runtimeError(rt, ErrRuntime)
+			return nil, runtimeError(rt, nil, ErrRuntime)
 		}
 		result = rt.Stack[len(rt.Stack)-1]
 	}

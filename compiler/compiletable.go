@@ -139,12 +139,12 @@ var (
 		},
 		cmExp: {
 			{tkDefault, cfError | ErrValue, nil, 0},
-			{[]int{tkInt, tkFalse, tkTrue, tkStr}, cmExpOper, coPush, 1},
+			{[]int{tkInt, tkFalse, tkTrue, tkStr, tkChar}, cmExpOper, coPush, 1},
 			{[]int{tkSub, tkMul, tkNot, tkBitNot, tkInc, tkDec}, cfSkip, coUnaryOperator, 0},
 			{[]int{tkLPar, tkRPar}, cfSkip, coOperator, 0},
+			{[]int{tkLSBracket, tkRSBracket}, cfSkip, coOperator, 0},
 			{tkLine, cfBack, coExpEnd, 0},
-			{tkLCurly, cfStay | cfBack, coExpEnd, 0},
-			{tkRCurly, cfBack | cfStay, coExpEnd, 0},
+			{[]int{tkLCurly, tkRCurly}, cfStay | cfBack, coExpEnd, 0},
 			{tkIdent, cmExpIdent, nil, 1},
 			{tkEnv, cmExpOper, coExpEnv, 1},
 			{tkQuestion, cmExpIdent, nil, 1},
@@ -152,6 +152,7 @@ var (
 		cmExpIdent: {
 			{tkDefault, cmExpOper | cfStay, coExpVar, 0},
 			{tkLPar, cfBack | cfStay, coCallFunc, 0},
+			{tkLSBracket, cfBack | cfStay, coIndex, 0},
 		},
 		cmExpOper: {
 			{tkDefault, cfError | ErrOper, nil, 0},
@@ -162,7 +163,7 @@ var (
 				tkBitAndEq, tkBitOrEq, tkBitXorEq}, cfBack,
 				coOperator, 0},
 			{[]int{tkInc, tkDec}, cfSkip, coUnaryPostOperator, 0},
-			{tkRPar, cfSkip, coOperator, 0},
+			{[]int{tkRPar, tkRSBracket}, cfSkip, coOperator, 0},
 			{tkComma, cfBack, coComma, 0},
 			{[]int{tkLCurly, tkLine, tkRCurly}, cfStay | cfBack, nil, 0},
 		},

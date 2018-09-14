@@ -74,7 +74,11 @@ func Command(cmdLine string) error {
 		return err
 	}
 	cmd.Stdout = os.Stdout
-	return cmd.Run()
+	cmd.Stderr = os.Stderr
+	if err = cmd.Run(); err != nil {
+		err = fmt.Errorf(err.Error())
+	}
+	return err
 }
 
 // CommandOutput executes the command line and returns the standard output
@@ -84,6 +88,9 @@ func CommandOutput(cmdLine string) (string, error) {
 		return ``, err
 	}
 	stdout, err := cmd.CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf(err.Error())
+	}
 	return string(stdout), err
 }
 

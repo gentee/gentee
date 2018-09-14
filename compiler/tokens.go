@@ -9,6 +9,7 @@ const (
 	tkLine                   // a new line
 	tkInt                    // integer number (10-base)
 	tkType                   // type name
+	tkChar                   // character
 	tkStr                    // string
 	tkEnv                    // os environment
 	tkCommentLine            // // comment
@@ -26,6 +27,8 @@ const (
 	tkComma                    // ,
 	tkLPar                     // (
 	tkRPar                     // )
+	tkLSBracket                // [
+	tkRSBracket                // ]
 	tkLCurly                   // {
 	tkRCurly                   // }
 	tkEqual                    // ==
@@ -82,6 +85,7 @@ const (
 	tkUnary    = 0x10000 // flag for unary commands
 	tkCallFunc = 0x20000 // temporary calling function
 	tkPost     = 0x40000 // flag for post unary commands
+	tkIndex    = 0x80000 // temporary index
 )
 
 var (
@@ -94,6 +98,8 @@ var (
 		`,`:   tkComma,
 		`(`:   tkLPar,
 		`)`:   tkRPar,
+		`[`:   tkLSBracket,
+		`]`:   tkRSBracket,
 		`{`:   tkLCurly,
 		`}`:   tkRCurly,
 		`==`:  tkEqual,

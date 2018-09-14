@@ -22,9 +22,9 @@ func InitBool(vm *core.VirtualMachine) {
 }
 
 // AssignºBoolBool assign one boolean to another
-func AssignºBoolBool(vars []interface{}, cmdVar *core.CmdVar, value bool) bool {
-	vars[cmdVar.Index] = value
-	return vars[cmdVar.Index].(bool)
+func AssignºBoolBool(ptr *interface{}, value bool) bool {
+	*ptr = value
+	return (*ptr).(bool)
 }
 
 // Not changes true to false or false to true

@@ -13,15 +13,17 @@ import (
 type initType struct {
 	name     string
 	original reflect.Type
+	index    string // support index of
 }
 
 // InitTypes appends stdlib types to the virtual machine
 func InitTypes(vm *core.VirtualMachine) {
 	for _, item := range []initType{
-		{`int`, reflect.TypeOf(int64(0))},
-		{`bool`, reflect.TypeOf(true)},
-		{`str`, reflect.TypeOf(``)},
+		{`int`, reflect.TypeOf(int64(0)), ``},
+		{`bool`, reflect.TypeOf(true), ``},
+		{`char`, reflect.TypeOf('a'), ``},
+		{`str`, reflect.TypeOf(``), `char`},
 	} {
-		vm.StdLib().NewType(item.name, item.original)
+		vm.StdLib().NewType(item.name, item.original, item.index)
 	}
 }

@@ -49,78 +49,78 @@ func InitInt(vm *core.VirtualMachine) {
 }
 
 // AssignºIntInt assign one integer to another
-func AssignºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) int64 {
-	vars[cmdVar.Index] = value
-	return vars[cmdVar.Index].(int64)
+func AssignºIntInt(ptr *interface{}, value int64) int64 {
+	*ptr = value
+	return (*ptr).(int64)
 }
 
 // AssignAddºIntInt adds one integer to another
-func AssignAddºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) int64 {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) + value
-	return vars[cmdVar.Index].(int64)
+func AssignAddºIntInt(ptr *interface{}, value int64) int64 {
+	*ptr = (*ptr).(int64) + value
+	return (*ptr).(int64)
 }
 
 // AssignBitAndºIntInt equals int &= int
-func AssignBitAndºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) int64 {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) & value
-	return vars[cmdVar.Index].(int64)
+func AssignBitAndºIntInt(ptr *interface{}, value int64) int64 {
+	*ptr = (*ptr).(int64) & value
+	return (*ptr).(int64)
 }
 
 // AssignBitOrºIntInt equals int |= int
-func AssignBitOrºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) int64 {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) | value
-	return vars[cmdVar.Index].(int64)
+func AssignBitOrºIntInt(ptr *interface{}, value int64) int64 {
+	*ptr = (*ptr).(int64) | value
+	return (*ptr).(int64)
 }
 
 // AssignBitXorºIntInt equals int ^= int
-func AssignBitXorºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) int64 {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) ^ value
-	return vars[cmdVar.Index].(int64)
+func AssignBitXorºIntInt(ptr *interface{}, value int64) int64 {
+	*ptr = (*ptr).(int64) ^ value
+	return (*ptr).(int64)
 }
 
 // AssignDivºIntInt does int /= int
-func AssignDivºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) (int64, error) {
+func AssignDivºIntInt(ptr *interface{}, value int64) (int64, error) {
 	if value == 0 {
 		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
 	}
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) / value
-	return vars[cmdVar.Index].(int64), nil
+	*ptr = (*ptr).(int64) / value
+	return (*ptr).(int64), nil
 }
 
 // AssignModºIntInt equals int %= int
-func AssignModºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) (int64, error) {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) % value
-	return vars[cmdVar.Index].(int64), nil
+func AssignModºIntInt(ptr *interface{}, value int64) (int64, error) {
+	*ptr = (*ptr).(int64) % value
+	return (*ptr).(int64), nil
 }
 
 // AssignMulºIntInt equals int *= int
-func AssignMulºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) (int64, error) {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) * value
-	return vars[cmdVar.Index].(int64), nil
+func AssignMulºIntInt(ptr *interface{}, value int64) (int64, error) {
+	*ptr = (*ptr).(int64) * value
+	return (*ptr).(int64), nil
 }
 
 // AssignSubºIntInt equals int *= int
-func AssignSubºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) (int64, error) {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) - value
-	return vars[cmdVar.Index].(int64), nil
+func AssignSubºIntInt(ptr *interface{}, value int64) (int64, error) {
+	*ptr = (*ptr).(int64) - value
+	return (*ptr).(int64), nil
 }
 
 // AssignLShiftºIntInt does int <<= int
-func AssignLShiftºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) (int64, error) {
+func AssignLShiftºIntInt(ptr *interface{}, value int64) (int64, error) {
 	if value < 0 {
 		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
 	}
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) << uint64(value)
-	return vars[cmdVar.Index].(int64), nil
+	*ptr = (*ptr).(int64) << uint64(value)
+	return (*ptr).(int64), nil
 }
 
 // AssignRShiftºIntInt does int >>= int
-func AssignRShiftºIntInt(vars []interface{}, cmdVar *core.CmdVar, value int64) (int64, error) {
+func AssignRShiftºIntInt(ptr *interface{}, value int64) (int64, error) {
 	if value < 0 {
 		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
 	}
-	vars[cmdVar.Index] = vars[cmdVar.Index].(int64) >> uint64(value)
-	return vars[cmdVar.Index].(int64), nil
+	*ptr = (*ptr).(int64) >> uint64(value)
+	return (*ptr).(int64), nil
 }
 
 // Add add two integer value

@@ -27,6 +27,7 @@ const (
 	lexInt
 	lexOct
 	lexHex
+	lexChar
 	lexStrQuote
 	lexStrDouble
 	lexCommentLine
@@ -84,7 +85,7 @@ var (
 			{nil, lexError | ErrLetter, nil},
 			{'S', 0, nil},
 			{[]rune{'\n', ';'}, 0, newLine},
-			{[]rune{'{', '(', ')', ',', '?', '~'}, 0, newSymbol},
+			{[]rune{'{', '(', ')', '[', ']', ',', '?', '~'}, 0, newSymbol},
 			{[]string{`+=`, `++`, `+`}, 0, newOper},
 			{[]string{`-=`, `--`, `-`}, 0, newOper},
 			{[]string{`*=`, `*`}, 0, newOper},
@@ -100,6 +101,7 @@ var (
 			{':', 0, colon},
 			{'}', 0, endExp},
 			{[]string{`//`, `/*`, `/=`, `/`}, 0, newDiv},
+			{'\'', lexChar, newChar},
 			{'`', lexStrQuote | fNewBuf, nil},
 			{'"', lexStrDouble | fNewBuf, nil},
 			{'L', lexIdent, newIdent},
@@ -124,6 +126,11 @@ var (
 		lexHex: { // hex integer
 			{[]rune{'L', '_'}, lexError | ErrWord, nil},
 			{'H', 0, nil},
+		},
+		lexChar: { // char
+			{nil, 0, nil},
+			{'\\', fSkip, nil},
+			{'\'', lexBackNext, nil},
 		},
 		lexStrQuote: {
 			{nil, 0, pushBuf},
@@ -279,7 +286,7 @@ func newIdent(lex *lexEngine, start, off int) {
 }
 
 func newLine(lex *lexEngine, start, off int) {
-	if lex.Colon {
+	if lex.Colon && lex.Lex.Source[off] != ';' {
 		lex.Colon = false
 		lex.Lex.NewTokens(off, tkRCurly)
 	}
@@ -418,4 +425,10 @@ func colon(lex *lexEngine, start, off int) {
 	}
 	lex.Lex.NewTokens(off, tkLCurly)
 	lex.Colon = true
+}
+
+func newChar(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		lex.Lex.NewToken(tkChar, start, off-start+1)
+	}
 }

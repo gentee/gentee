@@ -24,21 +24,27 @@ const (
 
 func main() {
 	var (
-		env      string
-		testMode bool
-		err      error
+		env           string
+		testMode, ver bool
+		err           error
 	)
 
 	flag.StringVar(&env, "env", "", "environment variables")
 	flag.BoolVar(&testMode, "t", false, "compare with #result")
+	flag.BoolVar(&ver, "ver", false, "compare with #result")
 	flag.Parse()
+
+	workspace := workspace.New()
+	if ver {
+		fmt.Println(workspace.Version())
+		return
+	}
 
 	files := flag.Args()
 	if len(files) == 0 {
 		fmt.Println("Specify Gentee script file: ./gentee yourscript.g")
 		os.Exit(errNoFile)
 	}
-	workspace := workspace.New()
 
 	isError := func(code int) {
 		if err != nil {
@@ -46,7 +52,6 @@ func main() {
 			os.Exit(code)
 		}
 	}
-
 	for _, script := range files {
 		var (
 			result interface{}
@@ -69,6 +74,8 @@ func main() {
 			err = fmt.Errorf(`different test result %s`, resultStr)
 			isError(errResult)
 		}
-		fmt.Println(resultStr)
+		if result != nil {
+			fmt.Println(resultStr)
+		}
 	}
 }

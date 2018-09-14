@@ -27,6 +27,8 @@ const (
 	ErrEmptyCommand
 	// ErrQuoteCommand is returned if there is an unclosed quotation mark in $ command
 	ErrQuoteCommand
+	// ErrIndexOut means that int index is out of the length of the array
+	ErrIndexOut
 
 	// ErrRuntime error. It means bug
 	ErrRuntime
@@ -42,6 +44,7 @@ var (
 		ErrStrToInt:     `converting string to integer is invalid`,
 		ErrEmptyCommand: `empty $ command`,
 		ErrQuoteCommand: `unclosed quotation mark in $ command`,
+		ErrIndexOut:     `index out of range`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}
@@ -52,7 +55,25 @@ func ErrorText(id int) string {
 	return errText[id]
 }
 
-func runtimeError(rt *RunTime, idError int) error {
-	var line, column int
-	return fmt.Errorf(` %d:%d: %s`, line, column, ErrorText(idError))
+func runtimeError(rt *RunTime, cmd ICmd, idError interface{}) error {
+	var (
+		line, column int
+		lex          *Lex
+		errText      string
+	)
+	for i := len(rt.Calls) - 1; i >= 0 && lex == nil; i-- {
+		if cmd != nil && rt.Calls[i].GetObject() != nil {
+			if lex = rt.Calls[i].GetObject().GetLex(); lex != nil {
+				line, column = lex.LineColumn(cmd.GetToken())
+				break
+			}
+		}
+	}
+	switch v := idError.(type) {
+	case int:
+		errText = ErrorText(v)
+	case error:
+		errText = v.Error()
+	}
+	return fmt.Errorf(`%d:%d: %s`, line, column, errText)
 }

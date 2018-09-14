@@ -94,6 +94,8 @@ var (
 		tkStrExp:                 {35, false, `ExpStr`},
 		tkLPar:                   {50, true, ``},
 		tkRPar:                   {50, true, ``},
+		tkLSBracket:              {50, true, ``},
+		tkRSBracket:              {50, true, ``},
 	}
 )
 
@@ -161,7 +163,7 @@ main:
 				continue
 			}
 			for _, expBuf := range cmpl.expbuf {
-				if expBuf.Oper == tkLPar {
+				if expBuf.Oper == tkLPar || expBuf.Oper == tkLSBracket {
 					continue main
 				}
 			}
@@ -468,6 +470,16 @@ func coConstEnum(cmpl *compiler) error {
 	return nil
 }
 
+func findObj(cmpl *compiler, name string, objType core.ObjectType) bool {
+	if found := cmpl.unit.Names[name]; found != nil && found.GetType() == objType {
+		return true
+	}
+	if found := cmpl.vm.StdLib().Names[name]; found != nil && found.GetType() == objType {
+		return true
+	}
+	return false
+}
+
 func coConstList(cmpl *compiler) error {
 	if err := coConst(cmpl); err != nil {
 		return err
@@ -485,6 +497,9 @@ func coConstList(cmpl *compiler) error {
 	}
 	cmpl.curIota++
 	cmpl.unit.Objects = append(cmpl.unit.Objects, constObj)
+	if findObj(cmpl, cmpl.curConst, core.ObjConst) {
+		return cmpl.Error(ErrConstDef, cmpl.curConst)
+	}
 	if curName := cmpl.unit.Names[cmpl.curConst]; curName == nil {
 		cmpl.unit.Names[cmpl.curConst] = constObj
 	} else {
@@ -522,12 +537,32 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 		Pos:    cmpl.pos,
 		LenExp: len(cmpl.exp),
 	}
-	if len(cmpl.expbuf) == 0 || operation == tkCallFunc {
+	if len(cmpl.expbuf) == 0 || operation == tkCallFunc || operation == tkIndex {
 		cmpl.expbuf = append(cmpl.expbuf, expBuf)
 		return nil
 	}
 	for len(cmpl.expbuf) > 0 {
 		oper := cmpl.expbuf[len(cmpl.expbuf)-1].Oper
+		if oper == tkLSBracket {
+			if operation == tkRSBracket {
+				cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
+				if len(cmpl.expbuf) == 0 || len(cmpl.exp) < 2 {
+					return cmpl.Error(ErrNoIndex)
+				}
+				prevToken := cmpl.expbuf[len(cmpl.expbuf)-1]
+				if prevToken.Oper != tkIndex {
+					return cmpl.ErrorPos(cmpl.pos-1, ErrVarIndex)
+				}
+				if cmpl.exp[len(cmpl.exp)-2].GetType() != core.CtVar {
+					return cmpl.ErrorPos(prevToken.Pos-1, ErrVarIndex)
+				}
+				if len(cmpl.exp)-prevToken.LenExp == 0 {
+					return cmpl.Error(ErrNoIndex)
+				}
+				return setIndex(cmpl)
+			}
+			break
+		}
 		if oper == tkLPar {
 			if operation == tkRPar {
 				cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
@@ -582,7 +617,7 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 			}
 			break
 		}
-		if operation == tkRPar {
+		if operation == tkRPar || operation == tkRSBracket {
 			if err := popBuf(cmpl); err != nil {
 				return err
 			}
@@ -604,10 +639,14 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 			}
 		}
 	}
-	if operation == tkRPar && len(cmpl.expbuf) == 0 {
-		return cmpl.Error(ErrRPar)
+	if len(cmpl.expbuf) == 0 {
+		if operation == tkRPar {
+			return cmpl.Error(ErrRPar)
+		}
+		if operation == tkRSBracket {
+			return cmpl.Error(ErrRSBracket)
+		}
 	}
-
 	cmpl.expbuf = append(cmpl.expbuf, expBuf)
 	return nil
 }
@@ -691,11 +730,8 @@ func popBuf(cmpl *compiler) error {
 			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
 				left.GetResult(), right.GetResult()})
 		}
-		//			right = &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-		//				Object: obj, Result: obj.Result(), Left: left, Right: right}
-		//		}
 		icmd := &core.CmdBlock{ID: core.StackAssign, Object: obj,
-			Result: right.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
+			Result: left.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Children: []core.ICmd{left, right}}
 		cmpl.exp[len(cmpl.exp)-2] = icmd
 		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
@@ -783,6 +819,8 @@ func popBuf(cmpl *compiler) error {
 		cmpl.exp[len(cmpl.exp)-1] = icmd
 	case tkLPar:
 		return cmpl.Error(ErrLPar)
+	case tkLSBracket:
+		return cmpl.Error(ErrLSBracket)
 	default:
 		return cmpl.Error(ErrCompiler, fmt.Sprintf(`popBuf unknown token %d`, expBuf.Oper))
 	}
@@ -964,6 +1002,9 @@ func coConstExp(cmpl *compiler) error {
 			Return:    owner.Children[0].GetResult(),
 			Iota:      core.NotIota,
 		}
+		if findObj(cmpl, cmpl.curConst, core.ObjConst) {
+			return cmpl.ErrorPos(cmpl.pos-1, ErrConstDef, cmpl.curConst)
+		}
 
 		cmpl.unit.Objects = append(cmpl.unit.Objects, constObj)
 		if curName := cmpl.unit.Names[cmpl.curConst]; curName == nil {
@@ -997,6 +1038,18 @@ func coPush(cmpl *compiler) error {
 	case tkFalse, tkTrue:
 		v = lp.Tokens[cmpl.pos].Type == tkTrue
 		vType = `bool`
+	case tkChar:
+		runes := []rune(token)
+		if len(runes) < 3 {
+			return cmpl.Error(ErrChar)
+		}
+		token, err = strconv.Unquote(`"` + strings.Replace(string(runes[1:len(runes)-1]),
+			`\'`, `'`, -1) + `"`)
+		if err != nil || len([]rune(token)) != 1 {
+			return cmpl.Error(ErrChar)
+		}
+		v = []rune(token)[0]
+		vType = `char`
 	case tkStr:
 		v = lp.Strings[lp.Tokens[cmpl.pos].Index]
 		if token[0] == '"' {
@@ -1030,6 +1083,22 @@ func coCallFunc(cmpl *compiler) error {
 	return appendExpBuf(cmpl, tkCallFunc)
 }
 
+func coIndex(cmpl *compiler) error {
+	coExpVar(cmpl)
+	return appendExpBuf(cmpl, tkIndex)
+}
+
+func findVar(cmpl *compiler, token string) (*core.CmdBlock, int) {
+	block := cmpl.curOwner()
+	for block != nil {
+		if ind, ok := block.VarNames[token]; ok {
+			return block, ind
+		}
+		block = block.Parent
+	}
+	return nil, 0
+}
+
 func coExpVar(cmpl *compiler) error {
 	token := getToken(cmpl.getLex(), cmpl.pos-1)
 	if isCapital(token) {
@@ -1052,18 +1121,12 @@ func coExpVar(cmpl *compiler) error {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
 		}
 	} else {
-		block := cmpl.curOwner()
-		for block != nil {
-			if ind, ok := block.VarNames[token]; ok {
-				appendExp(cmpl, &core.CmdVar{Block: block, Index: ind,
-					CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)}})
-				break
-			}
-			block = block.Parent
-		}
+		block, ind := findVar(cmpl, token)
 		if block == nil {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
 		}
+		appendExp(cmpl, &core.CmdVar{Block: block, Index: ind,
+			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)}})
 	}
 	return nil
 }
@@ -1087,7 +1150,25 @@ func coComma(cmpl *compiler) error {
 	}
 	if len(cmpl.expbuf) < 2 || (cmpl.expbuf[len(cmpl.expbuf)-1].Oper != tkLPar &&
 		cmpl.expbuf[len(cmpl.expbuf)-2].Oper != tkCallFunc) {
-		return cmpl.Error(ErrCompiler, `Comma`)
+		return cmpl.Error(ErrOper)
 	}
+	return nil
+}
+
+func setIndex(cmpl *compiler) error {
+	cmdVar := cmpl.exp[len(cmpl.exp)-2].(*core.CmdVar)
+	typeObject := cmdVar.GetResult()
+	varIndex := cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)
+	if typeObject.IndexOf == nil {
+		return cmpl.ErrorPos(cmpl.expbuf[len(cmpl.expbuf)-1].Pos-1, ErrSupportIndex,
+			typeObject.GetName())
+	}
+	index := cmpl.exp[len(cmpl.exp)-1]
+	if index.GetResult() != varIndex {
+		return cmpl.ErrorPos(cmpl.pos, ErrTypeIndex, varIndex.GetName())
+	}
+	(*cmdVar).Indexes = append((*cmdVar).Indexes, core.CmdRet{Cmd: index, Type: typeObject.IndexOf})
+	cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
+	cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
 	return nil
 }

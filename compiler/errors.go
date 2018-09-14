@@ -44,6 +44,10 @@ const (
 	ErrLPar
 	// ErrRPar is returned when extra right parenthesis has been found
 	ErrRPar
+	// ErrLSBracket is returned when there is an unclosed left square bracket
+	ErrLSBracket
+	// ErrRSBracket is returned when extra right square bracket has been found
+	ErrRSBracket
 	// ErrEmptyCode is returned when the source code is empty
 	ErrEmptyCode
 	// ErrFunction is returned when the compiler could not find a corresponding function
@@ -76,10 +80,22 @@ const (
 	ErrIota
 	// ErrIntOper is returned when ++ or -- gets not int value
 	ErrIntOper
-	// ErrDoubleQuotes is return when there is a wrong command of backslash in double quotes strings
+	// ErrDoubleQuotes is returned when there is a wrong command of backslash in double quotes strings
 	ErrDoubleQuotes
-	// ErrLink is return when the script with the same name but different path is already linked
+	// ErrLink is returned when the script with the same name but different path is already linked
 	ErrLink
+	// ErrConstDef is returned when the constant is redefined
+	ErrConstDef
+	// ErrChar means that the char literal has wrong format
+	ErrChar
+	// ErrNoIndex means that there is not a value for index
+	ErrNoIndex
+	// ErrVarIndex means that there is not a variable for indexing
+	ErrVarIndex
+	// ErrSupportIndex means that the type of the variable doesn't support indexing
+	ErrSupportIndex
+	// ErrTypeIndex means that the type of the index value is wrong
+	ErrTypeIndex
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -118,6 +134,8 @@ var (
 		ErrOutOfRange:     `the number %s is out of range`,
 		ErrLPar:           `there is an unclosed left parenthesis`,
 		ErrRPar:           `extra right parenthesis`,
+		ErrLSBracket:      `there is an unclosed left square bracket`,
+		ErrRSBracket:      `extra right square bracket`,
 		ErrEmptyCode:      `source code is empty`,
 		ErrFunction:       `function %s has not been found`,
 		ErrBoolExp:        `wrong type of expression, expecting boolean type`,
@@ -136,6 +154,12 @@ var (
 		ErrIntOper:        `wrong type of operands, expecting int type`,
 		ErrDoubleQuotes:   `invalid syntax of double quotes string`,
 		ErrLink:           `script %s has already been linked`,
+		ErrConstDef:       `constant %s has already been defined!`,
+		ErrChar:           `char literal has wrong format`,
+		ErrNoIndex:        `there is not index value`,
+		ErrVarIndex:       `unexpected token, expecting a variable for indexing`,
+		ErrSupportIndex:   `%s variable does not support indexing`,
+		ErrTypeIndex:      `wrong type of index, expecting %s type`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

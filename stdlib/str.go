@@ -34,27 +34,27 @@ func InitStr(vm *core.VirtualMachine) {
 }
 
 // AssignºStrStr assigns one string to another
-func AssignºStrStr(vars []interface{}, cmdVar *core.CmdVar, value string) string {
-	vars[cmdVar.Index] = value
-	return vars[cmdVar.Index].(string)
+func AssignºStrStr(ptr *interface{}, value string) string {
+	*ptr = value
+	return (*ptr).(string)
 }
 
 // AssignAddºStrStr appends one string to another
-func AssignAddºStrStr(vars []interface{}, cmdVar *core.CmdVar, value string) string {
-	vars[cmdVar.Index] = vars[cmdVar.Index].(string) + value
-	return vars[cmdVar.Index].(string)
+func AssignAddºStrStr(ptr *interface{}, value string) string {
+	*ptr = (*ptr).(string) + value
+	return (*ptr).(string)
 }
 
 // AssignºStrBool assigns boolean to string
-func AssignºStrBool(vars []interface{}, cmdVar *core.CmdVar, value bool) string {
-	vars[cmdVar.Index] = fmt.Sprint(value)
-	return vars[cmdVar.Index].(string)
+func AssignºStrBool(ptr *interface{}, value bool) string {
+	*ptr = fmt.Sprint(value)
+	return (*ptr).(string)
 }
 
 // AssignºStrInt assigns integer to string
-func AssignºStrInt(vars []interface{}, cmdVar *core.CmdVar, value int64) string {
-	vars[cmdVar.Index] = fmt.Sprint(value)
-	return vars[cmdVar.Index].(string)
+func AssignºStrInt(ptr *interface{}, value int64) string {
+	*ptr = fmt.Sprint(value)
+	return (*ptr).(string)
 }
 
 // ExpStr adds two strings in string expression

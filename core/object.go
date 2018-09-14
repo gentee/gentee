@@ -46,7 +46,7 @@ type Object struct {
 type TypeObject struct {
 	Object
 	Original reflect.Type // Original golang type
-	Pointer  bool         // True in case of passing by reference
+	IndexOf  *TypeObject  // consists of elements
 }
 
 // EmbedObject contains information about the golang function
@@ -248,11 +248,15 @@ func (unit *Unit) NewObject(obj IObject) {
 }
 
 // NewType adds a new type to Unit
-func (unit *Unit) NewType(name string, original reflect.Type) {
-	unit.NewObject(&TypeObject{
+func (unit *Unit) NewType(name string, original reflect.Type, indexOf string) {
+	typeObject := TypeObject{
 		Object: Object{
 			Name: name,
 		},
 		Original: original,
-	})
+	}
+	if len(indexOf) > 0 {
+		typeObject.IndexOf = unit.Names[indexOf].(*TypeObject)
+	}
+	unit.NewObject(&typeObject)
 }

@@ -52,3 +52,8 @@ func (workspace *Workspace) CompileFile(filename string) (*core.Unit, error) {
 func (workspace *Workspace) Run(name string) (interface{}, error) {
 	return workspace.VM.Run(name)
 }
+
+// Version returns th ecurrent version of the Gentee compiler
+func (workspace *Workspace) Version() string {
+	return core.Version
+}
