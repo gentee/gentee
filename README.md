@@ -14,8 +14,9 @@ All documentation is available on [GitHub pages](https://github.com/gentee/gente
 
 * [Download the binary version](https://github.com/gentee/gentee/releases) of Gentee compiler for your operating system or build the *gentee* executable file from *cli/gentee.go* using [go compiler](https://golang.org/dl/).
 ```
-cd ...github.com/gentee/cli/gentee
-go build
+$ go get -u github.com/gentee/gentee
+$ cd gentee/gentee/cli
+$ go build
 ```
 * Specify the script file when running *gentee*. The script file can have any extension.
 ```
