@@ -12,7 +12,7 @@ All documentation is available on [GitHub pages](https://github.com/gentee/gente
 
 ## How to run Gentee scripts
 
-* [Download the binary version](https://github.com/gentee/gentee/releases) of Gentee compiler for your operating system or build the *gentee* executable file from *cli/gentee.go* using [https://golang.org/dl/](go compiler).
+* [Download the binary version](https://github.com/gentee/gentee/releases) of Gentee compiler for your operating system or build the *gentee* executable file from *cli/gentee.go* using [go compiler](https://golang.org/dl/).
 ```
 cd ...github.com/gentee/cli/gentee
 go build
