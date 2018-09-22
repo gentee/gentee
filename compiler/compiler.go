@@ -23,6 +23,7 @@ type compiler struct {
 	runID    int
 	pos      int // current position
 	newState int // new state from callback function
+	newPos   int // new position
 	callback bool
 	states   *[]StateStack
 	curType  *core.TypeObject // the current type of parameters or variables
@@ -54,6 +55,7 @@ type ExpBuf struct {
 
 var (
 	priority = map[int]Priority{
+		tkRange:        {3, true, `NewRange`},
 		tkAssign:       {5, true, `Assign`},
 		tkAddEq:        {5, true, `AssignAdd`},
 		tkSubEq:        {5, true, `AssignSub`},
@@ -67,15 +69,15 @@ var (
 		tkBitXorEq:     {5, true, `AssignBitXor`},
 		tkAnd:          {7, false, ``},
 		tkOr:           {8, false, ``},
-		tkBitOr:        {9, false, `BitOr`},
-		tkBitXor:       {10, false, `BitXor`},
-		tkBitAnd:       {11, false, `BitAnd`},
-		tkEqual:        {12, false, `Equal`},
-		tkNotEqual:     {12, false, `Equal`},
-		tkLess:         {12, false, `Less`},
-		tkLessEqual:    {12, false, `Greater`},
-		tkGreater:      {12, false, `Greater`},
-		tkGreaterEqual: {12, false, `Less`},
+		tkEqual:        {10, false, `Equal`},
+		tkNotEqual:     {10, false, `Equal`},
+		tkLess:         {10, false, `Less`},
+		tkLessEqual:    {10, false, `Greater`},
+		tkGreater:      {10, false, `Greater`},
+		tkGreaterEqual: {10, false, `Less`},
+		tkBitOr:        {11, false, `BitOr`},
+		tkBitXor:       {12, false, `BitXor`},
+		tkBitAnd:       {13, false, `BitAnd`},
 		tkLShift:       {14, false, `LShift`},
 		tkRShift:       {14, false, `RShift`},
 		tkAdd:          {15, false, `Add`},
@@ -152,6 +154,7 @@ main:
 		next := compileTable[state][token.Type]
 		cmpl.states = &stackState
 		cmpl.newState = 0
+		cmpl.newPos = 0
 		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type,
 		//	getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
 		flag := next.Action & 0xff0000
@@ -171,6 +174,9 @@ main:
 		if next.Func != nil {
 			if err := next.Func(cmpl); err != nil {
 				return err
+			}
+			if cmpl.newPos != 0 {
+				i = cmpl.newPos
 			}
 			if cmpl.newState != 0 {
 				state = cmpl.newState & 0xffff
@@ -415,8 +421,7 @@ func coVarType(cmpl *compiler) error {
 	return nil
 }
 
-func coVar(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+func coVarToken(cmpl *compiler, token string) error {
 	if isCapital(token) {
 		return cmpl.Error(ErrCapitalLetters)
 	}
@@ -432,13 +437,17 @@ func coVar(cmpl *compiler) error {
 		block = block.Parent
 	}
 
-	block = cmpl.owners[0].(*core.CmdBlock)
+	block = cmpl.curOwner()
 	if block.VarNames == nil {
 		block.VarNames = make(map[string]int)
 	}
 	block.VarNames[token] = len(block.Vars)
 	block.Vars = append(block.Vars, cmpl.curType)
 	return nil
+}
+
+func coVar(cmpl *compiler) error {
+	return coVarToken(cmpl, getToken(cmpl.getLex(), cmpl.pos))
 }
 
 func coConst(cmpl *compiler) error {
@@ -736,7 +745,7 @@ func popBuf(cmpl *compiler) error {
 		cmpl.exp[len(cmpl.exp)-2] = icmd
 		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
 	case tkAdd, tkSub, tkMul, tkMod, tkDiv, tkEqual, tkNotEqual, tkLess, tkLessEqual, tkGreater,
-		tkGreaterEqual, tkBitOr, tkBitXor, tkBitAnd, tkLShift, tkRShift:
+		tkGreaterEqual, tkBitOr, tkBitXor, tkBitAnd, tkLShift, tkRShift, tkRange:
 		if len(cmpl.exp) < 2 {
 			return cmpl.Error(ErrValue)
 		}
@@ -1170,5 +1179,64 @@ func setIndex(cmpl *compiler) error {
 	(*cmdVar).Indexes = append((*cmdVar).Indexes, core.CmdRet{Cmd: index, Type: typeObject.IndexOf})
 	cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
 	cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
+	return nil
+}
+
+func coFor(cmpl *compiler) error {
+	if cmpl.callback {
+		cmd := cmpl.curOwner()
+		if cmd.ID == core.StackFor {
+			if len(cmd.Children) == 1 {
+				if !isIndexResult(cmd.Children[0]) {
+					return cmpl.ErrorPos(cmd.Children[0].GetToken(), ErrSupportIndex,
+						cmd.Children[0].GetResult().GetName())
+				}
+				cmd.Vars[0] = cmd.Children[0].GetResult().IndexOf
+				cmd.Vars[1] = cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)
+				cmdFor := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
+					CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+				cmd.Children = append(cmd.Children, &cmdFor)
+				cmpl.owners = append(cmpl.owners, &cmdFor)
+				cmpl.newState = cmLCurly
+			}
+		} else {
+			cmpl.owners = cmpl.owners[:len(cmpl.owners)-2]
+		}
+		return nil
+	}
+	coExpStart(cmpl)
+	cmd := core.CmdBlock{ID: core.StackFor, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+	appendCmd(cmpl, &cmd)
+	cmpl.owners = append(cmpl.owners, &cmd)
+	lp := cmpl.unit.Lexeme[0]
+	cmpl.newPos = cmpl.pos + 1
+	if lp.Tokens[cmpl.newPos].Type != tkIdent {
+		return cmpl.ErrorPos(cmpl.newPos, ErrName)
+	}
+	cmpl.curType = nil
+	cmpl.pos = cmpl.newPos
+	if err := coVar(cmpl); err != nil {
+		return err
+	}
+	cmpl.newPos++
+	if lp.Tokens[cmpl.newPos].Type == tkComma {
+		cmpl.newPos++
+		if lp.Tokens[cmpl.newPos].Type != tkIdent {
+			return cmpl.ErrorPos(cmpl.newPos, ErrName)
+		}
+		cmpl.pos = cmpl.newPos
+		if err := coVar(cmpl); err != nil {
+			return err
+		}
+		cmpl.newPos++
+	} else {
+		if err := coVarToken(cmpl, randName()); err != nil {
+			return err
+		}
+	}
+
+	if lp.Tokens[cmpl.newPos].Type != tkIn {
+		return cmpl.ErrorPos(cmpl.newPos, ErrForIn)
+	}
 	return nil
 }

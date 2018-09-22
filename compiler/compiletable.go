@@ -135,6 +135,7 @@ var (
 			{tkType, cmMustVarType, coVarType, 1},
 			{tkIf, cmExp | cfCallBack, coIf, 1},
 			{tkWhile, cmExp | cfCallBack, coWhile, 1},
+			{tkFor, cmExp | cfCallBack, coFor, 1},
 			{tkReturn, cmExp | cfCallBack, coReturn, 1},
 		},
 		cmExp: {
@@ -160,7 +161,7 @@ var (
 			{[]int{tkAdd, tkDiv, tkMod, tkMul, tkSub, tkEqual, tkNotEqual, tkGreater, tkGreaterEqual,
 				tkLess, tkLessEqual, tkAssign, tkOr, tkAnd, tkBitOr, tkBitAnd, tkBitXor, tkLShift,
 				tkRShift, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq,
-				tkBitAndEq, tkBitOrEq, tkBitXorEq}, cfBack,
+				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange}, cfBack,
 				coOperator, 0},
 			{[]int{tkInc, tkDec}, cfSkip, coUnaryPostOperator, 0},
 			{[]int{tkRPar, tkRSBracket}, cfSkip, coOperator, 0},

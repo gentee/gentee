@@ -5,6 +5,8 @@
 package compiler
 
 import (
+	"math/rand"
+	"time"
 	"unicode"
 
 	"github.com/gentee/gentee/core"
@@ -18,6 +20,10 @@ func isIntResult(cmd core.ICmd) bool {
 	return cmd.GetResult().GetName() == `int`
 }
 
+func isIndexResult(cmd core.ICmd) bool {
+	return cmd.GetResult().IndexOf != nil
+}
+
 func isCapital(name string) bool {
 	for _, ch := range name {
 		if !unicode.IsUpper(ch) && ch != '_' && !unicode.IsDigit(ch) {
@@ -25,4 +31,15 @@ func isCapital(name string) bool {
 		}
 	}
 	return true
+}
+
+func randName() string {
+	alpha := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	length := len(alpha)
+	rand.Seed(time.Now().UnixNano())
+	b := make([]rune, length)
+	for i := range b {
+		b[i] = alpha[rand.Intn(length)]
+	}
+	return string(b)
 }

@@ -8,6 +8,12 @@ import (
 	"reflect"
 )
 
+// Range is the type for operator ..
+type Range struct {
+	From int64
+	To   int64
+}
+
 func getVar(rt *RunTime, cmdVar *CmdVar) error {
 	var (
 		vars []interface{}
@@ -105,4 +111,30 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 	}
 	rt.Stack[len(rt.Stack)-1] = result[0].Interface()
 	return nil
+}
+
+func initVars(rt *RunTime, cmdStack *CmdBlock) (count int) {
+	rtBlock := RunTimeBlock{Block: cmdStack}
+	if len(cmdStack.Vars) > 0 {
+		for i := 0; i < cmdStack.ParCount; i++ {
+			rtBlock.Vars = append(rtBlock.Vars, rt.Stack[len(rt.Stack)-cmdStack.ParCount+i])
+			count++
+		}
+		rt.Stack = rt.Stack[:len(rt.Stack)-cmdStack.ParCount]
+		for i := cmdStack.ParCount; i < len(cmdStack.Vars); i++ {
+			var value interface{}
+			if cmdStack.Vars[i].GetName() == `char` {
+				value = ' '
+			} else {
+				value = reflect.New(cmdStack.Vars[i].Original).Elem().Interface()
+			}
+			rtBlock.Vars = append(rtBlock.Vars, value)
+		}
+	}
+	rt.Blocks = append(rt.Blocks, rtBlock)
+	return
+}
+
+func deleteVars(rt *RunTime) {
+	rt.Blocks = rt.Blocks[:len(rt.Blocks)-1]
 }

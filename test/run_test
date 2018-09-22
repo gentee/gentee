@@ -1,3 +1,55 @@
+run int { 
+  int ret
+  for i, j in 3..5-7 {
+    if j & 1 == 0 : ret *= i
+    else : ret += i
+  } 
+  return ret
+}
+===== -4
+run int { 
+  int ret
+  for i in 1..5 : ret += i
+  return ret
+}
+===== 15
+run str { 
+  str tmp = `aΣz`
+  for ch, i in tmp {
+    if i < 5 : tmp += ch
+  }
+  return tmp
+}
+===== aΣzaΣz
+func getStr str {
+  return `t1μ=`
+}
+run str { 
+  str dest out
+  for ch, i in getStr() {
+      dest += `%{ch}%{i}`
+      for dch in dest : out += dch
+  }
+  return out
+}
+===== t0t011t011μ2t011μ2=3
+run str { 
+  str dest
+  for ch, i in `strΔ` {
+    dest += "\{i}\{ch}"
+  }
+  return dest
+}
+===== 0s1t2r3Δ
+run str { 
+  str dest
+  str src = `Ω0123`
+  for ch in src {
+    dest += ch
+  }
+  return dest
+}
+===== Ω0123
 run str { 
   str s = `01 Ê123`
   s += s[2] = '\u0102'
@@ -30,7 +82,8 @@ run str {
 } 
 ===== a =	'"\zα0
 run int {
-  if true : int a = 10; if false {a= 20} else {a+=30}
+  int a
+  if true : a = 10; if false {a= 20} else {a+=30}
   return a
 } 
 ===== 40

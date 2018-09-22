@@ -70,6 +70,8 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 		name = `str`
 	case `int32`:
 		name = `char`
+	case `core.Range`:
+		name = `range`
 	default:
 		return nil
 	}

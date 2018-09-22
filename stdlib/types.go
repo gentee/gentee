@@ -23,6 +23,7 @@ func InitTypes(vm *core.VirtualMachine) {
 		{`bool`, reflect.TypeOf(true), ``},
 		{`char`, reflect.TypeOf('a'), ``},
 		{`str`, reflect.TypeOf(``), `char`},
+		{`range`, reflect.TypeOf(core.Range{}), `int`},
 	} {
 		vm.StdLib().NewType(item.name, item.original, item.index)
 	}

@@ -55,7 +55,7 @@ func ErrorText(id int) string {
 	return errText[id]
 }
 
-func runtimeError(rt *RunTime, cmd ICmd, idError interface{}) error {
+func runtimeError(rt *RunTime, cmd ICmd, idError interface{}, labels ...interface{}) error {
 	var (
 		line, column int
 		lex          *Lex
@@ -74,6 +74,9 @@ func runtimeError(rt *RunTime, cmd ICmd, idError interface{}) error {
 		errText = ErrorText(v)
 	case error:
 		errText = v.Error()
+	}
+	for _, item := range labels {
+		errText += fmt.Sprintf(` [%v]`, item)
 	}
 	return fmt.Errorf(`%d:%d: %s`, line, column, errText)
 }

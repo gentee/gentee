@@ -96,6 +96,8 @@ const (
 	ErrSupportIndex
 	// ErrTypeIndex means that the type of the index value is wrong
 	ErrTypeIndex
+	// ErrForIn is return when 'in' is missing in for statement
+	ErrForIn
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -158,8 +160,9 @@ var (
 		ErrChar:           `char literal has wrong format`,
 		ErrNoIndex:        `there is not index value`,
 		ErrVarIndex:       `unexpected token, expecting a variable for indexing`,
-		ErrSupportIndex:   `%s variable does not support indexing`,
+		ErrSupportIndex:   `%s type does not support indexing`,
 		ErrTypeIndex:      `wrong type of index, expecting %s type`,
+		ErrForIn:          `unexpected token, expecting 'in'`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

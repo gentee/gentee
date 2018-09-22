@@ -1,3 +1,27 @@
+run {
+  for ch in 0..16100000 {}
+}
+===== 2:3: maximum cycle count has been reached
+run { 1..`true`}
+===== 1:8: function NewRange(int, str) has not been found
+run { for ch in 10..2 {
+  for ch in 1..5 :
+}}
+===== 2:7: "ch" has already been used as the name of the function, type or variable
+run { for ch, ind in 10 {}}
+===== 1:22: int type does not support indexing
+run { for ch, ind `qqqq` {}}
+===== 1:19: unexpected token, expecting 'in'
+run { for 10 in `qqqq` {}}
+===== 1:11: unexpected token, expecting the name of the identifier
+run { char ch 
+   for ch in `qqqq` {}
+}
+===== 2:8: "ch" has already been used as the name of the function, type or variable
+run { for ch in `qqqq`
+===== 1:22: unexpected end of the source
+run { `my string`[1] }
+===== 1:18: unexpected token, expecting operator
 run { str s; s[ 50 + 50 ] = 'A' }
 ===== 1:20: index out of range
 run char { str s = `ok`; return s[-1] }
@@ -5,7 +29,7 @@ run char { str s = `ok`; return s[-1] }
 run { str s; s[ true || false ] }
 ===== 1:31: wrong type of index, expecting int type
 run { int a ; a[ 2*3 ] }
-===== 1:15: int variable does not support indexing
+===== 1:15: int type does not support indexing
 run { VERSION[0 + 2 + 3] }
 ===== 1:7: unexpected token, expecting a variable for indexing
 run { str a; a[ 1, 2 ] }

@@ -63,6 +63,8 @@ const (
 	tkStrExp                   // expression inside the string
 	tkCmdLine                  // $
 	tkColon                    // :
+	tkDot                      // .
+	tkRange                    // ..
 )
 
 // Keywords
@@ -70,9 +72,11 @@ const (
 	tkRun = iota + 64 // run
 	tkReturn
 	tkFalse
+	tkFor
 	tkFunc
 	tkTrue
 	tkIf
+	tkIn
 	tkElif
 	tkElse
 	tkWhile
@@ -135,5 +139,7 @@ var (
 		`//`:  tkCommentLine,
 		`/*`:  tkComment,
 		`:`:   tkColon,
+		`.`:   tkDot,
+		`..`:  tkRange,
 	}
 )

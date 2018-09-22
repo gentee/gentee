@@ -47,7 +47,7 @@ func (rt *RunTime) getVars(block *CmdBlock) ([]interface{}, error) {
 			return rt.Blocks[i].Vars, nil
 		}
 	}
-	return nil, runtimeError(rt, block, ErrRuntime)
+	return nil, runtimeError(rt, block, ErrRuntime, `getVars`)
 }
 
 func (rt *RunTime) callFunc(cmd ICmd) (err error) {
@@ -95,7 +95,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 			return
 		}
 	default:
-		return runtimeError(rt, cmd, ErrRuntime)
+		return runtimeError(rt, cmd, ErrRuntime, `callFunc`)
 	}
 	return
 }
@@ -219,26 +219,34 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				}
 				break
 			}
-		case StackBlock:
-			rt.Result = nil
-			rtBlock := RunTimeBlock{Block: cmdStack}
-			if len(cmdStack.Vars) > 0 {
-				for i := 0; i < cmdStack.ParCount; i++ {
-					rtBlock.Vars = append(rtBlock.Vars, rt.Stack[len(rt.Stack)-cmdStack.ParCount+i])
-					lenStack--
+		case StackFor:
+			if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+				return err
+			}
+			value := rt.Stack[len(rt.Stack)-1]
+			rt.Stack = rt.Stack[:len(rt.Stack)-1]
+			var index int64
+			length := getLength(value)
+			lenStack -= initVars(rt, cmdStack)
+			if vars, err = rt.getVars(cmdStack); err != nil {
+				return err
+			}
+			cycle := rt.Consts[ConstCycle].(int64)
+			for ; index < length; index++ {
+				vars[0] = getIndex(value, index)
+				vars[1] = index
+				if err = rt.runCmd(cmdStack.Children[1]); err != nil {
+					return err
 				}
-				rt.Stack = rt.Stack[:len(rt.Stack)-cmdStack.ParCount]
-				for i := cmdStack.ParCount; i < len(cmdStack.Vars); i++ {
-					var value interface{}
-					if cmdStack.Vars[i].GetName() == `char` {
-						value = ' '
-					} else {
-						value = reflect.New(cmdStack.Vars[i].Original).Elem().Interface()
-					}
-					rtBlock.Vars = append(rtBlock.Vars, value)
+				length = getLength(value)
+				if index > cycle {
+					return runtimeError(rt, cmdStack, ErrCycle)
 				}
 			}
-			rt.Blocks = append(rt.Blocks, rtBlock)
+			deleteVars(rt)
+		case StackBlock:
+			rt.Result = nil
+			lenStack -= initVars(rt, cmdStack)
 			for _, item := range cmdStack.Children {
 				if err = rt.runCmd(item); err != nil {
 					return err
@@ -253,7 +261,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					break
 				}
 			}
-			rt.Blocks = rt.Blocks[:len(rt.Blocks)-1]
+			deleteVars(rt)
 		case StackReturn:
 			if cmdStack.Children != nil {
 				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
@@ -270,4 +278,38 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 		rt.Calls = rt.Calls[:len(rt.Calls)-1]
 	}
 	return err
+}
+
+func getLength(value interface{}) int64 {
+	switch v := value.(type) {
+	case string:
+		return int64(len([]rune(v)))
+	default:
+		if reflect.TypeOf(value).String() == `core.Range` {
+			rangeVal := value.(Range)
+			length := rangeVal.To - rangeVal.From
+			if length < 0 {
+				length = -length
+			}
+			return length + 1
+		}
+	}
+	return 0
+}
+
+func getIndex(value interface{}, index int64) interface{} {
+	switch v := value.(type) {
+	case string:
+		return []rune(v)[index]
+	default:
+		if reflect.TypeOf(value).String() == `core.Range` {
+			rangeVal := value.(Range)
+			if rangeVal.From < rangeVal.To {
+				return rangeVal.From + index
+			}
+			return rangeVal.From - index
+
+		}
+	}
+	return nil
 }

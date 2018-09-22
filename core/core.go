@@ -47,6 +47,8 @@ const (
 	StackQuestion
 	// StackIncDec is ++ --
 	StackIncDec
+	// StackFor is the for statement
+	StackFor
 )
 
 // Token is a lexical token.
