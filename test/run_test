@@ -1,3 +1,54 @@
+run str {
+  arr ina 
+  int i1 i2
+  for i in 0..10000 {
+    ina += str(i)
+    i1 += i
+  }
+  for item in ina {
+    i2 += int(item)
+  }
+  return "\{i1} == \{i2}"
+}
+===== 50005000 == 50005000
+run arr {
+  arr ina out
+  ina += `one`
+  ina += `two`
+  for item in ina {
+    out += item
+    ina[1] = `ok`
+  }
+  return out
+}
+===== [one ok]
+run arr {
+  arr array
+  array += `out`
+  return array += `result`
+}
+===== [out result]
+run str {
+  arr array
+  array += `1п00`
+  array[0+0][3*1] = 'р'
+  return array[0*21] + array[0*21][2+2-1]
+}
+===== 1п0рр
+run str {
+  arr array
+  array += `1`
+  array[0] = `zero`
+  return array[0]
+}
+===== zero
+run str {
+  arr array
+  array += `first`
+  array += `second`
+  return str(*array) + " \{array[0]} " + array[1]
+}
+===== 2 first second
 run int { 
   int ret
   for i, j in 3..5-7 {

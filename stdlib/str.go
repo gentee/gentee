@@ -77,7 +77,7 @@ func GreaterºStr(left, right string) bool {
 	return left > right
 }
 
-// LenºStr returns teh length of the string
+// LenºStr returns the length of the string
 func LenºStr(param string) int64 {
 	return int64(len(param))
 }

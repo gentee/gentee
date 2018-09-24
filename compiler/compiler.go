@@ -155,7 +155,7 @@ main:
 		cmpl.states = &stackState
 		cmpl.newState = 0
 		cmpl.newPos = 0
-		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type,
+		// fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type,
 		//	getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
 		flag := next.Action & 0xff0000
 		if flag&cfError != 0 {
@@ -763,7 +763,6 @@ func popBuf(cmpl *compiler) error {
 			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
 				left.GetResult(), right.GetResult()})
 		}
-		//		fmt.Println(`Bin`, prior.Name, obj, left.GetResult(), right.GetResult(), obj.GetParams())
 		icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Object: obj, Result: obj.Result(), Left: left, Right: right}
 		if expBuf.Oper == tkNotEqual || expBuf.Oper == tkLessEqual || expBuf.Oper == tkGreaterEqual {

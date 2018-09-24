@@ -14,6 +14,11 @@ type Range struct {
 	To   int64
 }
 
+// Array is an array
+type Array struct {
+	Data []interface{}
+}
+
 func getVar(rt *RunTime, cmdVar *CmdVar) error {
 	var (
 		vars []interface{}
@@ -28,7 +33,7 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 		typeValue := cmdVar.Block.Vars[cmdVar.Index]
 		for _, ival := range cmdVar.Indexes {
 			if typeValue == nil {
-				return runtimeError(rt, cmdVar, ErrRuntime)
+				return runtimeError(rt, cmdVar, ErrRuntime, `getVar.typeValue`)
 			}
 			if err = rt.runCmd(ival.Cmd); err != nil {
 				return err
@@ -42,8 +47,15 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 					return runtimeError(rt, ival.Cmd, ErrIndexOut)
 				}
 				value = runes[index]
+			case `arr`:
+				var arr *Array
+				arr = value.(*Array)
+				if index < 0 || index >= int64(len(arr.Data)) {
+					return runtimeError(rt, ival.Cmd, ErrIndexOut)
+				}
+				value = arr.Data[index]
 			default:
-				return runtimeError(rt, cmdVar, ErrRuntime)
+				return runtimeError(rt, cmdVar, ErrRuntime, `getVar.default`)
 			}
 			typeValue = typeValue.IndexOf
 		}
@@ -70,12 +82,14 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 		runes    []rune
 		strIndex int64
 		prev     *interface{}
+		arr      *Array
+		arrIndex int64
 	)
 	if cmdVar.Indexes != nil {
 		typeValue := cmdVar.Block.Vars[cmdVar.Index]
 		for _, ival := range cmdVar.Indexes {
 			if typeValue == nil {
-				return runtimeError(rt, cmdVar, ErrRuntime)
+				return runtimeError(rt, cmdVar, ErrRuntime, `setVar.typeValue`)
 			}
 			if err = rt.runCmd(ival.Cmd); err != nil {
 				return err
@@ -93,8 +107,17 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 				}
 				strRune = runes[strIndex]
 				ptr = &strRune
+			case `arr`:
+				var arrPtr interface{}
+				arrIndex = index.(int64)
+				arr = (*ptr).(*Array)
+				if arrIndex < 0 || arrIndex >= int64(len(arr.Data)) {
+					return runtimeError(rt, ival.Cmd, ErrIndexOut)
+				}
+				arrPtr = arr.Data[arrIndex]
+				ptr = &arrPtr
 			default:
-				return runtimeError(rt, cmdVar, ErrRuntime)
+				return runtimeError(rt, cmdVar, ErrRuntime, `setVar.default`)
 			}
 			typeValue = typeValue.IndexOf
 		}
@@ -108,6 +131,10 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 	if prev != nil {
 		runes[strIndex] = result[0].Interface().(rune)
 		*prev = string(runes)
+		*ptr = *prev
+	}
+	if arr != nil {
+		arr.Data[arrIndex] = *ptr
 	}
 	rt.Stack[len(rt.Stack)-1] = result[0].Interface()
 	return nil
@@ -127,6 +154,12 @@ func initVars(rt *RunTime, cmdStack *CmdBlock) (count int) {
 				value = ' '
 			} else {
 				value = reflect.New(cmdStack.Vars[i].Original).Elem().Interface()
+			}
+			if cmdStack.Vars[i].GetName() == `arr` {
+				var arr Array
+				arr = value.(Array)
+				arr.Data = make([]interface{}, 0)
+				value = &arr
 			}
 			rtBlock.Vars = append(rtBlock.Vars, value)
 		}

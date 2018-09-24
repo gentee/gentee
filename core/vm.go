@@ -72,6 +72,8 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 		name = `char`
 	case `core.Range`:
 		name = `range`
+	case `*core.Array`:
+		name = `arr`
 	default:
 		return nil
 	}
@@ -108,6 +110,9 @@ func (vm *VirtualMachine) Run(name string) (interface{}, error) {
 			return nil, runtimeError(rt, nil, ErrRuntime)
 		}
 		result = rt.Stack[len(rt.Stack)-1]
+		if reflect.TypeOf(result).String() == `*core.Array` {
+			result = result.(*Array).Data
+		}
 	}
 	return result, nil
 }

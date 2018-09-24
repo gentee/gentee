@@ -165,6 +165,7 @@ var (
 				coOperator, 0},
 			{[]int{tkInc, tkDec}, cfSkip, coUnaryPostOperator, 0},
 			{[]int{tkRPar, tkRSBracket}, cfSkip, coOperator, 0},
+			{[]int{tkLSBracket}, cfBack | cfStay | cmExp, coIndex, 0},
 			{tkComma, cfBack, coComma, 0},
 			{[]int{tkLCurly, tkLine, tkRCurly}, cfStay | cfBack, nil, 0},
 		},

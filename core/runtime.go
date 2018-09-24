@@ -280,36 +280,35 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 	return err
 }
 
-func getLength(value interface{}) int64 {
-	switch v := value.(type) {
-	case string:
-		return int64(len([]rune(v)))
-	default:
-		if reflect.TypeOf(value).String() == `core.Range` {
-			rangeVal := value.(Range)
-			length := rangeVal.To - rangeVal.From
-			if length < 0 {
-				length = -length
-			}
-			return length + 1
+func getLength(value interface{}) (length int64) {
+	switch reflect.TypeOf(value).String() {
+	case `string`:
+		length = int64(len([]rune(value.(string))))
+	case `core.Range`:
+		rangeVal := value.(Range)
+		length = rangeVal.To - rangeVal.From
+		if length < 0 {
+			length = -length
 		}
+		length++
+	case `*core.Array`:
+		length = int64(len(value.(*Array).Data))
 	}
-	return 0
+	return
 }
 
 func getIndex(value interface{}, index int64) interface{} {
-	switch v := value.(type) {
-	case string:
-		return []rune(v)[index]
-	default:
-		if reflect.TypeOf(value).String() == `core.Range` {
-			rangeVal := value.(Range)
-			if rangeVal.From < rangeVal.To {
-				return rangeVal.From + index
-			}
-			return rangeVal.From - index
-
+	switch reflect.TypeOf(value).String() {
+	case `string`:
+		return []rune(value.(string))[index]
+	case `core.Range`:
+		rangeVal := value.(Range)
+		if rangeVal.From < rangeVal.To {
+			return rangeVal.From + index
 		}
+		return rangeVal.From - index
+	case `*core.Array`:
+		return value.(*Array).Data[index]
 	}
 	return nil
 }

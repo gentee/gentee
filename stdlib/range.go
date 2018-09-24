@@ -8,7 +8,7 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-// InitRange appends stdlib int functions to the virtual machine
+// InitRange appends stdlib range functions to the virtual machine
 func InitRange(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
 		NewRange, // binary ..

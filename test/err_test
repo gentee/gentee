@@ -1,3 +1,25 @@
+run str {
+  arr array
+  array += 1
+  return array[0]
+}
+===== 3:9: function AssignAdd(arr, int) has not been found
+run str {
+  arr array
+  return array[]
+}
+===== 3:16: there is not index value
+run str {
+  arr array
+  return array[0][0][0]
+}
+===== 3:20: char type does not support indexing
+run str {
+  arr array
+  array += `qq`
+  return array[1]
+}
+===== 4:16: index out of range
 run {
   for ch in 0..16100000 {}
 }
@@ -21,7 +43,7 @@ run { char ch
 run { for ch in `qqqq`
 ===== 1:22: unexpected end of the source
 run { `my string`[1] }
-===== 1:18: unexpected token, expecting operator
+===== 1:7: unexpected token, expecting a variable for indexing
 run { str s; s[ 50 + 50 ] = 'A' }
 ===== 1:20: index out of range
 run char { str s = `ok`; return s[-1] }
