@@ -1,9 +1,106 @@
+run arr.arr.int {
+  arr.arr.int myarr = {,{1,2,3,4,5}}
+}
+===== 2:24: unexpected token, expecting value, identifier or calling func
+run arr.arr.int {
+  arr.arr.int myarr = {{1,2,3,4,5}, 
+      ,{3,4}}
+}
+===== 3:7: unexpected token, expecting value, identifier or calling func
+run arr.int {
+  arr.int myarr = {, 5}
+}
+===== 2:20: unexpected token, expecting value, identifier or calling func
+run map.str {
+  map myr = {"1":1, "2":true}
+  return myr
+}
+===== 2:18: wrong type, expecting str type
+run map.str {
+  map myr = {1:"test", 2:`asdf`}
+}
+===== 2:15: function NewKeyValue(int, str) has not been found
+run map.str {
+  map myr = {"test", `asdf`}
+}
+===== 2:22: unexpected type, expecting a pair of key and value
+run arr.str {
+  arr myr = {"test", ,`asdf`}
+  return myr
+}
+===== 2:22: unexpected token, expecting value, identifier or calling func
+run arr.int {
+  arr.int myarr = {1, "qwerty"}
+}
+===== 2:23: wrong type, expecting int type
+run arr.int {
+  arr.int myarr = {1,{10}}
+}
+===== 2:22: wrong type, expecting int type
+run arr.int {
+  arr.int myarr = {1, 
+  
+  ,}
+}
+===== 4:3: unexpected token, expecting value, identifier or calling func
+run arr.int {
+  arr.int myarr = 
+===== 2:17: unexpected end of the source
+run {
+  map myarr
+===== 2:12: unexpected end of the source
+run { arr.int my
+  arr mys
+  my = mys
+}
+===== 3:6: function Assign(arr.int, arr.str) has not been found
+run { map.int my
+  map mys
+  my = mys
+}
+===== 3:6: function Assign(map.int, map.str) has not been found
+run str { map.str my
+  return my[`123`]
+}
+===== 2:13: there is not key in the map [123]
+run str { map my
+  return my[1]
+}
+===== 2:14: wrong type of index, expecting str type
+run str { arr my
+  return my[`1`]
+}
+===== 2:16: wrong type of index, expecting int type
+run {
+  arr.arr.str ina
+  ina += `string`
+}
+===== 3:7: function AssignAdd(arr.arr.str, str) has not been found
+run {
+  arr.arr.str ina
+  arr.int item
+  ina += item
+}
+===== 4:7: function AssignAdd(arr.arr.str, arr.int) has not been found 
+func myfunc(str the my.par) {}
+=====  1:21: the name of the identifier can't contain a dot
+func myfunc { dot.dot  }
+=====  1:15: unknown identifier dot.dot
+func myfunc { arr.str my.v}
+=====  1:23: the name of the identifier can't contain a dot
+func my.func {}
+=====  1:6: the name of the identifier can't contain a dot
+run my.run {}
+=====  1:5: the name of the identifier can't contain a dot
+const : MY.MY = 1 
+run {}
+===== 1:9: The name of constant must consist of only capital letters
 run str {
   arr array
   array += 1
   return array[0]
 }
-===== 3:9: function AssignAdd(arr, int) has not been found
+===== 3:9: function AssignAdd(arr.str, int) has not been found
 run str {
   arr array
   return array[]
@@ -102,9 +199,9 @@ run str {
 run str { 
   return `text%{ : }` 
 }
-===== 2:18: ':' can't be used in expressions
+===== 2:18: there is an unclosed left parenthesis
 run str { return "\{ if true : "test" } text" }
-===== 1:30: ':' can't be used in expressions
+===== 1:22: unexpected token, expecting value, identifier or calling func
 run str { return `a${ $$ }c` }
 ===== 1:22: wrong environment name, expecting ${NAME}
 run str { return $ a${}c }

@@ -49,6 +49,10 @@ const (
 	StackIncDec
 	// StackFor is the for statement
 	StackFor
+	// StackInit inits array and map variables
+	StackInit
+	// StackNew creates a new array or map
+	StackNew
 )
 
 // Token is a lexical token.

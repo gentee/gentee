@@ -29,6 +29,8 @@ const (
 	ErrQuoteCommand
 	// ErrIndexOut means that int index is out of the length of the array
 	ErrIndexOut
+	// ErrMapIndex is returned when there is not the key in the map
+	ErrMapIndex
 
 	// ErrRuntime error. It means bug
 	ErrRuntime
@@ -45,6 +47,7 @@ var (
 		ErrEmptyCommand: `empty $ command`,
 		ErrQuoteCommand: `unclosed quotation mark in $ command`,
 		ErrIndexOut:     `index out of range`,
+		ErrMapIndex:     `there is not key in the map`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

@@ -132,6 +132,41 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 		cmdStack := cmd.(*CmdBlock)
 		lenStack := len(rt.Stack)
 		switch cmd.(*CmdBlock).ID {
+		case StackNew:
+			switch cmd.(*CmdBlock).Result.Original {
+			case reflect.TypeOf(Array{}):
+				parr := NewArray()
+				for _, icmd := range cmdStack.Children {
+					if err = rt.runCmd(icmd); err != nil {
+						return err
+					}
+					parr.Data = append(parr.Data, rt.Stack[len(rt.Stack)-1])
+				}
+				rt.Stack[lenStack] = parr
+			case reflect.TypeOf(Map{}):
+				pmap := NewMap()
+				for _, icmd := range cmdStack.Children {
+					if err = rt.runCmd(icmd); err != nil {
+						return err
+					}
+					keyValue := rt.Stack[len(rt.Stack)-1].(KeyValue)
+					pmap.Data[keyValue.Key.(string)] = keyValue.Value
+					pmap.Keys = append(pmap.Keys, keyValue.Key.(string))
+				}
+				rt.Stack[lenStack] = pmap
+			default:
+				runtimeError(rt, cmd, ErrRuntime, `init arr`)
+			}
+			lenStack++
+		case StackInit:
+			cmdVar := cmdStack.Children[0].(*CmdVar)
+			if vars, err = rt.getVars(cmdVar.Block); err != nil {
+				return err
+			}
+			if err = rt.runCmd(cmdStack.Children[1]); err != nil {
+				return err
+			}
+			vars[cmdVar.Index] = rt.Stack[len(rt.Stack)-1]
 		case StackQuestion:
 			if err = rt.runCmd(cmdStack.Children[0]); err != nil {
 				return err
@@ -293,6 +328,8 @@ func getLength(value interface{}) (length int64) {
 		length++
 	case `*core.Array`:
 		length = int64(len(value.(*Array).Data))
+	case `*core.Map`:
+		length = int64(len(value.(*Map).Keys))
 	}
 	return
 }
@@ -309,6 +346,8 @@ func getIndex(value interface{}, index int64) interface{} {
 		return rangeVal.From - index
 	case `*core.Array`:
 		return value.(*Array).Data[index]
+	case `*core.Map`:
+		return value.(*Map).Data[value.(*Map).Keys[index]]
 	}
 	return nil
 }

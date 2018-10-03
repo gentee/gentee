@@ -1,3 +1,200 @@
+OFF
+run map.arr.int {
+  map.arr.int ret = {"test": {0,1}}//, `next`:{2,3}}
+//  ret[`next`][0] = 7
+  return ret
+}
+===== map[test:qqq 1:asdf]
+ON
+run arr.map {
+  arr.map ret = {{"test": "val"}
+                 {`next`:"value 2"}}
+  ret[0][`new`] = "new value " + ret[0][`test`] 
+  return ret
+}
+===== [map[test:val new:new value val] map[next:value 2]]
+run arr.arr.int {
+  arr.arr.int ret = {{1, 2, 3}, {4,5,6,7}}
+  ret[0][2] = 9
+  return ret
+}
+===== [[1 2 9] [4 5 6 7]]
+run map {
+  map.str ret = {"test": "qqq",
+       `1`:`as` + `df`
+  }
+  return ret
+}
+===== map[test:qqq 1:asdf]
+run arr.bool {
+  arr.bool mb = : true, false, true
+  return mb
+}
+===== [true false true]
+run arr.str {
+  arr myr = {"test",`asdf`,}
+  return myr
+}
+===== [test asdf]
+run arr.int {
+  arr.int myarr = {10, 
+    20,3+5
+    6*11,
+    33}
+  myarr[0] += myarr[1]
+  return myarr
+}
+===== [30 20 8 66 33]
+run arr.int {
+  arr.int myarr 
+  myarr += 7
+  myarr += 5
+  myarr[0] += myarr[1]
+  return myarr
+}
+===== [12 5]
+func fixMap(map.int par) {
+  map.int ret
+  ret[`third`] = 1
+  par[`oops`] = 99
+  par = ret
+}
+run map.int {
+  map.int mymap
+  mymap[`one`] = 33
+  mymap[`two`] = 44
+  fixMap(mymap)
+  mymap[`four`] = 55
+  return mymap
+}
+===== map[third:1 four:55]
+func fixArr(arr par) {
+  arr ret
+  ret += `third`
+  par = ret
+}
+run arr {
+  arr myarr
+  myarr += `one`
+  myarr += `two`
+  fixArr(myarr)
+  myarr += `four`
+  return myarr
+}
+===== [third four]
+run map.arr.map.int {
+  map.arr.map.int dest src
+  arr.map.int asrc adest
+  map.int mi m1 m2
+  m1[`first`] = 1
+  m1[`second`] = 2
+  asrc += m1
+  m2 = m1
+  m2[`second`] = 3
+  asrc += m2
+  adest = asrc
+  src[`0`] = adest
+  dest = src
+  mi[`last`]= 100
+  src[`0`][0] = mi
+  return dest
+}
+===== map[0:[map[first:1 second:2] map[first:1 second:3]]]
+func new_map(int i) map.int {
+  map.int ret
+  for j in 1..2 {
+    ret[str(j)]= j + i
+  }
+  return ret
+}
+run arr.map.int {
+  arr.map.int myarr
+  int sum
+
+  for i in 0..1 {
+    myarr += new_map(i+2)
+  }
+  myarr[0] = new_map(10)
+  return myarr
+}
+===== [map[1:11 2:12] map[1:4 2:5]]
+func new_arr(int i) arr.int {
+  arr.int ret
+  for j in 1..i {
+    ret += j
+  }
+  return ret
+}
+run int {
+  map.arr.int mymap
+  int sum
+
+  for i in 1..5 {
+    mymap[str(i)] = new_arr(i+2)
+  }
+  for iarr in mymap {
+    sum += *iarr
+    for v in iarr {
+      sum += v
+    }
+  }
+  return sum
+}
+===== 105
+run int {
+  map.int mymap
+  int sum
+  for i in 1..5 {
+    mymap[str(i)] = i  
+    sum += mymap[str(i)]
+  }
+  return sum
+}
+===== 15
+run map {
+  map mymap
+  mymap[`test`] = `true`
+  mymap[``] = `false`
+  mymap[`те`] = `тест`
+  return mymap
+}
+===== map[test:true :false те:тест]
+run arr.bool {
+  arr.bool bib
+  bib += true
+  bib += false
+  bib += !false
+  return bib
+}
+===== [true false true]
+func newStr(arr.arr ina) {
+    arr item
+    item += str(*ina)
+    ina += item
+}
+func newInt(arr.arr.int ina, int i) {
+    arr.int item
+    item += *ina + i
+    ina += item
+}
+run str {
+  arr.arr bigs
+  arr.arr.int bigi
+  newStr(bigs)
+  newStr(bigs)
+  newInt(bigi, *bigs)
+  newInt(bigi, *bigi + *bigs)
+  return bigs[1][0] + str(bigi[1][0]) + str(bigi[0][0])
+}
+===== 142
+run int {
+  arr.int ina 
+  arr.str ins
+  ina += 10
+  ins += `10`
+  return ina[0] + int(ins[0]) + *ina + *ins
+}
+===== 22
 run str {
   arr ina 
   int i1 i2

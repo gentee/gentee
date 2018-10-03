@@ -80,5 +80,4 @@ func TestRun(t *testing.T) {
 			return
 		}
 	}
-	t.Errorf(`OK`)
 }

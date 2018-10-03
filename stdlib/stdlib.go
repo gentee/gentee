@@ -17,8 +17,10 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitBool(vm)
 	InitChar(vm)
 	InitStr(vm)
+	InitKeyValue(vm)
 	InitRange(vm)
 	InitArray(vm)
+	InitMap(vm)
 	InitSystem(vm)
 
 	vm.StdLib().NewConst(core.ConstDepth, int64(1000), true)

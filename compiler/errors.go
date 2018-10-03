@@ -96,8 +96,14 @@ const (
 	ErrSupportIndex
 	// ErrTypeIndex means that the type of the index value is wrong
 	ErrTypeIndex
-	// ErrForIn is return when 'in' is missing in for statement
+	// ErrForIn is returned when 'in' is missing in for statement
 	ErrForIn
+	// ErrIdent is returned when the name contains a dot
+	ErrIdent
+	// ErrWrongType is returned when we get wrong type
+	ErrWrongType
+	// ErrNotKeyValue is returned when initialization of map value without
+	ErrNotKeyValue
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -108,8 +114,6 @@ const (
 	ErrWord = 0x200
 	// ErrEnvName is returned when a environment name ${NAME} is wrong
 	ErrEnvName = 0x300
-	// ErrColon is returned when ':' is used on not the first level
-	ErrColon = 0x400
 	// ErrDoubleColon is returned where there are two colons in one line
 	ErrDoubleColon = 0x500
 )
@@ -119,7 +123,6 @@ var (
 		ErrLetter:      `unknown character`,
 		ErrWord:        `wrong sequence of characters`,
 		ErrEnvName:     `wrong environment name, expecting ${NAME}`,
-		ErrColon:       `':' can't be used in expressions`,
 		ErrDoubleColon: `colon has already been specified in this line`,
 
 		ErrLCurly:         `unexpected token, expecting {`,
@@ -163,6 +166,9 @@ var (
 		ErrSupportIndex:   `%s type does not support indexing`,
 		ErrTypeIndex:      `wrong type of index, expecting %s type`,
 		ErrForIn:          `unexpected token, expecting 'in'`,
+		ErrIdent:          `the name of the identifier can't contain a dot`,
+		ErrWrongType:      `wrong type, expecting %s type`,
+		ErrNotKeyValue:    `unexpected type, expecting a pair of key and value`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

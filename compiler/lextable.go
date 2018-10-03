@@ -100,8 +100,8 @@ var (
 			{[]string{`&&`, `&=`, `&`}, 0, newOper},
 			{[]string{`%=`, `%`}, 0, newOper},
 			{[]string{`^=`, `^`}, 0, newOper},
+			{':', 0, newOper},
 			{'$', lexCmd, nil},
-			{':', 0, colon},
 			{'}', 0, endExp},
 			{[]string{`//`, `/*`, `/=`, `/`}, 0, newDiv},
 			{'\'', lexChar, newChar},
@@ -112,7 +112,7 @@ var (
 			{'0', lexOctHex, newInt},
 		},
 		lexIdent: { // identifier
-			{[]rune{'L', 'D', '_'}, 0, nil},
+			{[]rune{'L', 'D', '_', '.'}, 0, nil},
 		},
 		lexOctHex: { // number
 			{[]rune{'x', 'X'}, lexHex, nil},
@@ -417,17 +417,6 @@ func newExpEnv(lex *lexEngine, start, off int) {
 		lex.Lex.NewTokens(off, tkStrExp)
 		lex.State = lexBackNext
 	}
-}
-
-func colon(lex *lexEngine, start, off int) {
-	if len(lex.Stack) > 0 {
-		lex.Error = ErrColon
-	}
-	if lex.Colon {
-		lex.Error = ErrDoubleColon
-	}
-	lex.Lex.NewTokens(off, tkLCurly)
-	lex.Colon = true
 }
 
 func newChar(lex *lexEngine, start, off int) {

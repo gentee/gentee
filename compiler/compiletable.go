@@ -28,6 +28,7 @@ const (
 	cmMustVarType // define variables
 	cmVarType     // define variables
 	cmQuestion    // ?(condition, exp1, exp2)
+	cmInit        // initializing array or map
 
 	// Flags
 	cfSkip     = 0x10000  // stay on the current state
@@ -161,7 +162,7 @@ var (
 			{[]int{tkAdd, tkDiv, tkMod, tkMul, tkSub, tkEqual, tkNotEqual, tkGreater, tkGreaterEqual,
 				tkLess, tkLessEqual, tkAssign, tkOr, tkAnd, tkBitOr, tkBitAnd, tkBitXor, tkLShift,
 				tkRShift, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq,
-				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange}, cfBack,
+				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange, tkColon}, cfBack,
 				coOperator, 0},
 			{[]int{tkInc, tkDec}, cfSkip, coUnaryPostOperator, 0},
 			{[]int{tkRPar, tkRSBracket}, cfSkip, coOperator, 0},
@@ -187,6 +188,12 @@ var (
 		cmQuestion: {
 			{tkDefault, cfError | ErrCompiler, nil, 0},
 			{tkLPar, cfBack | cfStay, coCallFunc, 0},
+		},
+		cmInit: {
+			{tkDefault, cmExp | cfStay, coExpStart, 1},
+			{tkLCurly, cmInit, coInitStart, 1},
+			{tkRCurly, cfBack, coInitEnd, 0},
+			{tkComma, cfSkip, coInitNext, 0},
 		},
 	}
 	compileTable [][tkDefault]*cmState

@@ -80,8 +80,12 @@ func getLex(obj *Object) *Lex {
 }
 
 // GetName returns the name of the object
-func (typeObj *TypeObject) GetName() string {
-	return typeObj.Name
+func (typeObj *TypeObject) GetName() (ret string) {
+	ret = typeObj.Name
+	if typeObj.IndexOf != nil && (ret == `arr` || ret == `map`) {
+		ret += `.` + typeObj.IndexOf.GetName()
+	}
+	return
 }
 
 // GetLex returns the lex structure of the object
@@ -238,25 +242,26 @@ func (constObj *ConstObject) GetParams() []*TypeObject {
 }
 
 // NewObject adds a new IObject to Unit
-func (unit *Unit) NewObject(obj IObject) {
+func (unit *Unit) NewObject(obj IObject) IObject {
 	name := obj.GetName()
 	if curName := unit.Names[name]; curName == nil {
 		unit.Names[name] = obj
 	} else {
 		curName.SetNext(obj)
 	}
+	return obj
 }
 
 // NewType adds a new type to Unit
-func (unit *Unit) NewType(name string, original reflect.Type, indexOf string) {
+func (unit *Unit) NewType(name string, original reflect.Type, indexOf IObject) IObject {
 	typeObject := TypeObject{
 		Object: Object{
 			Name: name,
 		},
 		Original: original,
 	}
-	if len(indexOf) > 0 {
-		typeObject.IndexOf = unit.Names[indexOf].(*TypeObject)
+	if indexOf != nil {
+		typeObject.IndexOf = indexOf.(*TypeObject)
 	}
-	unit.NewObject(&typeObject)
+	return unit.NewObject(&typeObject)
 }
