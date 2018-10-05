@@ -6,201 +6,197 @@ package compiler
 
 const (
 	// List of compile states
-	cmMain           = iota
+	cmMain     = iota + 1
+	cmRun      // run command
+	cmLCurly   // {
+	cmBody     // body of the code
+	cmExp      // expression
+	cmExpIdent // identifier
+	cmExpOper  // expecting operator in expression
+	cmElseIf   // elif or else
+	cmFunc     // func command
+	cmParams   // parameters of the function
+	cmParam    // getting type name
+	cmWantVar
+	cmVar // getting var name
+	cmWantType
+	cmMustVarType    // define variables
+	cmVarType        // define variables
 	cmConst          // const block
 	cmConstDef       // const definitions
 	cmConstName      // const identifier
 	cmConstListStart // const enum start
 	cmConstList      // const enum
-	cmRun            // run command
-	cmFunc           // func command
-	cmParams         // parameters of the function
-	cmParam          // getting type name
-	cmWantVar
-	cmVar // getting var name
-	cmWantType
-	cmLCurly      // {
-	cmBody        // body of the code
-	cmExp         // expression
-	cmExpIdent    // identifier
-	cmExpOper     // expecting operator in expression
-	cmElseIf      // elif or else
-	cmMustVarType // define variables
-	cmVarType     // define variables
-	cmQuestion    // ?(condition, exp1, exp2)
-	cmInit        // initializing array or map
+	cmInit           // initializing array or map
+
+	cmBack // go to back
 
 	// Flags
-	cfSkip     = 0x10000  // stay on the current state
-	cfBack     = 0x20000  // go to the previous state
-	cfStay     = 0x40000  // stay on the current token
-	cfError    = 0x80000  // return error
-	cfCallBack = 0x100000 // call func when we come back
+	cfStopBack = 0x10000 // stop when go to back
+	cfStay     = 0x40000 // stay on the current token
 )
 
 type compFunc func(*compiler) error
 
 type cmState struct {
-	Tokens interface{} // can be one token or []token
-	Action int
-	Func   compFunc
-	BackTo int
+	Tokens   interface{} // can be one token or []token
+	State    int         // new state
+	Func     compFunc
+	Callback compFunc
+	Flags    int
 }
 
 var (
 	preCompile = map[int][]cmState{
 		cmMain: {
-			{tkDefault, cfError | ErrDecl, nil, 0},
-			{tkLine, cfSkip, nil, 0},
-			{tkConst, cmConst, nil, 1},
-			{tkRun, cmRun | cfCallBack, coRun, 1},
-			{tkFunc, cmFunc | cfCallBack, coFunc, 1},
-		},
-		cmConst: {
-			{tkDefault, cmExp | cfCallBack | cfStay, coConstEnum, 0},
-			{tkLine, cfSkip, nil, 0},
-			{tkLCurly, cmConstDef, nil, 0},
-		},
-		cmConstDef: {
-			{tkDefault, cfError | ErrName, nil, 0},
-			{tkIdent, cmConstName, coConst, 1},
-			{tkLine, cfSkip, nil, 0},
-			{tkRCurly, cfBack, nil, 0},
-		},
-		cmConstName: {
-			{tkDefault, cfError | ErrMustAssign, nil, 0},
-			{tkAssign, cmExp | cfCallBack, coConstExp, 0},
-		},
-		cmConstListStart: {
-			{tkDefault, cfError | ErrLCurly, nil, 0},
-			{tkLine, cfSkip, nil, 0},
-			{tkLCurly, cmConstList, nil, 0},
-		},
-		cmConstList: {
-			{tkDefault, cfError | ErrName, nil, 0},
-			{tkIdent, cfSkip, coConstList, 0},
-			{tkLine, cfSkip, nil, 0},
-			{tkRCurly, cfBack, nil, 0},
+			{tkDefault, ErrDecl, coError, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkRun, cmRun, coRun, coRunBack, cfStopBack},
+			{tkConst, cmConst, nil, nil, cfStopBack},
+			{tkFunc, cmFunc, nil, coFuncBack, cfStopBack},
 		},
 		cmRun: {
-			{tkDefault, cfError | ErrLCurly, nil, 0},
-			{tkIdent, cfSkip, coRunName, 0},
-			{tkLine, cfSkip, nil, 0},
-			{tkLCurly, cmBody, nil, 0},
-		},
-		cmFunc: {
-			{tkDefault, cfError | ErrName, nil, 0},
-			{tkIdent, cmParams, coFuncName, 0},
-			{tkLine, cfSkip, nil, 0},
-		},
-		cmParams: {
-			{tkDefault, cfError | ErrLCurly, nil, 0},
-			{tkIdent, cmLCurly, coRetType, 0},
-			{tkLPar, cmParam, nil, 1},
-			{tkLCurly, cfStay | cmLCurly, coFuncStart, 0},
-			{tkLine, cfSkip, nil, 0},
-		},
-		cmParam: {
-			{tkDefault, cfError | ErrType, nil, 0},
-			{tkIdent, cmWantVar, coType, 1},
-			{tkRPar, cfBack, nil, 0},
-			{tkLine, cfSkip, nil, 0},
-		},
-		cmWantVar: {
-			{tkDefault, cfError | ErrName, nil, 0},
-			{tkIdent, cmVar, coVar, 0},
-			{tkLine, cfSkip, nil, 0},
-		},
-		cmVar: {
-			{tkDefault, cfError | ErrName, nil, 0},
-			{tkIdent, cfSkip, coVar, 0},
-			{tkComma, cmWantType, nil, 0},
-			{tkRPar, cfStay | cfBack, nil, 0},
-			{tkLine, cfSkip, nil, 0},
-		},
-		cmWantType: {
-			{tkDefault, cfError | ErrType, nil, 0},
-			{tkIdent, cfStay | cfBack, nil, 0},
-			{tkLine, cfSkip, nil, 0},
+			{tkDefault, ErrLCurly, coError, nil, 0},
+			{tkIdent, 0, coRunName, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkLCurly, cmBody, nil, nil, 0},
 		},
 		cmLCurly: {
-			{tkDefault, cfError | ErrLCurly, nil, 0},
-			{tkLine, cfSkip, nil, 0},
-			{tkLCurly, cmBody, nil, 0},
+			{tkDefault, ErrLCurly, coError, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkLCurly, cmBody, nil, nil, 0},
 		},
 		cmBody: {
-			{tkDefault, cmExp | cfStay, coExpStart, 1},
-			{tkLine, cfSkip, nil, 0},
-			{tkLCurly, cfError | ErrExp, nil, 0},
-			{tkRCurly, cfBack, nil, 0},
-			{tkType, cmMustVarType, coVarType, 1},
-			{tkIf, cmExp | cfCallBack, coIf, 1},
-			{tkWhile, cmExp | cfCallBack, coWhile, 1},
-			{tkFor, cmExp | cfCallBack, coFor, 1},
-			{tkReturn, cmExp | cfCallBack, coReturn, 1},
+			{tkDefault, cmExp, coExpStart, nil, cfStay | cfStopBack},
+			{tkLine, 0, nil, nil, 0},
+			{tkLCurly, ErrExp, coError, nil, 0},
+			{tkRCurly, cmBack, nil, nil, 0},
+			{tkType, cmMustVarType, coVarType, nil, cfStopBack},
+			{tkIf, cmExp, coIf, coIfBack, cfStopBack},
+			{tkWhile, cmExp, coWhile, coWhileBack, cfStopBack},
+			{tkFor, cmExp, coFor, coForBack, cfStopBack},
+			{tkReturn, cmExp, coReturn, coReturnBack, cfStopBack},
 		},
 		cmExp: {
-			{tkDefault, cfError | ErrValue, nil, 0},
-			{[]int{tkInt, tkFalse, tkTrue, tkStr, tkChar}, cmExpOper, coPush, 1},
-			{[]int{tkSub, tkMul, tkNot, tkBitNot, tkInc, tkDec}, cfSkip, coUnaryOperator, 0},
-			{[]int{tkLPar, tkRPar}, cfSkip, coOperator, 0},
-			{[]int{tkLSBracket, tkRSBracket}, cfSkip, coOperator, 0},
-			{tkLine, cfBack, coExpEnd, 0},
-			{[]int{tkLCurly, tkRCurly}, cfStay | cfBack, coExpEnd, 0},
-			{tkIdent, cmExpIdent, nil, 1},
-			{tkEnv, cmExpOper, coExpEnv, 1},
-			{tkQuestion, cmExpIdent, nil, 1},
+			{tkDefault, ErrValue, coError, nil, 0},
+			{[]int{tkInt, tkFalse, tkTrue, tkStr, tkChar}, cmExpOper, coPush, nil, cfStopBack},
+			{[]int{tkSub, tkMul, tkNot, tkBitNot, tkInc, tkDec}, 0, coUnaryOperator, nil, 0},
+			{[]int{tkLPar, tkRPar}, 0, coOperator, nil, 0},
+			{[]int{tkLSBracket, tkRSBracket}, 0, coOperator, nil, 0},
+			{tkLine, cmBack, coExpEnd, nil, 0},
+			{[]int{tkLCurly, tkRCurly, tkColon}, cmBack, coExpEnd, nil, cfStay},
+			{tkIdent, cmExpIdent, nil, nil, cfStopBack},
+			{tkEnv, cmExpOper, coExpEnv, nil, cfStopBack},
+			{tkQuestion, cmExpIdent, nil, nil, cfStopBack},
 		},
 		cmExpIdent: {
-			{tkDefault, cmExpOper | cfStay, coExpVar, 0},
-			{tkLPar, cfBack | cfStay, coCallFunc, 0},
-			{tkLSBracket, cfBack | cfStay, coIndex, 0},
+			{tkDefault, cmExpOper, coExpVar, nil, cfStay},
+			{tkLPar, cmBack, coCallFunc, nil, cfStay},
+			{tkLSBracket, cmBack, coIndex, nil, cfStay},
 		},
 		cmExpOper: {
-			{tkDefault, cfError | ErrOper, nil, 0},
-			{tkStrExp, cfBack, coOperator, 0},
+			{tkDefault, ErrOper, coError, nil, 0},
+			{tkStrExp, cmBack, coOperator, nil, 0},
 			{[]int{tkAdd, tkDiv, tkMod, tkMul, tkSub, tkEqual, tkNotEqual, tkGreater, tkGreaterEqual,
 				tkLess, tkLessEqual, tkAssign, tkOr, tkAnd, tkBitOr, tkBitAnd, tkBitXor, tkLShift,
 				tkRShift, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq,
-				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange, tkColon}, cfBack,
-				coOperator, 0},
-			{[]int{tkInc, tkDec}, cfSkip, coUnaryPostOperator, 0},
-			{[]int{tkRPar, tkRSBracket}, cfSkip, coOperator, 0},
-			{[]int{tkLSBracket}, cfBack | cfStay | cmExp, coIndex, 0},
-			{tkComma, cfBack, coComma, 0},
-			{[]int{tkLCurly, tkLine, tkRCurly}, cfStay | cfBack, nil, 0},
+				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange}, cmBack,
+				coOperator, nil, 0},
+			{[]int{tkInc, tkDec}, 0, coUnaryPostOperator, nil, 0},
+			{[]int{tkRPar, tkRSBracket}, 0, coOperator, nil, 0},
+			{[]int{tkLSBracket}, cmBack, coIndex, nil, cfStay},
+			{tkComma, cmBack, coComma, nil, 0},
+			{[]int{tkLCurly, tkLine, tkRCurly, tkColon}, cmBack, nil, nil, cfStay},
 		},
 		cmElseIf: {
-			{tkDefault, cfBack | cfStay, coIfEnd, 0},
-			{tkLine, cfSkip, nil, 0},
-			{tkElse, cmLCurly, coElse, 0},
-			{tkElif, cmExp | cfCallBack, coElif, 1},
+			{tkDefault, cmBack, coIfEnd, nil, cfStay},
+			{tkLine, 0, nil, nil, 0},
+			{tkElse, cmLCurly, coElse, nil, 0},
+			{tkElif, cmExp, coElif, coElifBack, cfStopBack},
+		},
+		cmFunc: {
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkIdent, cmParams, coFuncName, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmParams: {
+			{tkDefault, ErrLCurly, coError, nil, 0},
+			{tkIdent, cmLCurly, coRetType, nil, 0},
+			{tkLPar, cmParam, nil, nil, cfStopBack},
+			{tkLCurly, cmLCurly, coFuncStart, nil, cfStay},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmParam: {
+			{tkDefault, ErrType, coError, nil, 0},
+			{tkIdent, cmWantVar, coType, nil, cfStopBack},
+			{tkRPar, cmBack, nil, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmWantVar: {
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkIdent, cmVar, coVar, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmVar: {
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkIdent, 0, coVar, nil, 0},
+			{tkComma, cmWantType, nil, nil, 0},
+			{tkRPar, cmBack, nil, nil, cfStay},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmWantType: {
+			{tkDefault, ErrType, coError, nil, 0},
+			{tkIdent, cmBack, nil, nil, cfStay},
+			{tkLine, 0, nil, nil, 0},
 		},
 		cmMustVarType: {
-			{tkDefault, cfError | ErrName, nil, 0},
-			{tkIdent, cmVarType, coVarExp, 0},
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkIdent, cmVarType, coVarExp, nil, 0},
 		},
 		cmVarType: {
-			{tkDefault, cfError | ErrName, nil, 0},
-			{tkIdent, cfSkip, coVar, 0},
-			{tkLine, cfBack, nil, 0},
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkIdent, 0, coVar, nil, 0},
+			{tkLine, cmBack, nil, nil, 0},
 		},
-		cmQuestion: {
-			{tkDefault, cfError | ErrCompiler, nil, 0},
-			{tkLPar, cfBack | cfStay, coCallFunc, 0},
+		cmConst: {
+			{tkDefault, cmExp, coConstEnum, coConstEnumBack, cfStay},
+			{tkLine, 0, nil, nil, 0},
+			{tkLCurly, cmConstDef, nil, nil, 0},
+		},
+		cmConstDef: {
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkIdent, cmConstName, coConst, nil, cfStopBack},
+			{tkLine, 0, nil, nil, 0},
+			{tkRCurly, cmBack, nil, nil, 0},
+		},
+		cmConstName: {
+			{tkDefault, ErrMustAssign, coError, nil, 0},
+			{tkAssign, cmExp, coConstExp, coConstExpBack, 0},
+		},
+		cmConstListStart: {
+			{tkDefault, ErrLCurly, coError, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkLCurly, cmConstList, nil, nil, 0},
+		},
+		cmConstList: {
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkIdent, 0, coConstList, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkRCurly, cmBack, nil, nil, 0},
 		},
 		cmInit: {
-			{tkDefault, cmExp | cfStay, coExpStart, 1},
-			{tkLCurly, cmInit, coInitStart, 1},
-			{tkRCurly, cfBack, coInitEnd, 0},
-			{tkComma, cfSkip, coInitNext, 0},
+			{tkDefault, cmExp, coExpStart, nil, cfStopBack | cfStay},
+			{tkLCurly, cmInit, coInitStart, nil, cfStopBack},
+			{tkRCurly, cmBack, coInitEnd, nil, 0},
+			{tkComma, 0, coInitNext, nil, 0},
+			{tkColon, 0, coInitKey, nil, 0},
 		},
 	}
 	compileTable [][tkDefault]*cmState
 )
 
 func makeCompileTable() {
-	compileTable = make([][tkDefault]*cmState, len(preCompile))
+	compileTable = make([][tkDefault]*cmState, len(preCompile)+1)
 
 	for state, items := range preCompile {
 		for i, item := range items {

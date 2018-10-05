@@ -1,3 +1,28 @@
+run map.str {
+  map myr = {"1":1, "2":true}
+  return myr
+}
+===== 2:18: wrong type, expecting str type
+run map.str {
+  map myr = {"test", `asdf`}
+}
+===== 2:22: unexpected type, expecting a pair of key and value
+run map.str {
+  map myr = {1:"test", 2:`asdf`}
+}
+===== 2:14: wrong type, expecting str type
+run map.str {
+  map myr = {"long key value": }
+}
+===== 2:32: unexpected token, expecting value, identifier or calling func
+run map.str {
+  map myr = {"str": , "key":"test"}
+}
+===== 2:21: unexpected token, expecting value, identifier or calling func
+run arr.str {
+  arr myr = {"str", "key":"test"}
+}
+===== 2:26: unexpected a pair of key and value, expecting str type
 run arr.arr.int {
   arr.arr.int myarr = {,{1,2,3,4,5}}
 }
@@ -11,19 +36,6 @@ run arr.int {
   arr.int myarr = {, 5}
 }
 ===== 2:20: unexpected token, expecting value, identifier or calling func
-run map.str {
-  map myr = {"1":1, "2":true}
-  return myr
-}
-===== 2:18: wrong type, expecting str type
-run map.str {
-  map myr = {1:"test", 2:`asdf`}
-}
-===== 2:15: function NewKeyValue(int, str) has not been found
-run map.str {
-  map myr = {"test", `asdf`}
-}
-===== 2:22: unexpected type, expecting a pair of key and value
 run arr.str {
   arr myr = {"test", ,`asdf`}
   return myr

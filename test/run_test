@@ -1,11 +1,15 @@
-OFF
-run map.arr.int {
-  map.arr.int ret = {"test": {0,1}}//, `next`:{2,3}}
-//  ret[`next`][0] = 7
+func val(int a b) int : return 700 + a + b
+run map.map.int {
+  map.map.int ret = {"test": {`zero`:0,"one":1}, `next`:{`val`:val(3,4)}}
   return ret
 }
-===== map[test:qqq 1:asdf]
-ON
+===== map[test:map[zero:0 one:1] next:map[val:707]]
+run map.arr.int {
+  map.arr.int ret = {"test": {0,1}, `next`:{2,3}}
+  ret[`next`][0] = 7
+  return ret
+}
+===== map[test:[0 1] next:[7 3]]
 run arr.map {
   arr.map ret = {{"test": "val"}
                  {`next`:"value 2"}}

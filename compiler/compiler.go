@@ -5,10 +5,9 @@
 package compiler
 
 import (
-	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
+	//	"strconv"
 
 	"github.com/gentee/gentee/core"
 )
@@ -23,16 +22,16 @@ type compiler struct {
 	lexems   []int // stack of lexeme
 	runID    int
 	pos      int // current position
-	newState int // new state from callback function
 	newPos   int // new position
-	callback bool
 	states   *[]StateStack
 	curType  *core.TypeObject // the current type of parameters or variables
 	curConst string
 	expConst core.ICmd // expression for constants
 	curIota  int64     // current iota
-	isInit   bool      // initilization mode
+	inits    int       // initilization level mode
 	endColon int
+	next     *cmState
+	dynamic  *cmState
 }
 
 // StateStack is used for storing a sequence of states
@@ -58,8 +57,8 @@ type ExpBuf struct {
 
 var (
 	priority = map[int]Priority{
-		tkRange:        {3, true, `NewRange`},
-		tkColon:        {4, true, `NewKeyValue`},
+		tkRange: {3, true, `NewRange`},
+		//		tkColon:        {4, true, `NewKeyValue`},
 		tkAssign:       {5, true, `Assign`},
 		tkAddEq:        {5, true, `AssignAdd`},
 		tkSubEq:        {5, true, `AssignSub`},
@@ -116,9 +115,6 @@ func (cmpl *compiler) curOwner() *core.CmdBlock {
 
 // Compile compiles the source code
 func Compile(vm *core.VirtualMachine, input, path string) error {
-	var (
-		state int
-	)
 
 	lp, errID := LexParsing([]rune(input))
 	lp.Path = path
@@ -145,9 +141,10 @@ func Compile(vm *core.VirtualMachine, input, path string) error {
 	}
 
 	stackState := make([]StateStack, 0, 32)
+	state := cmMain
 main:
 	for i := 0; i < len(lp.Tokens); i++ {
-		if !cmpl.isInit && lp.Tokens[i].Type == tkColon {
+		if cmpl.inits == 0 && lp.Tokens[i].Type == tkColon {
 			if err := colonToLine(cmpl, i); err != nil {
 				return err
 			}
@@ -160,16 +157,12 @@ main:
 				token.Type = tkType
 			}
 		}
-		next := compileTable[state][token.Type]
+		cmpl.next = compileTable[state][token.Type]
 		cmpl.states = &stackState
-		cmpl.newState = 0
+		cmpl.dynamic = nil
 		cmpl.newPos = 0
-		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v flag=%x nextstate=%v\r\n", i, state, token.Type,
-		//	getToken(cmpl.getLex(), i), next.Action&0xff0000, next.Action&0xffff)
-		flag := next.Action & 0xff0000
-		if flag&cfError != 0 {
-			return cmpl.Error(next.Action & 0xffff)
-		}
+		//		fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v\r\n", i, state, token.Type,
+		//			getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next)
 		if (state == cmExp || state == cmExpOper) && token.Type == tkLine {
 			if state == cmExp && lp.Tokens[i-1].Type >= tkAdd && lp.Tokens[i-1].Type <= tkComma {
 				continue
@@ -180,63 +173,58 @@ main:
 				}
 			}
 		}
-		if next.Func != nil {
-			if err := next.Func(cmpl); err != nil {
+		if cmpl.next.Func != nil {
+			if err := cmpl.next.Func(cmpl); err != nil {
 				return err
 			}
 			if cmpl.newPos != 0 {
 				i = cmpl.newPos
 			}
-			if cmpl.newState != 0 {
-				if state != cmInit|cfStay {
-					stackState = append(stackState, StateStack{Origin: next, Pos: i, State: state})
-				}
-				state = cmpl.newState & 0xffff
-				if cmpl.newState&cfStay != 0 {
+			if cmpl.dynamic != nil {
+				stackState = append(stackState, StateStack{Origin: cmpl.dynamic, Pos: i, State: state})
+				state = cmpl.dynamic.State
+				if cmpl.dynamic.Flags&cfStay != 0 {
 					i--
 				}
 				continue
 			}
 		}
-		if flag&cfSkip != 0 {
+		if cmpl.next.State == 0 {
 			continue
 		}
-		if flag&cfStay != 0 {
+		if cmpl.next.Flags&cfStay != 0 {
 			i--
 		}
-		if flag&cfBack != 0 {
+		if cmpl.next.State == cmBack {
 			if len(stackState) == 0 {
 				return cmpl.Error(ErrCompiler, `Compile`)
 			}
 			for len(stackState) > 0 {
 				prev := stackState[len(stackState)-1]
 				state = prev.State
-				cmpl.newState = 0
-				if prev.Origin.Action&cfCallBack != 0 {
-					cmpl.callback = true
+				if prev.Origin.Callback != nil {
 					cmpl.pos = prev.Pos
-					if err := prev.Origin.Func(cmpl); err != nil {
+					if err := prev.Origin.Callback(cmpl); err != nil {
 						return err
 					}
-					if cmpl.newState > 0 {
-						if cmpl.newState&cfStay != 0 {
+					if cmpl.dynamic != nil {
+						stackState = append(stackState, StateStack{Origin: cmpl.dynamic, Pos: i, State: state})
+						state = cmpl.dynamic.State
+						if cmpl.dynamic.Flags&cfStay != 0 {
 							i--
 						}
-						state = cmpl.newState & 0xffff
 					}
-					cmpl.callback = false
 				}
-				if cmpl.newState == 0 {
-					stackState = stackState[:len(stackState)-1]
-				}
-				if prev.Origin.BackTo == 1 || cmpl.newState != 0 {
+				stackState = stackState[:len(stackState)-1]
+				if prev.Origin.Flags&cfStopBack != 0 || cmpl.dynamic != nil {
 					break
 				}
 			}
 			continue
 		}
-		stackState = append(stackState, StateStack{Origin: next, Pos: i, State: state})
-		state = next.Action & 0xffff
+
+		stackState = append(stackState, StateStack{Origin: cmpl.next, Pos: i, State: state})
+		state = cmpl.next.State
 	}
 	if len(stackState) > 0 {
 		cmpl.pos = stackState[len(stackState)-1].Pos + 1
@@ -291,69 +279,122 @@ func colonToLine(cmpl *compiler, i int) error {
 	return nil
 }
 
-func newFunc(cmpl *compiler, name string) int {
-	funcObj := &core.FuncObject{
-		Object: core.Object{
-			Name:  name,
-			LexID: len(cmpl.unit.Lexeme) - 1,
-			Unit:  cmpl.unit,
-		},
-		Block: core.CmdBlock{
-			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
-			ID:        core.StackBlock,
-		},
-	}
-	funcObj.Block.Object = funcObj
-	cmpl.owners = []core.ICmd{&funcObj.Block}
-	cmpl.unit.Objects = append(cmpl.unit.Objects, funcObj)
-	if curName := cmpl.unit.Names[name]; curName == nil {
-		cmpl.unit.Names[name] = funcObj
-	} else {
-		curName.SetNext(funcObj)
-	}
-	return len(cmpl.unit.Objects) - 1
+func coIndex(cmpl *compiler) error {
+	coExpVar(cmpl)
+	return appendExpBuf(cmpl, tkIndex)
 }
 
-func (cmpl *compiler) getLex() *core.Lex {
-	return cmpl.unit.Lexeme[len(cmpl.unit.Lexeme)-1]
-}
-
-func coRun(cmpl *compiler) error {
-	if cmpl.callback {
-		funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
-		if funcObj.Block.Result == nil {
-			return nil
-		}
-		if len(funcObj.Block.Children) == 0 {
-			return cmpl.Error(ErrMustReturn)
-		}
-		last := funcObj.Block.Children[len(funcObj.Block.Children)-1]
-		if last.GetType() != core.CtStack ||
-			last.(*core.CmdBlock).ID != core.StackReturn {
-			return cmpl.Error(ErrMustReturn)
-		}
-		return nil
+func coInitStart(cmpl *compiler) error {
+	cmpl.inits++
+	cmd := core.CmdBlock{ID: core.StackNew, CmdCommon: core.CmdCommon{
+		TokenID: uint32(cmpl.pos)}, Result: cmpl.curType}
+	appendCmd(cmpl, &cmd)
+	cmpl.owners = append(cmpl.owners, &cmd)
+	if (cmpl.curType.Original != reflect.TypeOf(core.Array{}) &&
+		cmpl.curType.Original != reflect.TypeOf(core.Map{})) {
+		return cmpl.Error(ErrWrongType, cmpl.curType.GetName())
 	}
-	if cmpl.runID != core.Undefined {
-		return cmpl.Error(ErrRun)
-	}
-	cmpl.runID = newFunc(cmpl, `run`)
+	cmpl.curType = cmpl.curType.IndexOf
 	return nil
 }
 
-func coRunName(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
-	if len(cmpl.unit.Name) != 0 {
-		cmpl.newState = cmLCurly
-		return coRetType(cmpl)
-	} else if _, err := getType(cmpl); err != nil {
-		if strings.IndexRune(token, '.') >= 0 {
-			return cmpl.Error(ErrIdent)
+func coInitEnd(cmpl *compiler) error {
+	ownerType := cmpl.curOwner().GetResult()
+	if ownerType.Original == reflect.TypeOf(core.Map{}) {
+		if err := initMapEnd(cmpl); err != nil {
+			return err
 		}
-		cmpl.unit.Name = token
-	} else {
-		cmpl.newState = cmLCurly
-		return coRetType(cmpl)
+	}
+	for _, item := range cmpl.curOwner().Children {
+		if ownerType.Original == reflect.TypeOf(core.Array{}) {
+			if !isEqualTypes(item.GetResult(), cmpl.curType) {
+				return cmpl.ErrorPos(item.GetToken(), ErrWrongType, cmpl.curType.GetName())
+			}
+		} else if ownerType.Original == reflect.TypeOf(core.Map{}) {
+			if item.GetResult().Original != reflect.TypeOf(core.KeyValue{}) {
+				return cmpl.ErrorPos(item.GetToken(), ErrNotKeyValue)
+			}
+			if item.(*core.CmdBinary).Right == nil {
+				return cmpl.ErrorPos(item.GetToken(), ErrValue)
+			}
+			if !isEqualTypes(ownerType.IndexOf, item.(*core.CmdBinary).Right.GetResult()) {
+				return cmpl.ErrorPos(item.(*core.CmdBinary).Right.GetToken(),
+					ErrWrongType, ownerType.IndexOf.GetName())
+			}
+		}
+	}
+	cmpl.curType = cmpl.curOwner().Result
+	cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+	if (*cmpl.states)[len(*cmpl.states)-1].State != cmInit {
+		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+	}
+	cmpl.inits--
+	return nil
+}
+
+func coInitNext(cmpl *compiler) error {
+	if cmpl.curType.IndexOf == nil {
+		cmpl.dynamic = &cmState{tkComma, cmExp, nil, nil, cfStay}
+		return nil
+	}
+	if len(cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock).Children) == 0 {
+		return cmpl.Error(ErrValue)
+	}
+	lp := cmpl.getLex()
+	for i := cmpl.pos + 1; i < len(lp.Tokens); i++ {
+		token := lp.Tokens[i]
+		if token.Type == tkLine {
+			continue
+		}
+		if token.Type == tkComma {
+			return cmpl.ErrorPos(i, ErrValue)
+		}
+		break
+	}
+	if cmpl.curOwner().GetResult().Original == reflect.TypeOf(core.Map{}) {
+		if err := initMapEnd(cmpl); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func initMapEnd(cmpl *compiler) error {
+	obj := cmpl.vm.StdLib().Names[`NewKeyValue`]
+	block := cmpl.curOwner()
+	for i := 0; i < len(block.Children); i++ {
+		item := block.Children[i]
+		if item.GetResult().Original == reflect.TypeOf(core.KeyValue{}) {
+			if item.(*core.CmdBinary).Right == nil {
+				if i+1 < len(block.Children) {
+					block.Children[i].(*core.CmdBinary).Right = block.Children[i+1]
+					block.Children = append(block.Children[:i+1], block.Children[i+2:]...)
+					i--
+				} else {
+					return cmpl.ErrorPos(cmpl.pos, ErrValue)
+				}
+			}
+			continue
+		}
+		if item.GetResult().Original != reflect.TypeOf(``) {
+			return cmpl.ErrorPos(item.GetToken(), ErrWrongType, `str`)
+		}
+		cmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(item.GetToken())},
+			Object: obj, Result: obj.Result(), Left: item, Right: nil}
+		block.Children[i] = cmd
+		if i+1 < len(block.Children) {
+			return cmpl.ErrorPos(block.Children[i+1].GetToken(), ErrNotKeyValue)
+		}
+	}
+	return nil
+}
+
+func coInitKey(cmpl *compiler) error {
+	if cmpl.curOwner().GetResult().Original != reflect.TypeOf(core.Map{}) {
+		return cmpl.ErrorPos(cmpl.pos, ErrKeyValue, cmpl.curType.GetName())
+	}
+	if err := initMapEnd(cmpl); err != nil {
+		return err
 	}
 	return nil
 }
@@ -378,93 +419,6 @@ func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
 		return isEqualTypes(left.IndexOf, right.IndexOf)
 	}
 	return left == right
-}
-
-func getFunc(cmpl *compiler, name string, params []*core.TypeObject, isFunc bool) (obj core.IObject) {
-	checkUnit := func(unit *core.Unit) core.IObject {
-		obj = unit.Names[name]
-		for obj != nil {
-			objPars := obj.GetParams()
-			if len(params) == len(objPars) {
-				equal := true
-				for i, typeParam := range objPars {
-					if !isEqualTypes(typeParam, params[i]) {
-						equal = false
-						break
-					}
-				}
-				if equal {
-					return obj
-				}
-			}
-			obj = obj.GetNext()
-		}
-		return nil
-	}
-	if obj = checkUnit(cmpl.vm.StdLib()); obj == nil && isFunc {
-		obj = checkUnit(cmpl.unit)
-	}
-	if obj != nil {
-		if name == `AssignAdd` && strings.HasPrefix(params[0].GetName(), `arr.arr`) &&
-			!isEqualTypes(params[0].IndexOf, params[1]) {
-			return nil
-		}
-		if name == `Assign` && (strings.HasPrefix(params[0].GetName(), `arr`) ||
-			strings.HasPrefix(params[0].GetName(), `map`)) &&
-			!isEqualTypes(params[0], params[1]) {
-			return nil
-		}
-	}
-	return obj
-}
-
-func getOperator(cmpl *compiler, name string, left, right core.ICmd) (obj core.IObject) {
-	params := []*core.TypeObject{left.GetResult()}
-	if right != nil {
-		params = append(params, right.GetResult())
-	}
-	return getFunc(cmpl, name, params, false)
-}
-
-func coFunc(cmpl *compiler) error {
-	if cmpl.callback {
-		funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
-		if funcObj.Block.Result != nil {
-			if len(funcObj.Block.Children) == 0 {
-				return cmpl.Error(ErrMustReturn)
-			}
-			last := funcObj.Block.Children[len(funcObj.Block.Children)-1]
-			if last.GetType() != core.CtStack ||
-				last.(*core.CmdBlock).ID != core.StackReturn {
-				return cmpl.Error(ErrMustReturn)
-			}
-		}
-		return nil
-	}
-	return nil
-}
-
-func coFuncStart(cmpl *compiler) error {
-	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
-	funcObj.Block.ParCount = len(funcObj.Block.Vars)
-	if obj := getFunc(cmpl, funcObj.Name, funcObj.GetParams(), true); obj != nil &&
-		obj != cmpl.unit.Objects[len(cmpl.unit.Objects)-1] {
-		return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
-			funcObj.GetParams())
-	}
-	return nil
-}
-
-func coFuncName(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
-	if isCapital(token) {
-		return cmpl.Error(ErrCapitalLetters)
-	}
-	if strings.IndexRune(token, '.') >= 0 {
-		return cmpl.Error(ErrIdent)
-	}
-	newFunc(cmpl, token)
-	return nil
 }
 
 func autoType(cmpl *compiler, name string) (obj core.IObject, err error) {
@@ -503,20 +457,43 @@ func autoType(cmpl *compiler, name string) (obj core.IObject, err error) {
 	return
 }
 
+func appendCmd(cmpl *compiler, cmd core.ICmd) {
+	owner := cmpl.curOwner()
+	if cmd.GetType() == core.CtStack {
+		cmd.(*core.CmdBlock).Parent = owner
+	}
+	owner.Children = append(owner.Children, cmd)
+}
+
 func getType(cmpl *compiler) (obj core.IObject, err error) {
 	return autoType(cmpl, getToken(cmpl.getLex(), cmpl.pos))
 }
 
-func coType(cmpl *compiler) error {
-	obj, err := getType(cmpl)
-	if err != nil {
-		return err
-	}
-	cmpl.curType = obj.(*core.TypeObject)
-	return nil
+func (cmpl *compiler) getLex() *core.Lex {
+	return cmpl.unit.Lexeme[len(cmpl.unit.Lexeme)-1]
 }
 
-func coVarType(cmpl *compiler) error {
+func findVar(cmpl *compiler, token string) (*core.CmdBlock, int) {
+	block := cmpl.curOwner()
+	for block != nil {
+		if ind, ok := block.VarNames[token]; ok {
+			return block, ind
+		}
+		block = block.Parent
+	}
+	return nil, 0
+}
+
+func coError(cmpl *compiler) error {
+	return cmpl.Error(cmpl.next.State)
+}
+
+func isInState(cmpl *compiler, state, shift int) bool {
+	return len(cmpl.expbuf) == 0 && len(*cmpl.states) > 2 &&
+		(*cmpl.states)[len(*cmpl.states)-1-shift].State == state
+}
+
+func coType(cmpl *compiler) error {
 	obj, err := getType(cmpl)
 	if err != nil {
 		return err
@@ -557,402 +534,12 @@ func coVar(cmpl *compiler) error {
 	return coVarToken(cmpl, getToken(cmpl.getLex(), cmpl.pos))
 }
 
-func coConst(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
-	if !isCapital(token) {
-		return cmpl.Error(ErrConstName)
-	}
-	cmpl.curConst = token
-	return nil
-}
-
-func coConstEnum(cmpl *compiler) error {
-	if cmpl.callback {
-		if cmpl.expConst == nil {
-			owner := cmpl.curOwner()
-			cmpl.expConst = owner.Children[0]
-			cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-			cmpl.newState = cmConstListStart
-		} else { // const finishes
-			cmpl.curIota = core.NotIota
-		}
-		return nil
-	}
-	coExpStart(cmpl)
-	cmd := core.CmdBlock{ID: core.StackBlock, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
-	cmpl.owners = append(cmpl.owners, &cmd)
-	cmpl.curIota = 0
-	cmpl.expConst = nil
-	return nil
-}
-
-func findObj(cmpl *compiler, name string, objType core.ObjectType) bool {
-	if found := cmpl.unit.Names[name]; found != nil && found.GetType() == objType {
-		return true
-	}
-	if found := cmpl.vm.StdLib().Names[name]; found != nil && found.GetType() == objType {
-		return true
-	}
-	return false
-}
-
-func coConstList(cmpl *compiler) error {
-	if err := coConst(cmpl); err != nil {
-		return err
-	}
-	constObj := &core.ConstObject{
-		Object: core.Object{
-			Name:  cmpl.curConst,
-			LexID: len(cmpl.unit.Lexeme) - 1,
-			Unit:  cmpl.unit,
-		},
-		Redefined: false,
-		Exp:       cmpl.expConst,
-		Return:    cmpl.expConst.GetResult(),
-		Iota:      cmpl.curIota,
-	}
-	cmpl.curIota++
-	cmpl.unit.Objects = append(cmpl.unit.Objects, constObj)
-	if findObj(cmpl, cmpl.curConst, core.ObjConst) {
-		return cmpl.Error(ErrConstDef, cmpl.curConst)
-	}
-	if curName := cmpl.unit.Names[cmpl.curConst]; curName == nil {
-		cmpl.unit.Names[cmpl.curConst] = constObj
-	} else {
-		curName.SetNext(constObj)
-	}
-
-	return nil
-}
-
-func coRetType(cmpl *compiler) error {
+func coVarType(cmpl *compiler) error {
 	obj, err := getType(cmpl)
 	if err != nil {
 		return err
 	}
-	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
-	funcObj.Block.Result = obj.(*core.TypeObject)
-	return coFuncStart(cmpl)
-}
-
-func appendCmd(cmpl *compiler, cmd core.ICmd) {
-	owner := cmpl.curOwner()
-	if cmd.GetType() == core.CtStack {
-		cmd.(*core.CmdBlock).Parent = owner
-	}
-	owner.Children = append(owner.Children, cmd)
-}
-
-func appendExp(cmpl *compiler, cmd core.ICmd) {
-	cmpl.exp = append(cmpl.exp, cmd)
-}
-
-func appendExpBuf(cmpl *compiler, operation int) error {
-	expBuf := ExpBuf{
-		Oper:   operation,
-		Pos:    cmpl.pos,
-		LenExp: len(cmpl.exp),
-	}
-	if len(cmpl.expbuf) == 0 || operation == tkCallFunc || operation == tkIndex {
-		cmpl.expbuf = append(cmpl.expbuf, expBuf)
-		return nil
-	}
-	for len(cmpl.expbuf) > 0 {
-		oper := cmpl.expbuf[len(cmpl.expbuf)-1].Oper
-		if oper == tkLSBracket {
-			if operation == tkRSBracket {
-				cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
-				if len(cmpl.expbuf) == 0 || len(cmpl.exp) < 2 {
-					return cmpl.Error(ErrNoIndex)
-				}
-				prevToken := cmpl.expbuf[len(cmpl.expbuf)-1]
-				if prevToken.Oper != tkIndex {
-					return cmpl.ErrorPos(cmpl.pos-1, ErrVarIndex)
-				}
-				if cmpl.exp[len(cmpl.exp)-2].GetType() != core.CtVar {
-					return cmpl.ErrorPos(prevToken.Pos-1, ErrVarIndex)
-				}
-				if len(cmpl.exp)-prevToken.LenExp == 0 {
-					return cmpl.Error(ErrNoIndex)
-				}
-				return setIndex(cmpl)
-			}
-			break
-		}
-		if oper == tkLPar {
-			if operation == tkRPar {
-				cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
-				if len(cmpl.expbuf) > 0 {
-					prevToken := cmpl.expbuf[len(cmpl.expbuf)-1]
-					if prevToken.Oper == tkCallFunc {
-						nameFunc := getToken(cmpl.getLex(), prevToken.Pos-1)
-						numParams := len(cmpl.exp) - prevToken.LenExp
-						params := make([]*core.TypeObject, 0)
-						for i := 0; i < numParams; i++ {
-							params = append(params, cmpl.exp[prevToken.LenExp+i].GetResult())
-						}
-						if nameFunc == `$` {
-							if len(cmpl.expbuf) == 1 && cmpl.curOwner().ID != core.StackReturn {
-								nameFunc = `Command`
-							} else {
-								nameFunc = `CommandOutput`
-							}
-						}
-						if nameFunc == `?` {
-							if numParams != 3 || !isBoolResult(cmpl.exp[prevToken.LenExp]) {
-								return cmpl.ErrorPos(prevToken.Pos-1, ErrQuestionPars)
-							}
-							if params[1] != params[2] {
-								return cmpl.ErrorPos(prevToken.Pos-1, ErrQuestion)
-							}
-							icmd := &core.CmdBlock{ID: uint32(core.StackQuestion),
-								Result:    params[1],
-								CmdCommon: core.CmdCommon{TokenID: uint32(prevToken.Pos - 1)}}
-							for i := prevToken.LenExp; i < len(cmpl.exp); i++ {
-								icmd.Children = append(icmd.Children, cmpl.exp[i])
-							}
-							cmpl.exp = cmpl.exp[:len(cmpl.exp)-numParams]
-							cmpl.exp = append(cmpl.exp, icmd)
-						} else {
-							obj := getFunc(cmpl, nameFunc, params, true)
-							if obj == nil {
-								return cmpl.ErrorFunction(ErrFunction, prevToken.Pos-1, nameFunc, params)
-							}
-							icmd := &core.CmdAnyFunc{CmdCommon: core.CmdCommon{TokenID: uint32(prevToken.Pos - 1)},
-								Object: obj, Result: obj.Result()}
-							for i := prevToken.LenExp; i < len(cmpl.exp); i++ {
-								icmd.Children = append(icmd.Children, cmpl.exp[i])
-							}
-							cmpl.exp = cmpl.exp[:len(cmpl.exp)-numParams]
-							cmpl.exp = append(cmpl.exp, icmd)
-						}
-						cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
-					}
-				}
-				return nil
-			}
-			break
-		}
-		if operation == tkRPar || operation == tkRSBracket {
-			if err := popBuf(cmpl); err != nil {
-				return err
-			}
-			continue
-		}
-		prev := priority[oper]
-		if priority[operation].Priority > prev.Priority {
-			cmpl.expbuf = append(cmpl.expbuf, expBuf)
-			return nil
-		}
-		if priority[operation].Priority == prev.Priority && prev.RightLeft {
-			cmpl.expbuf = append(cmpl.expbuf, expBuf)
-			return nil
-		}
-		if priority[operation].Priority < prev.Priority ||
-			(priority[operation].Priority == prev.Priority && !prev.RightLeft) {
-			if err := popBuf(cmpl); err != nil {
-				return err
-			}
-		}
-	}
-	if len(cmpl.expbuf) == 0 {
-		if operation == tkRPar {
-			return cmpl.Error(ErrRPar)
-		}
-		if operation == tkRSBracket {
-			return cmpl.Error(ErrRSBracket)
-		}
-	}
-	cmpl.expbuf = append(cmpl.expbuf, expBuf)
-	return nil
-}
-
-func popBuf(cmpl *compiler) error {
-	var obj core.IObject
-	expBuf := cmpl.expbuf[len(cmpl.expbuf)-1]
-	prior := priority[expBuf.Oper]
-	switch expBuf.Oper {
-	case tkAnd, tkOr:
-		if len(cmpl.exp) < 2 {
-			return cmpl.Error(ErrValue)
-		}
-		right := cmpl.exp[len(cmpl.exp)-1]
-		left := cmpl.exp[len(cmpl.exp)-2]
-		if !isBoolResult(left) || !isBoolResult(right) {
-			return cmpl.ErrorPos(expBuf.Pos, ErrBoolOper)
-		}
-		id := core.StackAnd
-		if expBuf.Oper == tkOr {
-			id = core.StackOr
-		}
-		icmd := &core.CmdBlock{ID: uint32(id),
-			Result: right.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-			Children: []core.ICmd{left, right}}
-		cmpl.exp[len(cmpl.exp)-2] = icmd
-		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
-	case tkStrExp:
-		if len(cmpl.exp) < 2 {
-			return cmpl.Error(ErrValue)
-		}
-		right := cmpl.exp[len(cmpl.exp)-1]
-		left := cmpl.exp[len(cmpl.exp)-2]
-		obj = getOperator(cmpl, prior.Name, left, right)
-		if obj == nil {
-			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
-				left.GetResult(), right.GetResult()})
-		}
-		icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-			Object: obj, Result: obj.Result(), Left: left, Right: right}
-		cmpl.exp[len(cmpl.exp)-2] = icmd
-		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
-	case tkAssign, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq, tkBitAndEq,
-		tkBitOrEq, tkBitXorEq:
-		if len(cmpl.exp) < 2 {
-			return cmpl.Error(ErrValue)
-		}
-		right := cmpl.exp[len(cmpl.exp)-1]
-		left := cmpl.exp[len(cmpl.exp)-2]
-
-		if expBuf.Oper == tkAssign && left.GetType() == core.CtUnary {
-			if left.GetObject() == cmpl.vm.StdLib().Names[`GetEnv`] {
-				setEnv := cmpl.vm.StdLib().Names[`SetEnv`]
-				icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-					Object: setEnv,
-					Result: setEnv.Result(), Left: left.(*core.CmdUnary).Operand, Right: right}
-				cmpl.exp[len(cmpl.exp)-2] = icmd
-				cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
-				break
-			}
-		}
-		if left.GetType() != core.CtVar {
-			return cmpl.ErrorPos(expBuf.Pos, ErrLValue)
-		}
-		obj = getOperator(cmpl, prior.Name, left, right)
-		if obj == nil {
-			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
-				left.GetResult(), right.GetResult()})
-		}
-		icmd := &core.CmdBlock{ID: core.StackAssign, Object: obj,
-			Result: left.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-			Children: []core.ICmd{left, right}}
-		cmpl.exp[len(cmpl.exp)-2] = icmd
-		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
-	case tkAdd, tkSub, tkMul, tkMod, tkDiv, tkEqual, tkNotEqual, tkLess, tkLessEqual, tkGreater,
-		tkGreaterEqual, tkBitOr, tkBitXor, tkBitAnd, tkLShift, tkRShift, tkRange, tkColon:
-		if len(cmpl.exp) < 2 {
-			return cmpl.Error(ErrValue)
-		}
-		right := cmpl.exp[len(cmpl.exp)-1]
-		left := cmpl.exp[len(cmpl.exp)-2]
-		obj = getOperator(cmpl, prior.Name, left, right)
-		if obj == nil {
-			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
-				left.GetResult(), right.GetResult()})
-		}
-		icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-			Object: obj, Result: obj.Result(), Left: left, Right: right}
-		if expBuf.Oper == tkNotEqual || expBuf.Oper == tkLessEqual || expBuf.Oper == tkGreaterEqual {
-			objNot := getFunc(cmpl, `Not`, []*core.TypeObject{obj.Result()}, false)
-			if objNot == nil {
-				return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, `Not`,
-					[]*core.TypeObject{obj.Result()})
-			}
-			cmdNot := &core.CmdUnary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-				Object: objNot, Result: objNot.Result(), Operand: icmd}
-			cmpl.exp[len(cmpl.exp)-2] = cmdNot
-		} else {
-			cmpl.exp[len(cmpl.exp)-2] = icmd
-		}
-		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
-	case tkInc | tkUnary, tkDec | tkUnary, tkInc | tkUnary | tkPost, tkDec | tkUnary | tkPost:
-		if len(cmpl.exp) == 0 {
-			return cmpl.Error(ErrValue)
-		}
-		top := cmpl.exp[len(cmpl.exp)-1]
-		if !isIntResult(top) {
-			return cmpl.ErrorPos(expBuf.Pos, ErrIntOper)
-		}
-		if top.GetType() != core.CtVar {
-			return cmpl.ErrorPos(expBuf.Pos, ErrLValue)
-		}
-		val := 1
-		if (expBuf.Oper & 0xff) == tkDec {
-			val = -1
-		}
-		if (expBuf.Oper & tkPost) > 0 {
-			val *= 2
-		}
-		icmd := &core.CmdBlock{ID: core.StackIncDec, ParCount: val,
-			Result: top.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-			Children: []core.ICmd{top}}
-		cmpl.exp[len(cmpl.exp)-1] = icmd
-	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitNot | tkUnary:
-		if len(cmpl.exp) == 0 {
-			return cmpl.Error(ErrValue)
-		}
-		top := cmpl.exp[len(cmpl.exp)-1]
-		obj = getOperator(cmpl, prior.Name, top, nil)
-		if obj == nil {
-			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name,
-				[]*core.TypeObject{top.GetResult()})
-		}
-		icmd := &core.CmdUnary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
-			Object: obj, Result: obj.Result(), Operand: cmpl.exp[len(cmpl.exp)-1]}
-		cmpl.exp[len(cmpl.exp)-1] = icmd
-	case tkLPar:
-		return cmpl.Error(ErrLPar)
-	case tkLSBracket:
-		return cmpl.Error(ErrLSBracket)
-	default:
-		return cmpl.Error(ErrCompiler, fmt.Sprintf(`popBuf unknown token %d`, expBuf.Oper))
-	}
-	cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
-	return nil
-}
-
-func coExpStart(cmpl *compiler) error {
-	cmpl.exp = cmpl.exp[:0]
-	cmpl.expbuf = cmpl.expbuf[:0]
-	return nil
-}
-
-func coExpEnd(cmpl *compiler) error {
-	if cmpl.isInit {
-		lp := cmpl.getLex()
-		if lp.Tokens[cmpl.pos].Type == tkLCurly {
-			cmpl.newState = cmInit | cfStay
-			return nil
-		}
-	}
-	for len(cmpl.expbuf) > 0 {
-		if err := popBuf(cmpl); err != nil {
-			return err
-		}
-	}
-	init := isInState(cmpl, cmInit, 0)
-	if len(cmpl.exp) > 1 && !init {
-		return cmpl.Error(ErrCompiler, `coExpEnd`)
-	}
-	for len(cmpl.exp) > 0 {
-		if init {
-			ownerType := cmpl.curOwner().GetResult()
-			if ownerType.Original == reflect.TypeOf(core.Array{}) {
-				if !isEqualTypes(cmpl.exp[0].GetResult(), cmpl.curType) {
-					return cmpl.ErrorPos(cmpl.pos-1, ErrWrongType, cmpl.curType.GetName())
-				}
-			} else if ownerType.Original == reflect.TypeOf(core.Map{}) {
-				if cmpl.exp[0].GetResult().Original != reflect.TypeOf(core.KeyValue{}) {
-					return cmpl.ErrorPos(cmpl.pos-1, ErrNotKeyValue)
-				}
-				if !isEqualTypes(ownerType.IndexOf, cmpl.exp[0].(*core.CmdBinary).Right.GetResult()) {
-					return cmpl.ErrorPos(cmpl.exp[0].(*core.CmdBinary).Right.GetToken(),
-						ErrWrongType, ownerType.IndexOf.GetName())
-				}
-			}
-		}
-		cmpl.curOwner().Children = append(cmpl.curOwner().Children, cmpl.exp[0])
-		cmpl.exp = cmpl.exp[1:]
-	}
+	cmpl.curType = obj.(*core.TypeObject)
 	return nil
 }
 
@@ -985,157 +572,25 @@ func coVarExp(cmpl *compiler) error {
 				if err := coInitStart(cmpl); err != nil {
 					return err
 				}
-				cmpl.newState = cmInit
+				cmpl.dynamic = &cmState{tkLCurly, cmInit, nil, nil, 0}
 				return nil
 			}
 		}
 		coExpStart(cmpl)
-		cmpl.newState = cmExp | cfStay
+		cmpl.dynamic = &cmState{tkIdent, cmExp, nil, nil, cfStay}
+		//cmpl.newState = cmExp | cfStay
 	}
 	return nil
 }
 
-func coConstExp(cmpl *compiler) error {
-	if cmpl.callback {
-		owner := cmpl.curOwner()
-		constObj := &core.ConstObject{
-			Object: core.Object{
-				Name:  cmpl.curConst,
-				LexID: len(cmpl.unit.Lexeme) - 1,
-				Unit:  cmpl.unit,
-			},
-			Redefined: false,
-			Exp:       owner.Children[0],
-			Return:    owner.Children[0].GetResult(),
-			Iota:      core.NotIota,
-		}
-		if findObj(cmpl, cmpl.curConst, core.ObjConst) {
-			return cmpl.ErrorPos(cmpl.pos-1, ErrConstDef, cmpl.curConst)
-		}
-
-		cmpl.unit.Objects = append(cmpl.unit.Objects, constObj)
-		if curName := cmpl.unit.Names[cmpl.curConst]; curName == nil {
-			cmpl.unit.Names[cmpl.curConst] = constObj
-		} else {
-			curName.SetNext(constObj)
-		}
-		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-		return nil
+func findObj(cmpl *compiler, name string, objType core.ObjectType) bool {
+	if found := cmpl.unit.Names[name]; found != nil && found.GetType() == objType {
+		return true
 	}
-	coExpStart(cmpl)
-	cmd := core.CmdBlock{ID: core.StackBlock, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
-	cmpl.owners = append(cmpl.owners, &cmd)
-	return nil
-}
-
-func coPush(cmpl *compiler) error {
-	var (
-		v     interface{}
-		vType string
-		err   error
-	)
-	lp := cmpl.getLex()
-	token := getToken(lp, cmpl.pos)
-	switch lp.Tokens[cmpl.pos].Type {
-	case tkInt:
-		if v, err = strconv.ParseInt(token, 0, 64); err != nil {
-			return cmpl.Error(ErrOutOfRange, token)
-		}
-		vType = `int`
-	case tkFalse, tkTrue:
-		v = lp.Tokens[cmpl.pos].Type == tkTrue
-		vType = `bool`
-	case tkChar:
-		runes := []rune(token)
-		if len(runes) < 3 {
-			return cmpl.Error(ErrChar)
-		}
-		token, err = strconv.Unquote(`"` + strings.Replace(string(runes[1:len(runes)-1]),
-			`\'`, `'`, -1) + `"`)
-		if err != nil || len([]rune(token)) != 1 {
-			return cmpl.Error(ErrChar)
-		}
-		v = []rune(token)[0]
-		vType = `char`
-	case tkStr:
-		v = lp.Strings[lp.Tokens[cmpl.pos].Index]
-		if token[0] == '"' {
-			v, err = strconv.Unquote(`"` + strings.Replace(strings.Replace(v.(string),
-				"\n", `\n`, -1), "\r", `\r`, -1) + `"`)
-			if err != nil {
-				return cmpl.Error(ErrDoubleQuotes)
-			}
-		}
-		vType = `str`
+	if found := cmpl.vm.StdLib().Names[name]; found != nil && found.GetType() == objType {
+		return true
 	}
-	appendExp(cmpl, &core.CmdValue{Value: v,
-		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
-		Result:    cmpl.vm.StdLib().Names[vType].(*core.TypeObject)})
-	return nil
-}
-
-func coUnaryOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type)|tkUnary)
-}
-
-func coUnaryPostOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type)|tkUnary|tkPost)
-}
-
-func coOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type))
-}
-
-func coCallFunc(cmpl *compiler) error {
-	return appendExpBuf(cmpl, tkCallFunc)
-}
-
-func coIndex(cmpl *compiler) error {
-	coExpVar(cmpl)
-	return appendExpBuf(cmpl, tkIndex)
-}
-
-func findVar(cmpl *compiler, token string) (*core.CmdBlock, int) {
-	block := cmpl.curOwner()
-	for block != nil {
-		if ind, ok := block.VarNames[token]; ok {
-			return block, ind
-		}
-		block = block.Parent
-	}
-	return nil, 0
-}
-
-func coExpVar(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos-1)
-	if isCapital(token) {
-		var (
-			constObj core.IObject
-			ok       bool
-		)
-		if token == core.ConstIota && cmpl.curIota == core.NotIota {
-			return cmpl.ErrorPos(cmpl.pos-1, ErrIota)
-		}
-		if constObj, ok = cmpl.unit.Names[token]; !ok {
-			constObj, _ = cmpl.vm.StdLib().Names[token]
-		}
-		if constObj != nil {
-			appendExp(cmpl, &core.CmdConst{
-				Object:    constObj,
-				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
-			})
-		} else {
-			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
-		}
-	} else {
-		block, ind := findVar(cmpl, token)
-		if block == nil {
-			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
-		}
-		appendExp(cmpl, &core.CmdVar{Block: block, Index: ind,
-			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)}})
-	}
-	return nil
+	return false
 }
 
 func coExpEnv(cmpl *compiler) error {
@@ -1146,94 +601,5 @@ func coExpEnv(cmpl *compiler) error {
 		Result:    getEnv.Result()}
 	appendExp(cmpl, &core.CmdUnary{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
 		Object: getEnv, Result: getEnv.Result(), Operand: icmd})
-	return nil
-}
-
-func isInState(cmpl *compiler, state, shift int) bool {
-	return len(cmpl.expbuf) == 0 && len(*cmpl.states) > 2 &&
-		(*cmpl.states)[len(*cmpl.states)-1-shift].State == state
-}
-
-func coComma(cmpl *compiler) error {
-	for len(cmpl.expbuf) > 0 && cmpl.expbuf[len(cmpl.expbuf)-1].Oper != tkLPar {
-		if err := popBuf(cmpl); err != nil {
-			return err
-		}
-	}
-	if isInState(cmpl, cmInit, 1) {
-		return nil
-	}
-	if len(cmpl.expbuf) < 2 || (cmpl.expbuf[len(cmpl.expbuf)-1].Oper != tkLPar &&
-		cmpl.expbuf[len(cmpl.expbuf)-2].Oper != tkCallFunc) {
-		return cmpl.Error(ErrOper)
-	}
-	return nil
-}
-
-func setIndex(cmpl *compiler) error {
-	cmdVar := cmpl.exp[len(cmpl.exp)-2].(*core.CmdVar)
-	typeObject := cmdVar.GetResult()
-	varIndex := cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)
-	if typeObject.Original == reflect.TypeOf(core.Map{}) {
-		varIndex = cmpl.vm.StdLib().Names[`str`].(*core.TypeObject)
-	}
-	if typeObject.IndexOf == nil {
-		return cmpl.ErrorPos(cmpl.expbuf[len(cmpl.expbuf)-1].Pos-1, ErrSupportIndex,
-			typeObject.GetName())
-	}
-	index := cmpl.exp[len(cmpl.exp)-1]
-	if index.GetResult() != varIndex {
-		return cmpl.ErrorPos(cmpl.pos, ErrTypeIndex, varIndex.GetName())
-	}
-	(*cmdVar).Indexes = append((*cmdVar).Indexes, core.CmdRet{Cmd: index, Type: typeObject.IndexOf})
-	cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
-	cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
-	return nil
-}
-
-func coInitStart(cmpl *compiler) error {
-	cmpl.isInit = true
-	cmd := core.CmdBlock{ID: core.StackNew, CmdCommon: core.CmdCommon{
-		TokenID: uint32(cmpl.pos)}, Result: cmpl.curType}
-	appendCmd(cmpl, &cmd)
-	cmpl.owners = append(cmpl.owners, &cmd)
-	if (cmpl.curType.Original != reflect.TypeOf(core.Array{}) &&
-		cmpl.curType.Original != reflect.TypeOf(core.Map{})) {
-		return cmpl.Error(ErrWrongType, cmpl.curType.GetName())
-	}
-	cmpl.curType = cmpl.curType.IndexOf
-	return nil
-}
-
-func coInitEnd(cmpl *compiler) error {
-	cmpl.curType = cmpl.curOwner().Result
-	cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-	if (*cmpl.states)[len(*cmpl.states)-1].State != cmInit {
-		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-		cmpl.isInit = false
-
-	}
-	return nil
-}
-
-func coInitNext(cmpl *compiler) error {
-	if cmpl.curType.IndexOf == nil {
-		cmpl.newState = cmExp | cfStay
-		return nil
-	}
-	if len(cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock).Children) == 0 {
-		return cmpl.Error(ErrValue)
-	}
-	lp := cmpl.getLex()
-	for i := cmpl.pos + 1; i < len(lp.Tokens); i++ {
-		token := lp.Tokens[i]
-		if token.Type == tkLine {
-			continue
-		}
-		if token.Type == tkComma {
-			return cmpl.ErrorPos(i, ErrValue)
-		}
-		break
-	}
 	return nil
 }

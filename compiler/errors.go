@@ -104,6 +104,8 @@ const (
 	ErrWrongType
 	// ErrNotKeyValue is returned when initialization of map value without
 	ErrNotKeyValue
+	// ErrKeyValue means that key:value is used outside of map initialization
+	ErrKeyValue
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -169,6 +171,7 @@ var (
 		ErrIdent:          `the name of the identifier can't contain a dot`,
 		ErrWrongType:      `wrong type, expecting %s type`,
 		ErrNotKeyValue:    `unexpected type, expecting a pair of key and value`,
+		ErrKeyValue:       `unexpected a pair of key and value, expecting %s type`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

@@ -8,60 +8,64 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-func coWhile(cmpl *compiler) error {
-	if cmpl.callback {
-		cmd := cmpl.curOwner()
-		if cmd.ID == core.StackWhile {
-			if len(cmd.Children) == 1 {
-				if !isBoolResult(cmd.Children[0]) {
-					cmpl.pos = cmd.Children[0].GetToken()
-					return cmpl.Error(ErrBoolExp)
-				}
-				cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
-					CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
-				cmd.Children = append(cmd.Children, &cmdIf)
-				cmpl.owners = append(cmpl.owners, &cmdIf)
-				cmpl.newState = cmLCurly // | cfStay
-			}
-		} else {
-			cmpl.owners = cmpl.owners[:len(cmpl.owners)-2]
-		}
-		return nil
-	}
+func coReturn(cmpl *compiler) error {
 	coExpStart(cmpl)
-	cmd := core.CmdBlock{ID: core.StackWhile, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+	cmd := core.CmdBlock{ID: core.StackReturn, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
 	appendCmd(cmpl, &cmd)
 	cmpl.owners = append(cmpl.owners, &cmd)
 	return nil
 }
 
-func coIf(cmpl *compiler) error {
-	if cmpl.callback {
-		cmd := cmpl.curOwner()
-		if cmd.ID == core.StackIf {
-			if len(cmd.Children) == 1 {
-				if !isBoolResult(cmd.Children[0]) {
-					cmpl.pos = cmd.Children[0].GetToken()
-					return cmpl.Error(ErrBoolExp)
-				}
-				cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
-					CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
-				cmd.Children = append(cmd.Children, &cmdIf)
-				cmpl.owners = append(cmpl.owners, &cmdIf)
-				cmpl.newState = cmLCurly // | cfStay
-			} else {
-				cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-			}
-		} else {
-			cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-			cmpl.newState = cmElseIf
+func coReturnBack(cmpl *compiler) error {
+	owner := cmpl.curOwner()
+	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
+	switch len(owner.Children) {
+	case 0:
+		if funcObj.Block.Result != nil {
+			return cmpl.Error(ErrCompiler, `coReturn 0`)
 		}
-		return nil
+	case 1:
+		if funcObj.Block.Result == nil {
+			return cmpl.Error(ErrReturn)
+		}
+		if !isEqualTypes(funcObj.Block.Result, owner.Children[0].GetResult()) {
+			return cmpl.Error(ErrReturnType)
+		}
+	default:
+		return cmpl.Error(ErrCompiler, `coReturn 1`)
 	}
+	cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+	return nil
+}
+
+func coIf(cmpl *compiler) error {
 	coExpStart(cmpl)
 	cmd := core.CmdBlock{ID: core.StackIf, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
 	appendCmd(cmpl, &cmd)
 	cmpl.owners = append(cmpl.owners, &cmd)
+	return nil
+}
+
+func coIfBack(cmpl *compiler) error {
+	cmd := cmpl.curOwner()
+	if cmd.ID == core.StackIf {
+		if len(cmd.Children) == 1 {
+			if !isBoolResult(cmd.Children[0]) {
+				cmpl.pos = cmd.Children[0].GetToken()
+				return cmpl.Error(ErrBoolExp)
+			}
+			cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
+				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+			cmd.Children = append(cmd.Children, &cmdIf)
+			cmpl.owners = append(cmpl.owners, &cmdIf)
+			cmpl.dynamic = &cmState{tkLCurly, cmLCurly, nil, nil, 0}
+		} else {
+			cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+		}
+	} else {
+		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+		cmpl.dynamic = &cmState{tkLCurly, cmElseIf, nil, nil, 0}
+	}
 	return nil
 }
 
@@ -79,24 +83,25 @@ func coElse(cmpl *compiler) error {
 }
 
 func coElif(cmpl *compiler) error {
-	if cmpl.callback {
-		cmd := cmpl.curOwner()
-		if cmd.ID == core.StackIf {
-			if !isBoolResult(cmd.Children[len(cmd.Children)-1]) {
-				cmpl.pos = cmd.Children[len(cmd.Children)-1].GetToken()
-				return cmpl.Error(ErrBoolExp)
-			}
-			cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
-				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
-			cmd.Children = append(cmd.Children, &cmdIf)
-			cmpl.owners = append(cmpl.owners, &cmdIf)
-			cmpl.newState = cmLCurly
-		} else {
-			cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-		}
-		return nil
-	}
 	coExpStart(cmpl)
+	return nil
+}
+
+func coElifBack(cmpl *compiler) error {
+	cmd := cmpl.curOwner()
+	if cmd.ID == core.StackIf {
+		if !isBoolResult(cmd.Children[len(cmd.Children)-1]) {
+			cmpl.pos = cmd.Children[len(cmd.Children)-1].GetToken()
+			return cmpl.Error(ErrBoolExp)
+		}
+		cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
+			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+		cmd.Children = append(cmd.Children, &cmdIf)
+		cmpl.owners = append(cmpl.owners, &cmdIf)
+		cmpl.dynamic = &cmState{tkLCurly, cmLCurly, nil, nil, 0}
+	} else {
+		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+	}
 	return nil
 }
 
@@ -107,57 +112,35 @@ func coIfEnd(cmpl *compiler) error {
 	return nil
 }
 
-func coReturn(cmpl *compiler) error {
-	if cmpl.callback {
-		owner := cmpl.curOwner()
-		funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
-		switch len(owner.Children) {
-		case 0:
-			if funcObj.Block.Result != nil {
-				return cmpl.Error(ErrCompiler, `coReturn 0`)
-			}
-		case 1:
-			if funcObj.Block.Result == nil {
-				return cmpl.Error(ErrReturn)
-			}
-			if !isEqualTypes(funcObj.Block.Result, owner.Children[0].GetResult()) {
-				return cmpl.Error(ErrReturnType)
-			}
-		default:
-			return cmpl.Error(ErrCompiler, `coReturn 1`)
-		}
-		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-		return nil
-	}
+func coWhile(cmpl *compiler) error {
 	coExpStart(cmpl)
-	cmd := core.CmdBlock{ID: core.StackReturn, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+	cmd := core.CmdBlock{ID: core.StackWhile, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
 	appendCmd(cmpl, &cmd)
 	cmpl.owners = append(cmpl.owners, &cmd)
 	return nil
 }
 
-func coFor(cmpl *compiler) error {
-	if cmpl.callback {
-		cmd := cmpl.curOwner()
-		if cmd.ID == core.StackFor {
-			if len(cmd.Children) == 1 {
-				if !isIndexResult(cmd.Children[0]) {
-					return cmpl.ErrorPos(cmd.Children[0].GetToken(), ErrSupportIndex,
-						cmd.Children[0].GetResult().GetName())
-				}
-				cmd.Vars[0] = cmd.Children[0].GetResult().IndexOf
-				cmd.Vars[1] = cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)
-				cmdFor := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
-					CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
-				cmd.Children = append(cmd.Children, &cmdFor)
-				cmpl.owners = append(cmpl.owners, &cmdFor)
-				cmpl.newState = cmLCurly
+func coWhileBack(cmpl *compiler) error {
+	cmd := cmpl.curOwner()
+	if cmd.ID == core.StackWhile {
+		if len(cmd.Children) == 1 {
+			if !isBoolResult(cmd.Children[0]) {
+				cmpl.pos = cmd.Children[0].GetToken()
+				return cmpl.Error(ErrBoolExp)
 			}
-		} else {
-			cmpl.owners = cmpl.owners[:len(cmpl.owners)-2]
+			cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
+				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+			cmd.Children = append(cmd.Children, &cmdIf)
+			cmpl.owners = append(cmpl.owners, &cmdIf)
+			cmpl.dynamic = &cmState{tkLCurly, cmLCurly, nil, nil, 0}
 		}
-		return nil
+	} else {
+		cmpl.owners = cmpl.owners[:len(cmpl.owners)-2]
 	}
+	return nil
+}
+
+func coFor(cmpl *compiler) error {
 	coExpStart(cmpl)
 	cmd := core.CmdBlock{ID: core.StackFor, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
 	appendCmd(cmpl, &cmd)
@@ -191,6 +174,28 @@ func coFor(cmpl *compiler) error {
 
 	if lp.Tokens[cmpl.newPos].Type != tkIn {
 		return cmpl.ErrorPos(cmpl.newPos, ErrForIn)
+	}
+	return nil
+}
+
+func coForBack(cmpl *compiler) error {
+	cmd := cmpl.curOwner()
+	if cmd.ID == core.StackFor {
+		if len(cmd.Children) == 1 {
+			if !isIndexResult(cmd.Children[0]) {
+				return cmpl.ErrorPos(cmd.Children[0].GetToken(), ErrSupportIndex,
+					cmd.Children[0].GetResult().GetName())
+			}
+			cmd.Vars[0] = cmd.Children[0].GetResult().IndexOf
+			cmd.Vars[1] = cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)
+			cmdFor := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
+				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+			cmd.Children = append(cmd.Children, &cmdFor)
+			cmpl.owners = append(cmpl.owners, &cmdFor)
+			cmpl.dynamic = &cmState{tkLCurly, cmLCurly, nil, nil, 0}
+		}
+	} else {
+		cmpl.owners = cmpl.owners[:len(cmpl.owners)-2]
 	}
 	return nil
 }
