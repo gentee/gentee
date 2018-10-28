@@ -227,8 +227,8 @@ main:
 		state = cmpl.next.State
 	}
 	if len(stackState) > 0 {
-		cmpl.pos = stackState[len(stackState)-1].Pos + 1
-		return cmpl.Error(ErrEnd)
+		//		cmpl.pos = stackState[len(stackState)-1].Pos + 1
+		return cmpl.ErrorPos(len(lp.Tokens), ErrEnd)
 	}
 
 	if cmpl.runID != core.Undefined {

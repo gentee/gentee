@@ -106,6 +106,12 @@ const (
 	ErrNotKeyValue
 	// ErrKeyValue means that key:value is used outside of map initialization
 	ErrKeyValue
+	// ErrLineRCurly returns when the unexpected token, expecting a new line or }
+	ErrLineRCurly
+	// ErrStructField returns when the field with this name has already been defined
+	ErrStructField
+	// ErrTypeExists means that the type has already been defined
+	ErrTypeExists
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -154,7 +160,7 @@ var (
 		ErrBoolOper:       `wrong type of operands, expecting boolean type`,
 		ErrQuestion:       `different types of exp1 and exp2 in ?(cond, exp1, exp2)`,
 		ErrQuestionPars:   `operator ? must be called as ?(boolean condition, exp1, exp2)`,
-		ErrCapitalLetters: `The name of variable or function can't consists of only capital letters`,
+		ErrCapitalLetters: `The name of variable, type or function can't consists of only capital letters`,
 		ErrConstName:      `The name of constant must consist of only capital letters`,
 		ErrMustAssign:     `unexpected token, expecting =`,
 		ErrIota:           `IOTA can be only used in const expression`,
@@ -172,6 +178,10 @@ var (
 		ErrWrongType:      `wrong type, expecting %s type`,
 		ErrNotKeyValue:    `unexpected type, expecting a pair of key and value`,
 		ErrKeyValue:       `unexpected a pair of key and value, expecting %s type`,
+		ErrLineRCurly:     `unexpected token, expecting a new line or }`,
+		ErrStructField:    `%s field has already been defined`,
+		ErrTypeExists:     `%s type has already been defined`,
+		//		Err
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

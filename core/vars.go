@@ -33,6 +33,18 @@ type Map struct {
 	Data map[string]interface{}
 }
 
+// StructType is used for custom struct types
+type StructType struct {
+	Fields map[string]int // Names of fields with indexes of the order
+	Types  []*TypeObject  // Types of fields
+}
+
+// Struct is used for custom struct types
+type Struct struct {
+	Type   *TypeObject
+	Values []interface{} // Values of fields
+}
+
 // String interface for Map
 func (pmap Map) String() string {
 	list := make([]string, len(pmap.Keys))
@@ -60,6 +72,38 @@ func NewArray() *Array {
 	return &Array{
 		Data: make([]interface{}, 0),
 	}
+}
+
+// NewStruct creates a new struct object
+func NewStruct(ptype *TypeObject) *Struct {
+	values := make([]interface{}, len(ptype.Custom.Types))
+	for i, v := range ptype.Custom.Types {
+		values[i] = initVar(v)
+	}
+	return &Struct{
+		Type:   ptype,
+		Values: values,
+	}
+}
+
+func initVar(ptype *TypeObject) interface{} {
+	var value interface{}
+	if ptype.GetName() == `char` {
+		value = ' '
+	} else {
+		original := ptype.Original
+		switch original {
+		case reflect.TypeOf(Array{}):
+			value = NewArray()
+		case reflect.TypeOf(Map{}):
+			value = NewMap()
+		case reflect.TypeOf(Struct{}):
+			value = NewStruct(ptype)
+		default:
+			value = reflect.New(ptype.Original).Elem().Interface()
+		}
+	}
+	return value
 }
 
 func getVar(rt *RunTime, cmdVar *CmdVar) error {
@@ -99,14 +143,19 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 				}
 				value = runes[index]
 			default:
-				if typeValue.Original == reflect.TypeOf(Array{}) {
+				switch typeValue.Original {
+				case reflect.TypeOf(Struct{}):
+					var custom *Struct
+					custom = value.(*Struct)
+					value = custom.Values[index]
+				case reflect.TypeOf(Array{}):
 					var arr *Array
 					arr = value.(*Array)
 					if index < 0 || index >= int64(len(arr.Data)) {
 						return runtimeError(rt, ival.Cmd, ErrIndexOut)
 					}
 					value = arr.Data[index]
-				} else if typeValue.Original == reflect.TypeOf(Map{}) {
+				case reflect.TypeOf(Map{}):
 					var (
 						pmap *Map
 						ok   bool
@@ -115,7 +164,7 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 					if value, ok = pmap.Data[mapIndex]; !ok {
 						return runtimeError(rt, ival.Cmd, ErrMapIndex, mapIndex)
 					}
-				} else {
+				default:
 					return runtimeError(rt, cmdVar, ErrRuntime, `getVar.default`)
 				}
 			}
@@ -141,13 +190,14 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 	}
 	ptr = &vars[cmdVar.Index]
 	var (
-		runes    []rune
-		strIndex int64
-		prev     *interface{}
-		arr      *Array
-		arrIndex int64
-		pmap     *Map
-		mapIndex string
+		runes                 []rune
+		strIndex              int64
+		prev                  *interface{}
+		arr                   *Array
+		arrIndex, structIndex int64
+		pmap                  *Map
+		pstruct               *Struct
+		mapIndex              string
 	)
 	if cmdVar.Indexes != nil {
 		typeValue := cmdVar.Block.Vars[cmdVar.Index]
@@ -172,23 +222,34 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 				strRune = runes[strIndex]
 				ptr = &strRune
 			default:
-				if typeValue.Original == reflect.TypeOf(Array{}) {
+				switch typeValue.Original {
+				case reflect.TypeOf(Struct{}):
+					var structPtr interface{}
+					structIndex = index.(int64)
+					pstruct = (*ptr).(*Struct)
+					pmap = nil
+					arr = nil
+					structPtr = pstruct.Values[structIndex]
+					ptr = &structPtr
+				case reflect.TypeOf(Array{}):
 					var arrPtr interface{}
 					arrIndex = index.(int64)
 					arr = (*ptr).(*Array)
 					pmap = nil
+					pstruct = nil
 					if arrIndex < 0 || arrIndex >= int64(len(arr.Data)) {
 						return runtimeError(rt, ival.Cmd, ErrIndexOut)
 					}
 					arrPtr = arr.Data[arrIndex]
 					ptr = &arrPtr
-				} else if typeValue.Original == reflect.TypeOf(Map{}) {
+				case reflect.TypeOf(Map{}):
 					var (
 						mapPtr interface{}
 						ok     bool
 					)
 					mapIndex = index.(string)
 					arr = nil
+					pstruct = nil
 					pmap = (*ptr).(*Map)
 					if mapPtr, ok = pmap.Data[mapIndex]; !ok {
 						pmap.Keys = append(pmap.Keys, mapIndex)
@@ -200,7 +261,7 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 						pmap.Data[mapIndex] = mapPtr
 					}
 					ptr = &mapPtr
-				} else {
+				default:
 					return runtimeError(rt, cmdVar, ErrRuntime, `setVar.default`)
 				}
 			}
@@ -224,6 +285,9 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 	if pmap != nil {
 		pmap.Data[mapIndex] = *ptr
 	}
+	if pstruct != nil {
+		pstruct.Values[structIndex] = *ptr
+	}
 	rt.Stack[len(rt.Stack)-1] = result[0].Interface()
 	return nil
 }
@@ -237,21 +301,7 @@ func initVars(rt *RunTime, cmdStack *CmdBlock) (count int) {
 		}
 		rt.Stack = rt.Stack[:len(rt.Stack)-cmdStack.ParCount]
 		for i := cmdStack.ParCount; i < len(cmdStack.Vars); i++ {
-			var value interface{}
-			if cmdStack.Vars[i].GetName() == `char` {
-				value = ' '
-			} else {
-				original := cmdStack.Vars[i].Original
-				switch original {
-				case reflect.TypeOf(Array{}):
-					value = NewArray()
-				case reflect.TypeOf(Map{}):
-					value = NewMap()
-				default:
-					value = reflect.New(cmdStack.Vars[i].Original).Elem().Interface()
-				}
-			}
-			rtBlock.Vars = append(rtBlock.Vars, value)
+			rtBlock.Vars = append(rtBlock.Vars, initVar(cmdStack.Vars[i]))
 		}
 	}
 	rt.Blocks = append(rt.Blocks, rtBlock)

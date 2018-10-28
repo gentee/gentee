@@ -28,6 +28,10 @@ const (
 	cmConstListStart // const enum start
 	cmConstList      // const enum
 	cmInit           // initializing array or map
+	cmStruct         // struct definition
+	cmStructDef      // struct body
+	cmStructFields   // struct fields
+	cmStructName     // struct the name of the field
 
 	cmBack // go to back
 
@@ -54,6 +58,7 @@ var (
 			{tkRun, cmRun, coRun, coRunBack, cfStopBack},
 			{tkConst, cmConst, nil, nil, cfStopBack},
 			{tkFunc, cmFunc, nil, coFuncBack, cfStopBack},
+			{tkStruct, cmStruct, nil, nil, cfStopBack},
 		},
 		cmRun: {
 			{tkDefault, ErrLCurly, coError, nil, 0},
@@ -190,6 +195,28 @@ var (
 			{tkRCurly, cmBack, coInitEnd, nil, 0},
 			{tkComma, 0, coInitNext, nil, 0},
 			{tkColon, 0, coInitKey, nil, 0},
+		},
+		cmStruct: {
+			{tkDefault, ErrName, coError, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkIdent, cmStructDef, coStruct, coStructEnd, 0},
+		},
+		cmStructDef: {
+			{tkDefault, ErrLCurly, coError, nil, 0},
+			{tkLCurly, cmStructFields, nil, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmStructFields: {
+			{tkDefault, ErrType, coError, nil, 0},
+			{tkLine, 0, coStructLine, nil, 0},
+			{tkIdent, cmStructName, coStructType, nil, cfStopBack},
+			{tkRCurly, cmBack, coStructLine, nil, 0},
+		},
+		cmStructName: {
+			{tkDefault, ErrLCurly, coError, nil, 0},
+			{tkIdent, 0, coStructName, nil, 0},
+			{tkRCurly, cmBack, nil, nil, cfStay},
+			{tkLine, cmBack, nil, nil, 0},
 		},
 	}
 	compileTable [][tkDefault]*cmState

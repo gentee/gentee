@@ -81,6 +81,7 @@ const (
 	tkElse
 	tkWhile
 	tkConst
+	tkStruct
 	tkDefault // is used for preCompileTable
 )
 

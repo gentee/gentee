@@ -76,6 +76,7 @@ var (
 		`run`:    tkRun,
 		`true`:   tkTrue,
 		`const`:  tkConst,
+		`struct`: tkStruct,
 	}
 
 	charType [alphabet]int

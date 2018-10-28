@@ -47,6 +47,7 @@ type TypeObject struct {
 	Object
 	Original reflect.Type // Original golang type
 	IndexOf  *TypeObject  // consists of elements
+	Custom   *StructType  // for custom struct type
 }
 
 // EmbedObject contains information about the golang function

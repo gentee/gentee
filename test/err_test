@@ -1,3 +1,45 @@
+const : CAPITAL.NAME = 10
+===== 1:9: The name of constant must consist of only capital letters
+struct CAPI_TAL : int my
+===== 1:8: The name of variable, type or function can't consists of only capital letters
+func myFunc() str {
+  str s.test 
+  return s.test
+}
+===== 2:7: the name of the identifier can't contain a dot
+func my.Func() str : return "test"
+===== 1:6: the name of the identifier can't contain a dot
+struct myType : int my.value
+===== 1:21: the name of the identifier can't contain a dot
+struct typ.45 : int my 
+===== 1:8: the name of the identifier can't contain a dot
+struct val 
+{ 
+  int first
+  int second
+===== 4:13: unexpected end of the source
+struct type_3 : int my q
+===== 1:24: unexpected token, expecting a new line or }
+struct type1 : int arr 
+===== 1:20: unexpected token, expecting the name of the identifier
+struct type_same { int same; str same }
+===== 1:34: same field has already been defined
+struct type1 { int a }
+struct type1 { int b }
+===== 2:8: type1 type has already been defined
+struct int { name
+===== 1:8: int type has already been defined
+struct errTest { int 
+     str a }
+===== 2:12: unexpected token, expecting the name of the identifier
+struct errTest { int }
+===== 1:22: unexpected token, expecting the name of the identifier
+struct qqq { name
+===== 1:14: unexpected token, expecting type
+struct qqq name 
+===== 1:12: unexpected token, expecting {
+struct {} 
+===== 1:8: unexpected token, expecting the name of the identifier
 run map.str {
   map myr = {"1":1, "2":true}
   return myr
@@ -57,7 +99,7 @@ run arr.int {
 ===== 4:3: unexpected token, expecting value, identifier or calling func
 run arr.int {
   arr.int myarr = 
-===== 2:17: unexpected end of the source
+===== 2:18: unexpected end of the source
 run {
   map myarr
 ===== 2:12: unexpected end of the source
@@ -326,12 +368,12 @@ run {}
 ===== 1:9: The name of constant must consist of only capital letters
 func MYFUNc(int iPARAM1 PaRAM2 UNI_ПАР3) { return}
 run { MYFUNc(10, 20, 30)}
-===== 1:32: The name of variable or function can't consists of only capital letters
+===== 1:32: The name of variable, type or function can't consists of only capital letters
 func MYFUNC() { return}
 run { MYFUNC(10)}
-===== 1:6: The name of variable or function can't consists of only capital letters
+===== 1:6: The name of variable, type or function can't consists of only capital letters
 run { int A = 1}
-===== 1:11: The name of variable or function can't consists of only capital letters
+===== 1:11: The name of variable, type or function can't consists of only capital letters
 run { 3-?(1 > 0,30,false)}
 ===== 1:9: different types of exp1 and exp2 in ?(cond, exp1, exp2)
 run { ?(20,30,40)}
