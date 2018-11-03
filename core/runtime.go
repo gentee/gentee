@@ -140,7 +140,9 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					if err = rt.runCmd(icmd); err != nil {
 						return err
 					}
-					parr.Data = append(parr.Data, rt.Stack[len(rt.Stack)-1])
+					var ptr interface{}
+					CopyVar(&ptr, rt.Stack[len(rt.Stack)-1])
+					parr.Data = append(parr.Data, ptr)
 				}
 				rt.Stack[lenStack] = parr
 			case reflect.TypeOf(Map{}):
@@ -149,13 +151,27 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					if err = rt.runCmd(icmd); err != nil {
 						return err
 					}
-					keyValue := rt.Stack[len(rt.Stack)-1].(KeyValue)
+					var ptr interface{}
+					CopyVar(&ptr, rt.Stack[len(rt.Stack)-1])
+					keyValue := ptr.(KeyValue)
 					pmap.Data[keyValue.Key.(string)] = keyValue.Value
 					pmap.Keys = append(pmap.Keys, keyValue.Key.(string))
 				}
 				rt.Stack[lenStack] = pmap
+			case reflect.TypeOf(Struct{}):
+				pstruct := NewStruct(cmd.(*CmdBlock).Result)
+				for _, icmd := range cmdStack.Children {
+					if err = rt.runCmd(icmd); err != nil {
+						return err
+					}
+					var ptr interface{}
+					CopyVar(&ptr, rt.Stack[len(rt.Stack)-1])
+					keyValue := ptr.(KeyValue)
+					pstruct.Values[keyValue.Key.(int64)] = keyValue.Value
+				}
+				rt.Stack[lenStack] = pstruct
 			default:
-				runtimeError(rt, cmd, ErrRuntime, `init arr`)
+				return runtimeError(rt, cmd, ErrRuntime, `init arr`)
 			}
 			lenStack++
 		case StackInit:
@@ -198,13 +214,22 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				return err
 			}
 			var post bool
-			val := vars[cmdVar.Index].(int64)
+			if err = getVar(rt, cmdVar); err != nil {
+				return err
+			}
+			val := rt.Stack[len(rt.Stack)-1].(int64)
+			rt.Stack = rt.Stack[:len(rt.Stack)-1]
 			shift := int64(cmdStack.ParCount)
 			if (shift & 0x1) == 0 {
 				post = true
 				shift /= 2
 			}
-			vars[cmdVar.Index] = val + shift
+			if err = setVar(rt, &CmdBlock{Children: []ICmd{
+				cmdVar, &CmdValue{Value: val + shift},
+			}, Object: rt.VM.StdLib().Names[DefAssignIntInt]}); err != nil {
+				return err
+			}
+			rt.Stack = rt.Stack[:len(rt.Stack)-1]
 			if !post {
 				val += shift
 			}

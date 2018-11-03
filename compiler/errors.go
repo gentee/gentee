@@ -106,12 +106,22 @@ const (
 	ErrNotKeyValue
 	// ErrKeyValue means that key:value is used outside of map initialization
 	ErrKeyValue
-	// ErrLineRCurly returns when the unexpected token, expecting a new line or }
+	// ErrLineRCurly is returned when the unexpected token, expecting a new line or }
 	ErrLineRCurly
-	// ErrStructField returns when the field with this name has already been defined
+	// ErrStructField is returned when the field with this name has already been defined
 	ErrStructField
 	// ErrTypeExists means that the type has already been defined
 	ErrTypeExists
+	// ErrStructType is returned when getting field of no struct type
+	ErrStructType
+	// ErrStruct is returned when struct type doesn't have such field
+	ErrStruct
+	// ErrStructAssign is returned if structures have different types in assign expression
+	ErrStructAssign
+	// ErrInitField means that wrong token specified as a field name of struct
+	ErrInitField
+	// ErrWrongField is returned when unknown field name has been specified
+	ErrWrongField
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -181,7 +191,11 @@ var (
 		ErrLineRCurly:     `unexpected token, expecting a new line or }`,
 		ErrStructField:    `%s field has already been defined`,
 		ErrTypeExists:     `%s type has already been defined`,
-		//		Err
+		ErrStructType:     `%s type is not struct type`,
+		ErrStruct:         `%s type doesn't have %s field`,
+		ErrStructAssign:   `can't assign %s to %s`,
+		ErrInitField:      `unexpected token, expecting the name of the field`,
+		ErrWrongField:     `there is not %s field in %s struct`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

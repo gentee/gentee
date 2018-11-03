@@ -31,6 +31,10 @@ const (
 	ErrIndexOut
 	// ErrMapIndex is returned when there is not the key in the map
 	ErrMapIndex
+	// ErrAssignment is returned when there is a recursive assignment
+	ErrAssignment
+	// ErrUndefined means that the value of the variable is undefined
+	ErrUndefined
 
 	// ErrRuntime error. It means bug
 	ErrRuntime
@@ -48,6 +52,8 @@ var (
 		ErrQuoteCommand: `unclosed quotation mark in $ command`,
 		ErrIndexOut:     `index out of range`,
 		ErrMapIndex:     `there is not key in the map`,
+		ErrAssignment:   `there is a recursive or self assignment`,
+		ErrUndefined:    `undefined value`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

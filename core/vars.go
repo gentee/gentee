@@ -35,8 +35,8 @@ type Map struct {
 
 // StructType is used for custom struct types
 type StructType struct {
-	Fields map[string]int // Names of fields with indexes of the order
-	Types  []*TypeObject  // Types of fields
+	Fields map[string]int64 // Names of fields with indexes of the order
+	Types  []*TypeObject    // Types of fields
 }
 
 // Struct is used for custom struct types
@@ -78,12 +78,28 @@ func NewArray() *Array {
 func NewStruct(ptype *TypeObject) *Struct {
 	values := make([]interface{}, len(ptype.Custom.Types))
 	for i, v := range ptype.Custom.Types {
-		values[i] = initVar(v)
+		if v != ptype {
+			values[i] = initVar(v)
+		}
 	}
 	return &Struct{
 		Type:   ptype,
 		Values: values,
 	}
+}
+
+// String interface for Struct
+func (pstruct Struct) String() string {
+	name := pstruct.Type.GetName()
+	keys := make([]string, len(pstruct.Values))
+	list := make([]string, len(pstruct.Values))
+	for key, ind := range pstruct.Type.Custom.Fields {
+		keys[ind] = key
+	}
+	for i, v := range pstruct.Values {
+		list[i] = fmt.Sprintf(`%s:%v`, keys[i], fmt.Sprint(v))
+	}
+	return name + `[` + strings.Join(list, ` `) + `]`
 }
 
 func initVar(ptype *TypeObject) interface{} {
@@ -128,6 +144,7 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 			var (
 				index    int64
 				mapIndex string
+				custom   *Struct
 			)
 			if typeValue.Original == reflect.TypeOf(Map{}) {
 				mapIndex = rt.Stack[len(rt.Stack)-1].(string)
@@ -145,9 +162,11 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 			default:
 				switch typeValue.Original {
 				case reflect.TypeOf(Struct{}):
-					var custom *Struct
 					custom = value.(*Struct)
 					value = custom.Values[index]
+					if value == nil {
+						return runtimeError(rt, cmdVar, ErrUndefined)
+					}
 				case reflect.TypeOf(Array{}):
 					var arr *Array
 					arr = value.(*Array)
@@ -168,7 +187,11 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 					return runtimeError(rt, cmdVar, ErrRuntime, `getVar.default`)
 				}
 			}
-			typeValue = typeValue.IndexOf
+			if typeValue.Original == reflect.TypeOf(Struct{}) {
+				typeValue = custom.Type.Custom.Types[index]
+			} else {
+				typeValue = typeValue.IndexOf
+			}
 		}
 	}
 	rt.Stack = append(rt.Stack, value)
@@ -199,8 +222,14 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 		pstruct               *Struct
 		mapIndex              string
 	)
+	value := rt.Stack[len(rt.Stack)-1]
+	typeValue := cmdVar.Block.Vars[cmdVar.Index]
+	if value == vars[cmdVar.Index] && (typeValue.Original == reflect.TypeOf(Struct{}) ||
+		typeValue.Original == reflect.TypeOf(Array{}) ||
+		typeValue.Original == reflect.TypeOf(Map{})) {
+		return runtimeError(rt, cmdStack, ErrAssignment)
+	}
 	if cmdVar.Indexes != nil {
-		typeValue := cmdVar.Block.Vars[cmdVar.Index]
 		for _, ival := range cmdVar.Indexes {
 			if typeValue == nil {
 				return runtimeError(rt, cmdVar, ErrRuntime, `setVar.typeValue`)
@@ -265,7 +294,16 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 					return runtimeError(rt, cmdVar, ErrRuntime, `setVar.default`)
 				}
 			}
-			typeValue = typeValue.IndexOf
+			if typeValue.Original == reflect.TypeOf(Struct{}) {
+				typeValue = pstruct.Type.Custom.Types[structIndex]
+			} else {
+				typeValue = typeValue.IndexOf
+			}
+			if value == *ptr && (typeValue.Original == reflect.TypeOf(Struct{}) ||
+				typeValue.Original == reflect.TypeOf(Array{}) ||
+				typeValue.Original == reflect.TypeOf(Map{})) {
+				return runtimeError(rt, cmdStack, ErrAssignment)
+			}
 		}
 	}
 	pars := []reflect.Value{reflect.ValueOf(ptr), reflect.ValueOf(rt.Stack[len(rt.Stack)-1])}
@@ -315,6 +353,18 @@ func deleteVars(rt *RunTime) {
 // CopyVar copies one object to another one
 func CopyVar(ptr *interface{}, value interface{}) {
 	switch vItem := value.(type) {
+	case *Struct:
+		var pstruct *Struct
+		if ptr == nil || *ptr == nil {
+			pstruct = NewStruct(vItem.Type)
+		} else {
+			pstruct = (*ptr).(*Struct)
+		}
+		pstruct.Values = make([]interface{}, len(vItem.Values))
+		for i, v := range vItem.Values {
+			CopyVar(&pstruct.Values[i], v)
+		}
+		*ptr = pstruct
 	case *Array:
 		var parr *Array
 		if ptr == nil || *ptr == nil {

@@ -20,6 +20,7 @@ type initType struct {
 func InitTypes(vm *core.VirtualMachine) {
 	typeArr := reflect.TypeOf(core.Array{})
 	typeMap := reflect.TypeOf(core.Map{})
+	typeStruct := reflect.TypeOf(core.Struct{})
 	for _, item := range []initType{
 		{`int`, reflect.TypeOf(int64(0)), ``},
 		{`bool`, reflect.TypeOf(true), ``},
@@ -27,6 +28,7 @@ func InitTypes(vm *core.VirtualMachine) {
 		{`str`, reflect.TypeOf(``), `char`},
 		{`range`, reflect.TypeOf(core.Range{}), `int`},
 		{`keyval`, reflect.TypeOf(core.KeyValue{}), ``},
+		{`struct`, typeStruct, ``},
 		// arr* is for embedded array funcs. It means array of any type
 		{`arr*`, typeArr, ``},
 		{`arr`, typeArr, `str`},

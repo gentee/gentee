@@ -21,6 +21,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitRange(vm)
 	InitArray(vm)
 	InitMap(vm)
+	InitStruct(vm)
 	InitSystem(vm)
 
 	vm.StdLib().NewConst(core.ConstDepth, int64(1000), true)

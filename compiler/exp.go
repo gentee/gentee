@@ -71,6 +71,18 @@ func coPush(cmpl *compiler) error {
 
 func coExpVar(cmpl *compiler) error {
 	token := getToken(cmpl.getLex(), cmpl.pos-1)
+	init := isInState(cmpl, cmInit, 1)
+	if init && cmpl.curOwner().GetResult().Custom != nil &&
+		cmpl.getLex().Tokens[cmpl.pos].Type == tkColon {
+		if _, ok := cmpl.curOwner().GetResult().Custom.Fields[token]; !ok {
+			return cmpl.ErrorPos(cmpl.pos-1, ErrWrongField, token, cmpl.curOwner().GetResult().GetName())
+		}
+		appendExp(cmpl, &core.CmdValue{Value: token,
+			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
+			Result:    cmpl.vm.StdLib().Names[`str`].(*core.TypeObject)})
+		return nil
+	}
+
 	if isCapital(token) {
 		var (
 			constObj core.IObject
@@ -91,12 +103,32 @@ func coExpVar(cmpl *compiler) error {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
 		}
 	} else {
+		var fields []string
+		if strings.IndexRune(token, '.') >= 0 {
+			fields = strings.Split(token, `.`)
+			token = fields[0]
+			fields = fields[1:]
+		}
+
 		block, ind := findVar(cmpl, token)
 		if block == nil {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrUnknownIdent, token)
 		}
-		appendExp(cmpl, &core.CmdVar{Block: block, Index: ind,
-			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)}})
+		cmdVar := &core.CmdVar{Block: block, Index: ind,
+			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)}}
+		typeVar := cmdVar.GetResult()
+		for _, field := range fields {
+			indField, typeField, err := structIndex(cmpl, typeVar, field)
+			if err != nil {
+				return err
+			}
+			index := &core.CmdValue{Value: indField,
+				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
+				Result:    cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)}
+			cmdVar.Indexes = append(cmdVar.Indexes, core.CmdRet{Cmd: index, Type: typeField})
+			typeVar = typeField
+		}
+		appendExp(cmpl, cmdVar)
 	}
 	return nil
 }
@@ -204,8 +236,17 @@ func popBuf(cmpl *compiler) error {
 		}
 		obj = getOperator(cmpl, prior.Name, left, right)
 		if obj == nil {
-			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
-				left.GetResult(), right.GetResult()})
+			if expBuf.Oper == tkAssign && left.GetResult().Custom != nil {
+				if left.GetResult() != right.GetResult() {
+					return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
+						left.GetResult().GetName())
+				}
+				obj = cmpl.vm.StdLib().Names[core.DefAssignStructStruct]
+			}
+			if obj == nil {
+				return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
+					left.GetResult(), right.GetResult()})
+			}
 		}
 		icmd := &core.CmdBlock{ID: core.StackAssign, Object: obj,
 			Result: left.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
@@ -444,7 +485,7 @@ func coComma(cmpl *compiler) error {
 			return err
 		}
 	}
-	if isInState(cmpl, cmInit, 1) {
+	if isInState(cmpl, cmInit, 1) || isInState(cmpl, cmInit, 2) {
 		return nil
 	}
 	if len(cmpl.expbuf) < 2 || (cmpl.expbuf[len(cmpl.expbuf)-1].Oper != tkLPar &&

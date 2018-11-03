@@ -5,7 +5,6 @@
 package compiler
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -26,11 +25,10 @@ func coStruct(cmpl *compiler) error {
 	}
 	pType := cmpl.unit.NewType(token, reflect.TypeOf(core.Struct{}), nil).(*core.TypeObject)
 	pType.Custom = &core.StructType{
-		Fields: make(map[string]int),
+		Fields: make(map[string]int64),
 		Types:  make([]*core.TypeObject, 0),
 	}
 	cmpl.curType = pType
-	fmt.Println(`coStruct`, token)
 	return nil
 }
 
@@ -69,7 +67,20 @@ func coStructName(cmpl *compiler) error {
 	if obj, _ := autoType(cmpl, token); obj != nil {
 		return cmpl.Error(ErrName)
 	}
-	cmpl.curType.Custom.Fields[token] = len(cmpl.curType.Custom.Types) - 1
-	fmt.Println(`coStruct Name`, token)
+	cmpl.curType.Custom.Fields[token] = int64(len(cmpl.curType.Custom.Types) - 1)
 	return nil
+}
+
+func structIndex(cmpl *compiler, typeObj *core.TypeObject, field string) (int64, *core.TypeObject, error) {
+	var (
+		indField int64
+		ok       bool
+	)
+	if typeObj.Custom == nil {
+		return 0, nil, cmpl.ErrorPos(cmpl.pos-1, ErrStructType, typeObj.GetName())
+	}
+	if indField, ok = typeObj.Custom.Fields[field]; !ok {
+		return 0, nil, cmpl.ErrorPos(cmpl.pos-1, ErrStruct, typeObj.GetName(), field)
+	}
+	return indField, typeObj.Custom.Types[indField], nil
 }

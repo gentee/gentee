@@ -18,6 +18,6 @@ func InitKeyValue(vm *core.VirtualMachine) {
 }
 
 // NewKeyValue adds key-value structure
-func NewKeyValue(left string, right interface{}) core.KeyValue {
+func NewKeyValue(left interface{}, right interface{}) core.KeyValue {
 	return core.KeyValue{Key: left, Value: right}
 }

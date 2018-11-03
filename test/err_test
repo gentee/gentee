@@ -1,3 +1,101 @@
+run arr.int {
+  arr.int myarr = {1, 
+
+  ,}
+  return myarr
+}
+===== 4:3: unexpected token, expecting value, identifier or calling func
+struct forInit : str name;int ID
+run test {
+  forInit fi={ID:10
+       name: 20}
+}
+===== 4:14: wrong type, expecting str type
+struct forInit : str name;int ID
+run test {
+  forInit fi={ID:10; name:"val", 20}
+}
+===== 3:34: unexpected token, expecting the name of the field
+run test {
+  arr.int ai={10, 20, "str"}
+}
+===== 2:23: wrong type, expecting int type
+struct forInit : str name;int ID
+run test {
+  forInit fi={"I\{"D"}":10}
+}
+===== 3:22: unexpected token, expecting the name of the field
+struct forInit : str name;int ID
+run test {
+  forInit fi={"ID":10, "str": "string"}
+}
+===== 3:24: there is not str field in forInit struct
+struct forInit : str name;int ID
+run test {
+  str val
+  forInit fi={val + "str": "string"}
+}
+===== 4:19: unexpected token, expecting the name of the field
+struct forInit : str name;int ID
+run test {
+  forInit fi={"val" + name: "string"}
+}
+===== 3:23: unknown identifier name
+struct forInit : str name;int ID
+run test {
+  forInit fi={test: "string"}
+}
+===== 3:15: there is not test field in forInit struct
+struct itself : int id;itself next
+run test int {
+  itself a 
+  int ret = a.next.id + 1
+  return ret
+}
+===== 4:13: undefined value
+struct itself : int id;itself next
+run test itself {
+  itself a 
+  return a.next
+}
+===== 4:10: undefined value
+struct rec : int a; rec owner
+run {
+  rec r1
+  r1.a = 1
+  r1.owner = r1
+}
+===== 5:12: there is a recursive or self assignment
+run {
+  arr.arr.int r1= {{11}}
+  r1[0] = r1[0]
+}
+===== 3:9: there is a recursive or self assignment
+run arr.int {
+  arr.int r1= {10}
+  return r1 = r1
+}
+===== 3:13: there is a recursive or self assignment
+struct my1 : int a
+struct my2 : int a
+run {
+  my1 m1
+  my2 m2 = m1
+}
+===== 5:10: can't assign my1 to my2
+struct my {
+  int a
+}
+run str {
+  my mys
+  return mys.b
+}
+===== 6:10: my type doesn't have b field
+run str {
+  map m
+  return m.field
+}
+===== 3:10: map.str type is not struct type
 const : CAPITAL.NAME = 10
 ===== 1:9: The name of constant must consist of only capital letters
 struct CAPI_TAL : int my
@@ -93,10 +191,10 @@ run arr.int {
 ===== 2:22: wrong type, expecting int type
 run arr.int {
   arr.int myarr = {1, 
-  
   ,}
+  return myarr
 }
-===== 4:3: unexpected token, expecting value, identifier or calling func
+===== 3:3: unexpected token, expecting value, identifier or calling func
 run arr.int {
   arr.int myarr = 
 ===== 2:18: unexpected end of the source
@@ -139,7 +237,7 @@ run {
 func myfunc(str the my.par) {}
 =====  1:21: the name of the identifier can't contain a dot
 func myfunc { dot.dot  }
-=====  1:15: unknown identifier dot.dot
+=====  1:15: unknown identifier dot
 func myfunc { arr.str my.v}
 =====  1:23: the name of the identifier can't contain a dot
 func my.func {}

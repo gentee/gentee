@@ -93,6 +93,7 @@ type CmdValue struct {
 	Result *TypeObject
 }
 
+// CmdRet is the command for getting index values
 type CmdRet struct {
 	Cmd  ICmd        // the value of the index
 	Type *TypeObject // the type of the result

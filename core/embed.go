@@ -10,10 +10,28 @@ import (
 	"strings"
 )
 
+const (
+	// DefAssignIntInt equals int = int
+	DefAssignIntInt = `AssignºIntInt`
+	// DefAssignStructStruct equals struct = struct
+	DefAssignStructStruct = `AssignºStructStruct`
+	// DefNewKeyValue returns a pair of key value
+	DefNewKeyValue = `NewKeyValue`
+)
+
+var (
+	defFuncs = map[string]bool{
+		DefAssignIntInt:       true,
+		DefAssignStructStruct: true,
+		DefNewKeyValue:        true,
+	}
+)
+
 // NewEmbedTypes adds a new EmbedObject to Unit with types
 func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
 	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
 	name = name[strings.LastIndexByte(name, '.')+1:]
+	originalName := name
 	if isLow := strings.Index(name, `º`); isLow >= 0 {
 		name = name[:isLow] // Cut off ºType in the case like AddºStr
 	}
@@ -31,7 +49,7 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 			inTypes[0] = outType
 		}
 	}
-	unit.NewObject(&EmbedObject{
+	obj := unit.NewObject(&EmbedObject{
 		Object: Object{
 			Name: name,
 			Unit: unit,
@@ -40,6 +58,9 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 		Return: outType,
 		Params: inTypes,
 	})
+	if defFuncs[originalName] {
+		unit.Names[originalName] = obj
+	}
 }
 
 // NewEmbed adds a new EmbedObject to Unit
