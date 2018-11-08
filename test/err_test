@@ -1,3 +1,20 @@
+run float {
+  float one = 5.6E
+}
+===== 2:15: the number 5.6E is out of range
+run float {
+  float f
+  return f /= float("0.0")
+}
+===== 3:12: divided by zero
+run float {
+  return float("3.145")/0
+}
+===== 2:24: divided by zero
+run float {
+  return float("3.14.5")
+}
+===== 2:10: converting string to float is invalid
 run arr.int {
   arr.int myarr = {1, 
 

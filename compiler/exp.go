@@ -32,6 +32,11 @@ func coPush(cmpl *compiler) error {
 	lp := cmpl.getLex()
 	token := getToken(lp, cmpl.pos)
 	switch lp.Tokens[cmpl.pos].Type {
+	case tkFloat:
+		if v, err = strconv.ParseFloat(token, 64); err != nil {
+			return cmpl.Error(ErrOutOfRange, token)
+		}
+		vType = `float`
 	case tkInt:
 		if v, err = strconv.ParseInt(token, 0, 64); err != nil {
 			return cmpl.Error(ErrOutOfRange, token)

@@ -7,7 +7,8 @@ package compiler
 const (
 	tkIdent       = iota + 1 // identifier
 	tkLine                   // a new line
-	tkInt                    // integer number (10-base)
+	tkInt                    // integer number
+	tkFloat                  // float number
 	tkType                   // type name
 	tkChar                   // character
 	tkStr                    // string

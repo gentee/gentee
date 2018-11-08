@@ -29,6 +29,7 @@ func InitInt(vm *core.VirtualMachine) {
 		LShift,              // binary <<
 		RShift,              // binary >>
 		BitNot,              // unary bitwise NOT
+		floatºInt,           // float( int )
 		strºInt,             // str( int )
 		boolºInt,            // bool( int )
 		ExpStrºInt,          // expression in string
@@ -88,21 +89,21 @@ func AssignDivºIntInt(ptr *interface{}, value int64) (int64, error) {
 }
 
 // AssignModºIntInt equals int %= int
-func AssignModºIntInt(ptr *interface{}, value int64) (int64, error) {
+func AssignModºIntInt(ptr *interface{}, value int64) int64 {
 	*ptr = (*ptr).(int64) % value
-	return (*ptr).(int64), nil
+	return (*ptr).(int64)
 }
 
 // AssignMulºIntInt equals int *= int
-func AssignMulºIntInt(ptr *interface{}, value int64) (int64, error) {
+func AssignMulºIntInt(ptr *interface{}, value int64) int64 {
 	*ptr = (*ptr).(int64) * value
-	return (*ptr).(int64), nil
+	return (*ptr).(int64)
 }
 
 // AssignSubºIntInt equals int *= int
-func AssignSubºIntInt(ptr *interface{}, value int64) (int64, error) {
+func AssignSubºIntInt(ptr *interface{}, value int64) int64 {
 	*ptr = (*ptr).(int64) - value
-	return (*ptr).(int64), nil
+	return (*ptr).(int64)
 }
 
 // AssignLShiftºIntInt does int <<= int
@@ -205,6 +206,11 @@ func Sign(val int64) int64 {
 // Sub subtracts one number from another
 func Sub(left, right int64) int64 {
 	return left - right
+}
+
+// floatºInt converts integer value to float
+func floatºInt(val int64) float64 {
+	return float64(val)
 }
 
 // strºInt converts integer value to string

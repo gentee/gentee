@@ -19,14 +19,15 @@ type lexItem struct {
 type lexFunc func(*lexEngine, int, int)
 
 const (
-	alphabet = 128
-
 	lexMain = iota + 1
 	lexIdent
 	lexOctHex
 	lexInt
 	lexOct
 	lexHex
+	lexFloat
+	lexFloatExp
+	lexFloatSignExp
 	lexChar
 	lexStrQuote
 	lexStrDouble
@@ -39,12 +40,15 @@ const (
 	lexBack
 	lexBackNext
 	lexError
+
+	alphabet = 128
 )
 
 const (
 	fBack   = 0x010000 << iota // go to back further when callback
 	fNewBuf                    // Start a new buffer
 	fSkip                      // Skip next rune
+	fShift                     // go back one position
 )
 
 const (
@@ -82,6 +86,7 @@ var (
 	charType [alphabet]int
 
 	preBack     = lexItem{nil, lexBack, nil}
+	preFloat    = lexItem{nil, 0, newFloat}
 	preError    = lexItem{nil, lexError | ErrLetter, nil}
 	preLexTable = map[int][]lexItem{
 		lexMain: { // main
@@ -118,10 +123,13 @@ var (
 		lexOctHex: { // number
 			{[]rune{'x', 'X'}, lexHex, nil},
 			{'O', lexOct, nil},
+			{[]string{`..`, `.`}, fBack, isFloat},
 		},
 		lexInt: { // integer
 			{[]rune{'L', '_'}, lexError | ErrWord, nil},
 			{'D', 0, nil},
+			{[]string{`..`, `.`}, fBack, isFloat},
+			{[]rune{'e', 'E'}, fBack, isFloatExp},
 		},
 		lexOct: { // octal integer
 			{[]rune{'L', 'D', '_'}, lexError | ErrWord, nil},
@@ -130,6 +138,20 @@ var (
 		lexHex: { // hex integer
 			{[]rune{'L', '_'}, lexError | ErrWord, nil},
 			{'H', 0, nil},
+		},
+		lexFloat: { // float
+			{[]rune{'L', '_'}, lexError | ErrWord, nil},
+			{[]rune{'e', 'E'}, lexFloatExp, nil},
+			{'D', 0, nil},
+		},
+		lexFloatExp: { // float exp
+			{[]rune{'L', '_'}, lexError | ErrWord, nil},
+			{'D', 0, nil},
+			{[]rune{'+', '-'}, lexFloatSignExp, nil},
+		},
+		lexFloatSignExp: { // float sign exp
+			{[]rune{'L', '_'}, lexError | ErrWord, nil},
+			{'D', 0, nil},
 		},
 		lexChar: { // char
 			{nil, 0, nil},
@@ -307,6 +329,34 @@ func newOper(lex *lexEngine, start, off int) {
 	}
 	oper := string(lex.Lex.Source[start : off+1])
 	lex.Lex.NewToken(oper2tk[oper], start, len(oper))
+}
+
+func isFloat(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		return
+	}
+	oper := string(lex.Lex.Source[start : off+1])
+	switch oper2tk[oper] {
+	case tkRange:
+		lex.State = lexBack | fShift
+	case tkDot:
+		lex.State = lexFloat
+		lex.Stack[len(lex.Stack)-1].Action = &preFloat
+	}
+}
+
+func isFloatExp(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		return
+	}
+	lex.State = lexFloatExp
+	lex.Stack[len(lex.Stack)-1].Action = &preFloat
+}
+
+func newFloat(lex *lexEngine, start, off int) {
+	if lex.Callback {
+		lex.Lex.NewToken(tkFloat, start, off-start)
+	}
 }
 
 func newInt(lex *lexEngine, start, off int) {

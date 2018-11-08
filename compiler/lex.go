@@ -128,6 +128,9 @@ main:
 			if lex.State != 0 {
 				action = lex.State & 0xff
 				flag = lex.State & 0xffff00
+				if flag&fShift != 0 {
+					off--
+				}
 			}
 		}
 		switch action {
@@ -150,7 +153,7 @@ main:
 					break
 				}
 			}
-			if action == lexBack {
+			if action&0xff == lexBack {
 				continue
 			}
 		default:

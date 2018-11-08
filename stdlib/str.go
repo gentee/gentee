@@ -22,6 +22,7 @@ func InitStr(vm *core.VirtualMachine) {
 		LenºStr,          // the length of str
 		LessºStr,         // binary <
 		intºStr,          // int( str )
+		floatºStr,        // float( str )
 		boolºStr,         // bool( str )
 		ExpStr,           // expression in string
 		AssignºStrStr,    // str = str
@@ -87,11 +88,20 @@ func LessºStr(left, right string) bool {
 	return left < right
 }
 
-// intºStr converts strings value to int64
+// intºStr converts string value to int
 func intºStr(val string) (ret int64, err error) {
 	ret, err = strconv.ParseInt(val, 0, 64)
 	if err != nil {
 		err = errors.New(core.ErrorText(core.ErrStrToInt))
+	}
+	return
+}
+
+// floatºStr converts string value to float
+func floatºStr(val string) (ret float64, err error) {
+	ret, err = strconv.ParseFloat(val, 64)
+	if err != nil {
+		err = errors.New(core.ErrorText(core.ErrStrToFloat))
 	}
 	return
 }

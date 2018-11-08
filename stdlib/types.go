@@ -23,6 +23,7 @@ func InitTypes(vm *core.VirtualMachine) {
 	typeStruct := reflect.TypeOf(core.Struct{})
 	for _, item := range []initType{
 		{`int`, reflect.TypeOf(int64(0)), ``},
+		{`float`, reflect.TypeOf(float64(0.0)), ``},
 		{`bool`, reflect.TypeOf(true), ``},
 		{`char`, reflect.TypeOf('a'), ``},
 		{`str`, reflect.TypeOf(``), `char`},

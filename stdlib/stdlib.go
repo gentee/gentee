@@ -14,6 +14,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	vm.Names[core.DefName] = len(vm.Units) - 1
 	InitTypes(vm)
 	InitInt(vm)
+	InitFloat(vm)
 	InitBool(vm)
 	InitChar(vm)
 	InitStr(vm)

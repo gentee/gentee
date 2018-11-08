@@ -64,6 +64,8 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 	switch goType.String() {
 	case `int64`:
 		name = `int`
+	case `float64`:
+		name = `float`
 	case `bool`:
 		name = `bool`
 	case `string`:

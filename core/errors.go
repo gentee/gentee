@@ -23,6 +23,8 @@ const (
 	ErrShift
 	// ErrStrToInt is returned when the conversion string to integer is invalid
 	ErrStrToInt
+	// ErrStrToFloat is returned when the conversion string to float is invalid
+	ErrStrToFloat
 	// ErrEmptyCommand is returned if empty command is specified in $
 	ErrEmptyCommand
 	// ErrQuoteCommand is returned if there is an unclosed quotation mark in $ command
@@ -48,6 +50,7 @@ var (
 		ErrCycle:        `maximum cycle count has been reached`,
 		ErrShift:        `right operand of shift cannot be less than zero`,
 		ErrStrToInt:     `converting string to integer is invalid`,
+		ErrStrToFloat:   `converting string to float is invalid`,
 		ErrEmptyCommand: `empty $ command`,
 		ErrQuoteCommand: `unclosed quotation mark in $ command`,
 		ErrIndexOut:     `index out of range`,
