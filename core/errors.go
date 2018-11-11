@@ -37,6 +37,8 @@ const (
 	ErrAssignment
 	// ErrUndefined means that the value of the variable is undefined
 	ErrUndefined
+	// ErrByteOut is returned when value for buf is greater 255
+	ErrByteOut
 
 	// ErrRuntime error. It means bug
 	ErrRuntime
@@ -57,6 +59,7 @@ var (
 		ErrMapIndex:     `there is not key in the map`,
 		ErrAssignment:   `there is a recursive or self assignment`,
 		ErrUndefined:    `undefined value`,
+		ErrByteOut:      `byte value is out of range`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

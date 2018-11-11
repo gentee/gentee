@@ -351,6 +351,8 @@ func getLength(value interface{}) (length int64) {
 			length = -length
 		}
 		length++
+	case `*core.Buffer`:
+		length = int64(len(value.(*Buffer).Data))
 	case `*core.Array`:
 		length = int64(len(value.(*Array).Data))
 	case `*core.Map`:
@@ -369,6 +371,8 @@ func getIndex(value interface{}, index int64) interface{} {
 			return rangeVal.From + index
 		}
 		return rangeVal.From - index
+	case `*core.Buffer`:
+		return int64(value.(*Buffer).Data[index])
 	case `*core.Array`:
 		return value.(*Array).Data[index]
 	case `*core.Map`:

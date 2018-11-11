@@ -156,23 +156,6 @@ func coExpEnd(cmpl *compiler) error {
 		return cmpl.Error(ErrCompiler, `coExpEnd`)
 	}
 	for len(cmpl.exp) > 0 {
-		/*		if init {
-
-				ownerType := cmpl.curOwner().GetResult()
-				if ownerType.Original == reflect.TypeOf(core.Array{}) {
-					if !isEqualTypes(cmpl.exp[0].GetResult(), cmpl.curType) {
-						return cmpl.ErrorPos(cmpl.pos-1, ErrWrongType, cmpl.curType.GetName())
-					}
-				} else if ownerType.Original == reflect.TypeOf(core.Map{}) {
-					if cmpl.exp[0].GetResult().Original != reflect.TypeOf(core.KeyValue{}) {
-						return cmpl.ErrorPos(cmpl.pos-1, ErrNotKeyValue)
-					}
-					if !isEqualTypes(ownerType.IndexOf, cmpl.exp[0].(*core.CmdBinary).Right.GetResult()) {
-						return cmpl.ErrorPos(cmpl.exp[0].(*core.CmdBinary).Right.GetToken(),
-							ErrWrongType, ownerType.IndexOf.GetName())
-					}
-				}
-			}*/
 		cmpl.curOwner().Children = append(cmpl.curOwner().Children, cmpl.exp[0])
 		cmpl.exp = cmpl.exp[1:]
 	}

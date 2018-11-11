@@ -21,6 +21,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitKeyValue(vm)
 	InitRange(vm)
 	InitArray(vm)
+	InitBuffer(vm)
 	InitMap(vm)
 	InitStruct(vm)
 	InitSystem(vm)

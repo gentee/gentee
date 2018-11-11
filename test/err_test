@@ -1,3 +1,25 @@
+run {
+  buf a
+  a += 200
+  a[0] += 100
+}
+===== 4:8: byte value is out of range
+run {
+  buf a
+  a += -1
+}
+===== 3:5: byte value is out of range
+run {
+  buf a
+  a += 100
+  a[0] = 256
+}
+===== 4:8: byte value is out of range
+run {
+  buf a
+  a += 1000
+}
+===== 3:5: byte value is out of range
 run float {
   float one = 5.6E
 }

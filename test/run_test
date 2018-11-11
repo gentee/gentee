@@ -1,3 +1,93 @@
+run buf {
+  buf a b
+  for i in 0..3 {
+    b += i
+  }
+  str v = `test тес`
+  a += v += 'т'
+  a += '1'
+  a += b
+  return a += 'º'
+}
+===== [116 101 115 116 32 209 130 208 181 209 129 209 130 49 0 1 2 3 194 186]
+run buf {
+  buf a
+  for i in 0..3 {
+    a += i
+  }
+  a[0] = 'A'
+  a[1] = '='
+  return a
+}
+===== [65 61 2 3]
+run arr.buf {
+  buf a b
+  for i in 0..3 {
+    a += i
+    b += 1+i
+  }
+  arr.buf ab = {a, b}
+  ab[0][0] = 55
+  ab[1][1] = 77
+  ab[1] += 100
+  return ab
+}
+===== [[55 1 2 3] [1 77 3 4 100]]
+run buf {
+  buf a b
+  for i in 0..3 {
+    a += 2+i
+  }
+  b = a
+  a[0] = 34
+  b[1] += 5
+  return b
+}
+===== [2 8 4 5]
+run int {
+  buf a
+  for i in 3..5 {
+    a += 2*i
+  }
+  return a[0] + a[1] + a[2]
+}
+===== 24
+run int {
+  buf a
+  int sum
+  for i in 1..4 {
+    a += i
+  }
+  a[2] = 7
+  for i in a {
+    sum += i
+  }
+  return sum
+}
+===== 14
+run buf {
+  buf a
+  a += 0
+  a += 127
+  a += 200
+  a += 255
+  return a
+}
+===== [0 127 200 255]
+run str {
+  buf a b
+  a += 10
+  a += 13
+  return `%{*b} %{*a}`
+}
+===== 0 2
+const {
+  MYF = 4.67
+}
+run float {
+  return MYF + 0.33
+}
+===== 5
 run arr.float {
   arr.float ret = {0.123e+3, 234.e-2, 9.7732E-1, 0.0177E+2,5e-2}
   return ret

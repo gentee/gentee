@@ -34,6 +34,7 @@ func InitInt(vm *core.VirtualMachine) {
 		boolºInt,            // bool( int )
 		ExpStrºInt,          // expression in string
 		AssignºIntInt,       // int = int
+		AssignºIntChar,      // int = char
 		AssignAddºIntInt,    // int += int
 		AssignBitAndºIntInt, // int &= int
 		AssignBitOrºIntInt,  // int |= int
@@ -55,10 +56,25 @@ func AssignºIntInt(ptr *interface{}, value int64) int64 {
 	return (*ptr).(int64)
 }
 
-// AssignAddºIntInt adds one integer to another
-func AssignAddºIntInt(ptr *interface{}, value int64) int64 {
-	*ptr = (*ptr).(int64) + value
+// AssignºIntChar assign a rune to integer
+func AssignºIntChar(ptr *interface{}, value rune) int64 {
+	*ptr = int64(value)
 	return (*ptr).(int64)
+}
+
+// AssignAddºIntInt adds one integer to another
+func AssignAddºIntInt(ptr *interface{}, value int64) (int64, error) {
+	switch v := (*ptr).(type) {
+	case uint8:
+		value += int64(v)
+		if uint64(value) > 255 {
+			return 0, fmt.Errorf(core.ErrorText(core.ErrByteOut))
+		}
+		*ptr = value
+	default:
+		*ptr = v.(int64) + value
+	}
+	return (*ptr).(int64), nil
 }
 
 // AssignBitAndºIntInt equals int &= int
