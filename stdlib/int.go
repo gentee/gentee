@@ -14,21 +14,21 @@ import (
 // InitInt appends stdlib int functions to the virtual machine
 func InitInt(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		Add,                 // binary +
-		Div,                 // binary /
-		Equal,               // binary ==
-		Greater,             // binary >
-		Less,                // binary <
-		Mod,                 // binary %
-		Mul,                 // binary *
-		Sign,                // unary sign -
-		Sub,                 // binary -
-		BitOr,               // bitwise OR
-		BitXor,              // bitwise XOR
-		BitAnd,              // bitwise AND
-		LShift,              // binary <<
-		RShift,              // binary >>
-		BitNot,              // unary bitwise NOT
+		AddºIntInt,          // binary +
+		DivºIntInt,          // binary /
+		EqualºIntInt,        // binary ==
+		GreaterºIntInt,      // binary >
+		LessºIntInt,         // binary <
+		ModºIntInt,          // binary %
+		MulºIntInt,          // binary *
+		SignºInt,            // unary sign -
+		SubºIntInt,          // binary -
+		BitOrºIntInt,        // bitwise OR
+		BitXorºIntInt,       // bitwise XOR
+		BitAndºIntInt,       // bitwise AND
+		LShiftºIntInt,       // binary <<
+		RShiftºIntInt,       // binary >>
+		BitNotºInt,          // unary bitwise NOT
 		floatºInt,           // float( int )
 		strºInt,             // str( int )
 		boolºInt,            // bool( int )
@@ -140,87 +140,87 @@ func AssignRShiftºIntInt(ptr *interface{}, value int64) (int64, error) {
 	return (*ptr).(int64), nil
 }
 
-// Add add two integer value
-func Add(left, right int64) int64 {
+// AddºIntInt add two integer value
+func AddºIntInt(left, right int64) int64 {
 	return left + right
 }
 
-// BitAnd is bitwise AND
-func BitAnd(left, right int64) int64 {
+// BitAndºIntInt is bitwise AND
+func BitAndºIntInt(left, right int64) int64 {
 	return left & right
 }
 
-// BitNot is bitwise NOT
-func BitNot(val int64) int64 {
+// BitNotºInt is bitwise NOT
+func BitNotºInt(val int64) int64 {
 	return ^val
 }
 
-// BitOr is bitwise OR
-func BitOr(left, right int64) int64 {
+// BitOrºIntInt is bitwise OR
+func BitOrºIntInt(left, right int64) int64 {
 	return left | right
 }
 
-// BitXor is bitwise XOR
-func BitXor(left, right int64) int64 {
+// BitXorºIntInt is bitwise XOR
+func BitXorºIntInt(left, right int64) int64 {
 	return left ^ right
 }
 
-// Div divides one number by another
-func Div(left, right int64) (int64, error) {
+// DivºIntInt divides one number by another
+func DivºIntInt(left, right int64) (int64, error) {
 	if right == 0 {
 		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
 	}
 	return left / right, nil
 }
 
-// Equal returns true if left == right
-func Equal(left, right int64) bool {
+// EqualºIntInt returns true if left == right
+func EqualºIntInt(left, right int64) bool {
 	return left == right
 }
 
-// Greater returns true if left > right
-func Greater(left, right int64) bool {
+// GreaterºIntInt returns true if left > right
+func GreaterºIntInt(left, right int64) bool {
 	return left > right
 }
 
-// Less returns true if left < right
-func Less(left, right int64) bool {
+// LessºIntInt returns true if left < right
+func LessºIntInt(left, right int64) bool {
 	return left < right
 }
 
-// LShift returns left << right
-func LShift(left, right int64) (int64, error) {
+// LShiftºIntInt returns left << right
+func LShiftºIntInt(left, right int64) (int64, error) {
 	if right < 0 {
 		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
 	}
 	return left << uint64(right), nil
 }
 
-// Mod returns the remainder after division of one number by another
-func Mod(left, right int64) int64 {
+// ModºIntInt returns the remainder after division of one number by another
+func ModºIntInt(left, right int64) int64 {
 	return left % right
 }
 
-// Mul multiplies one number by another
-func Mul(left, right int64) int64 {
+// MulºIntInt multiplies one number by another
+func MulºIntInt(left, right int64) int64 {
 	return left * right
 }
 
-// RShift returns left >> right
-func RShift(left, right int64) (int64, error) {
+// RShiftºIntInt returns left >> right
+func RShiftºIntInt(left, right int64) (int64, error) {
 	if right < 0 {
 		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
 	}
 	return left >> uint64(right), nil
 }
 
-// Sign changes the sign of the integer value
-func Sign(val int64) int64 {
+// SignºInt changes the sign of the integer value
+func SignºInt(val int64) int64 {
 	return -val
 }
 
-// Sub subtracts one number from another
-func Sub(left, right int64) int64 {
+// SubºIntInt subtracts one number from another
+func SubºIntInt(left, right int64) int64 {
 	return left - right
 }
 

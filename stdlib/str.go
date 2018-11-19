@@ -16,15 +16,15 @@ import (
 // InitStr appends stdlib int functions to the virtual machine
 func InitStr(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		AddºStr,          // binary +
-		EqualºStr,        // binary ==
-		GreaterºStr,      // binary >
+		AddºStrStr,       // binary +
+		EqualºStrStr,     // binary ==
+		GreaterºStrStr,   // binary >
 		LenºStr,          // the length of str
-		LessºStr,         // binary <
+		LessºStrStr,      // binary <
 		intºStr,          // int( str )
 		floatºStr,        // float( str )
 		boolºStr,         // bool( str )
-		ExpStr,           // expression in string
+		ExpStrºStr,       // expression in string
 		AssignºStrStr,    // str = str
 		AssignAddºStrStr, // str += str
 		AssignºStrBool,   // str = bool
@@ -58,23 +58,23 @@ func AssignºStrInt(ptr *interface{}, value int64) string {
 	return (*ptr).(string)
 }
 
-// ExpStr adds two strings in string expression
-func ExpStr(left, right string) string {
+// ExpStrºStrStr adds two strings in string expression
+func ExpStrºStr(left, right string) string {
 	return left + right
 }
 
-// AddºStr adds two integer value
-func AddºStr(left, right string) string {
+// AddºStrStr adds two integer value
+func AddºStrStr(left, right string) string {
 	return left + right
 }
 
-// EqualºStr returns true if left == right
-func EqualºStr(left, right string) bool {
+// EqualºStrStr returns true if left == right
+func EqualºStrStr(left, right string) bool {
 	return left == right
 }
 
-// GreaterºStr returns true if left > right
-func GreaterºStr(left, right string) bool {
+// GreaterºStrStr returns true if left > right
+func GreaterºStrStr(left, right string) bool {
 	return left > right
 }
 
@@ -83,8 +83,8 @@ func LenºStr(param string) int64 {
 	return int64(len(param))
 }
 
-// LessºStr returns true if left < right
-func LessºStr(left, right string) bool {
+// LessºStrStr returns true if left < right
+func LessºStrStr(left, right string) bool {
 	return left < right
 }
 

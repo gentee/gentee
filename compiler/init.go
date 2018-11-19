@@ -17,6 +17,7 @@ func coInitStart(cmpl *compiler) error {
 	appendCmd(cmpl, &cmd)
 	cmpl.owners = append(cmpl.owners, &cmd)
 	if (cmpl.curType.Original != reflect.TypeOf(core.Array{}) &&
+		cmpl.curType.Original != reflect.TypeOf(core.Buffer{}) &&
 		cmpl.curType.Original != reflect.TypeOf(core.Map{}) &&
 		cmpl.curType.Original != reflect.TypeOf(core.Struct{})) {
 		return cmpl.Error(ErrWrongType, cmpl.curType.GetName())
@@ -42,6 +43,11 @@ func coInitEnd(cmpl *compiler) error {
 		if ownerType.Original == reflect.TypeOf(core.Array{}) {
 			if !isEqualTypes(item.GetResult(), cmpl.curType) {
 				return cmpl.ErrorPos(item.GetToken(), ErrWrongType, cmpl.curType.GetName())
+			}
+		} else if ownerType.Original == reflect.TypeOf(core.Buffer{}) {
+			v := map[string]bool{`buf`: true, `char`: true, `int`: true, `str`: true}
+			if !v[item.GetResult().GetName()] {
+				return cmpl.ErrorPos(item.GetToken(), ErrWrongType, `int, buf, char, str`)
 			}
 		} else if ownerType.Original == reflect.TypeOf(core.Map{}) ||
 			ownerType.Original == reflect.TypeOf(core.Struct{}) {

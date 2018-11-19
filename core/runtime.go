@@ -145,6 +145,29 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					parr.Data = append(parr.Data, ptr)
 				}
 				rt.Stack[lenStack] = parr
+			case reflect.TypeOf(Buffer{}):
+				pbuf := NewBuffer()
+				for _, icmd := range cmdStack.Children {
+					if err = rt.runCmd(icmd); err != nil {
+						return err
+					}
+					switch v := rt.Stack[len(rt.Stack)-1].(type) {
+					case int64:
+						if uint64(v) > 255 {
+							return runtimeError(rt, icmd, ErrByteOut)
+						}
+						pbuf.Data = append(pbuf.Data, byte(v))
+					case string:
+						pbuf.Data = append(pbuf.Data, []byte(v)...)
+					case rune:
+						pbuf.Data = append(pbuf.Data, []byte(string([]rune{v}))...)
+					case *Buffer:
+						pbuf.Data = append(pbuf.Data, v.Data...)
+					default:
+						return runtimeError(rt, icmd, ErrRuntime, `init buf`)
+					}
+				}
+				rt.Stack[lenStack] = pbuf
 			case reflect.TypeOf(Map{}):
 				pmap := NewMap()
 				for _, icmd := range cmdStack.Children {

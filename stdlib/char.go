@@ -11,15 +11,15 @@ import (
 // InitChar appends stdlib int functions to the virtual machine
 func InitChar(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		AddºChar,          // binary +
+		AddºCharChar,      // binary +
 		AddºStrChar,       // binary str + char
 		AddºCharStr,       // binary char + str
 		AssignAddºStrChar, // str += char
 		AssignºCharChar,   // char = char
 		ExpStrºChar,       // expression in string
-		EqualºChar,        // binary ==
-		GreaterºChar,      // binary >
-		LessºChar,         // binary <
+		EqualºCharChar,    // binary ==
+		GreaterºCharChar,  // binary >
+		LessºCharChar,     // binary <
 		intºChar,          // int( char )
 		strºChar,          // str( char )
 	} {
@@ -27,8 +27,8 @@ func InitChar(vm *core.VirtualMachine) {
 	}
 }
 
-// AddºChar adds two rune values
-func AddºChar(left, right rune) string {
+// AddºCharChar adds two rune values
+func AddºCharChar(left, right rune) string {
 	return string(left) + string(right)
 }
 
@@ -54,23 +54,23 @@ func AssignAddºStrChar(ptr *interface{}, value rune) string {
 	return (*ptr).(string)
 }
 
-// ExpStrºChar adds string and char in string expression
+// ExpStrºStrChar adds string and char in string expression
 func ExpStrºChar(left string, right rune) string {
 	return left + string(right)
 }
 
-// EqualºChar returns true if left == right
-func EqualºChar(left, right rune) bool {
+// EqualºCharChar returns true if left == right
+func EqualºCharChar(left, right rune) bool {
 	return left == right
 }
 
-// GreaterºChar returns true if left > right
-func GreaterºChar(left, right rune) bool {
+// GreaterºCharChar returns true if left > right
+func GreaterºCharChar(left, right rune) bool {
 	return left > right
 }
 
-// LessºChar returns true if left < right
-func LessºChar(left, right rune) bool {
+// LessºCharChar returns true if left < right
+func LessºCharChar(left, right rune) bool {
 	return left < right
 }
 

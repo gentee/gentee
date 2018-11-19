@@ -1,3 +1,13 @@
+run buf {
+  int i = 1001
+  buf a = {0, 255, i}
+  return a
+}
+===== 3:20: byte value is out of range
+run {
+  buf a = {10, `100`, 'd', 1.2}
+}
+===== 2:28: wrong type, expecting int, buf, char, str type
 run {
   buf a
   a += 200
