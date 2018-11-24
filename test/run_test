@@ -1,3 +1,18 @@
+const {
+    SRC = "/home/test/"
+    IN = "one
+two
+three"
+}
+run str {
+    str out = $ echo -av --exclude=".git" %{SRC} "test"
+    arr lines 
+    Split(IN, lines)
+    out = TrimSpace(out)
+    for s in lines : out += s
+    return out
+}
+===== -av --exclude=".git" /home/test/ testonetwothree
 run buf {
   buf b = {3, 2, 1}
   buf a = {250+5, '0', 'º', `1+2ºt`, b, 0}

@@ -34,21 +34,27 @@ func splitCmdLine(cmdLine string) (*exec.Cmd, error) {
 	input := []rune(strings.TrimSpace(cmdLine))
 	newPar := func(i int) {
 		if offset < i {
-			cmds = append(cmds, string(input[offset:i]))
+			end := i
+			if quote != 0 && input[offset-1] != quote {
+				end++
+			}
+			cmds = append(cmds, string(input[offset:end]))
 		}
 		offset = i + 1
 	}
 	for i, ch = range input {
 		if quote != 0 {
 			if ch == quote {
-				quote = 0
 				newPar(i)
+				quote = 0
 			}
 			continue
 		}
 		if ch == '\'' || ch == '"' || ch == '`' {
 			quote = ch
-			offset = i + 1
+			if offset == i {
+				offset = i + 1
+			}
 			continue
 		}
 		if ch == ' ' {

@@ -54,7 +54,7 @@ func AssignAddºStrChar(ptr *interface{}, value rune) string {
 	return (*ptr).(string)
 }
 
-// ExpStrºStrChar adds string and char in string expression
+// ExpStrºChar adds string and char in string expression
 func ExpStrºChar(left string, right rune) string {
 	return left + string(right)
 }

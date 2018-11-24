@@ -16,19 +16,22 @@ import (
 // InitStr appends stdlib int functions to the virtual machine
 func InitStr(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		AddºStrStr,       // binary +
-		EqualºStrStr,     // binary ==
-		GreaterºStrStr,   // binary >
-		LenºStr,          // the length of str
-		LessºStrStr,      // binary <
-		intºStr,          // int( str )
-		floatºStr,        // float( str )
-		boolºStr,         // bool( str )
-		ExpStrºStr,       // expression in string
-		AssignºStrStr,    // str = str
-		AssignAddºStrStr, // str += str
-		AssignºStrBool,   // str = bool
-		AssignºStrInt,    // str = int
+		AddºStrStr,        // binary +
+		EqualºStrStr,      // binary ==
+		GreaterºStrStr,    // binary >
+		LenºStr,           // the length of str
+		LessºStrStr,       // binary <
+		intºStr,           // int( str )
+		floatºStr,         // float( str )
+		boolºStr,          // bool( str )
+		ExpStrºStr,        // expression in string
+		AssignºStrStr,     // str = str
+		AssignAddºStrStr,  // str += str
+		AssignºStrBool,    // str = bool
+		AssignºStrInt,     // str = int
+		ReplaceºStrStrStr, // Replace( str, str, str )
+		SplitºStrArr,      // Split( str, arr )
+		TrimSpaceºStr,     // TrimSpace( str )
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -58,7 +61,7 @@ func AssignºStrInt(ptr *interface{}, value int64) string {
 	return (*ptr).(string)
 }
 
-// ExpStrºStrStr adds two strings in string expression
+// ExpStrºStr adds two strings in string expression
 func ExpStrºStr(left, right string) string {
 	return left + right
 }
@@ -109,4 +112,23 @@ func floatºStr(val string) (ret float64, err error) {
 // intºBool converts boolean value to int false -> 0, true -> 1
 func boolºStr(val string) bool {
 	return len(val) != 0 && val != `0` && strings.ToLower(val) != `false`
+}
+
+// ReplaceºStrStrStr replaces strings in a string
+func ReplaceºStrStrStr(in, old, new string) string {
+	return strings.Replace(in, old, new, -1)
+}
+
+// SplitºStrArr splits a string to a array of strings
+func SplitºStrArr(in string, out *core.Array) *core.Array {
+	items := strings.Split(in, "\n")
+	for _, item := range items {
+		out.Data = append(out.Data, strings.Trim(item, "\r"))
+	}
+	return out
+}
+
+// TrimSpaceºStr trims white space in a string
+func TrimSpaceºStr(in string) string {
+	return strings.TrimSpace(in)
 }
