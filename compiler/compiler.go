@@ -487,3 +487,33 @@ func coExpEnv(cmpl *compiler) error {
 		Object: getEnv, Result: getEnv.Result(), Operand: icmd})
 	return nil
 }
+
+func isInLoop(cmpl *compiler) bool {
+	for _, item := range cmpl.owners {
+		if item.GetType() == core.CtStack {
+			id := item.(*core.CmdBlock).ID
+			if id == core.StackWhile || id == core.StackFor {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func coBreak(cmpl *compiler) error {
+	if !isInLoop(cmpl) {
+		return cmpl.Error(ErrBreak)
+	}
+	appendCmd(cmpl, &core.CmdCommand{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
+		ID: core.RcBreak})
+	return nil
+}
+
+func coContinue(cmpl *compiler) error {
+	if !isInLoop(cmpl) {
+		return cmpl.Error(ErrContinue)
+	}
+	appendCmd(cmpl, &core.CmdCommand{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
+		ID: core.RcContinue})
+	return nil
+}

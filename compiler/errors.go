@@ -122,6 +122,10 @@ const (
 	ErrInitField
 	// ErrWrongField is returned when unknown field name has been specified
 	ErrWrongField
+	// ErrBreak returns when break is placed outside of loops
+	ErrBreak
+	// ErrContinue returns when continue is placed outside of loops
+	ErrContinue
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -196,6 +200,8 @@ var (
 		ErrStructAssign:   `can't assign %s to %s`,
 		ErrInitField:      `unexpected token, expecting the name of the field`,
 		ErrWrongField:     `there is not %s field in %s struct`,
+		ErrBreak:          `break can only be inside while or for`,
+		ErrContinue:       `continue can only be inside while or for`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

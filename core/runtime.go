@@ -16,12 +16,13 @@ type RunTimeBlock struct {
 
 // RunTime is the structure for running compiled functions
 type RunTime struct {
-	VM     *VirtualMachine
-	Stack  []interface{} // the stack of values
-	Calls  []ICmd        // the stack of calling functions
-	Blocks []RunTimeBlock
-	Result interface{} // result value
-	Consts map[string]interface{}
+	VM      *VirtualMachine
+	Stack   []interface{} // the stack of values
+	Calls   []ICmd        // the stack of calling functions
+	Blocks  []RunTimeBlock
+	Result  interface{} // result value
+	Command uint32
+	Consts  map[string]interface{}
 }
 
 func newRunTime(vm *VirtualMachine) *RunTime {
@@ -105,6 +106,8 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 
 	rt.Calls = append(rt.Calls, cmd)
 	switch cmd.GetType() {
+	case CtCommand:
+		rt.Command = cmd.(*CmdCommand).ID
 	case CtFunc, CtBinary, CtUnary:
 		err = rt.callFunc(cmd)
 	case CtValue:
@@ -285,7 +288,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			}
 		case StackWhile:
 			cycle := rt.Consts[ConstCycle].(int64)
-			for true {
+			for rt.Result == nil {
 				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
 					return err
 				}
@@ -293,6 +296,13 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					rt.Stack = rt.Stack[:len(rt.Stack)-1]
 					if err = rt.runCmd(cmdStack.Children[1]); err != nil {
 						return err
+					}
+					if rt.Command == RcBreak {
+						rt.Command = 0
+						break
+					}
+					if rt.Command == RcContinue {
+						rt.Command = 0
 					}
 					cycle--
 					if cycle == 0 {
@@ -321,6 +331,16 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				if err = rt.runCmd(cmdStack.Children[1]); err != nil {
 					return err
 				}
+				if rt.Result != nil {
+					break
+				}
+				if rt.Command == RcBreak {
+					rt.Command = 0
+					break
+				}
+				if rt.Command == RcContinue {
+					rt.Command = 0
+				}
 				length = getLength(value)
 				if index > cycle {
 					return runtimeError(rt, cmdStack, ErrCycle)
@@ -341,6 +361,9 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 						lenStack++
 						rt.Result = nil
 					}
+					break
+				}
+				if rt.Command != 0 {
 					break
 				}
 			}

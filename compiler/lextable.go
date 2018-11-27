@@ -68,19 +68,21 @@ const (
 
 var (
 	keywords = map[string]int{
-		`elif`:   tkElif,
-		`else`:   tkElse,
-		`false`:  tkFalse,
-		`for`:    tkFor,
-		`func`:   tkFunc,
-		`if`:     tkIf,
-		`in`:     tkIn,
-		`while`:  tkWhile,
-		`return`: tkReturn,
-		`run`:    tkRun,
-		`true`:   tkTrue,
-		`const`:  tkConst,
-		`struct`: tkStruct,
+		`break`:    tkBreak,
+		`continue`: tkContinue,
+		`elif`:     tkElif,
+		`else`:     tkElse,
+		`false`:    tkFalse,
+		`for`:      tkFor,
+		`func`:     tkFunc,
+		`if`:       tkIf,
+		`in`:       tkIn,
+		`while`:    tkWhile,
+		`return`:   tkReturn,
+		`run`:      tkRun,
+		`true`:     tkTrue,
+		`const`:    tkConst,
+		`struct`:   tkStruct,
 	}
 
 	charType [alphabet]int

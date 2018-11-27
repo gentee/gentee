@@ -83,6 +83,8 @@ const (
 	tkWhile
 	tkConst
 	tkStruct
+	tkBreak
+	tkContinue
 	tkDefault // is used for preCompileTable
 )
 

@@ -81,6 +81,8 @@ var (
 			{tkWhile, cmExp, coWhile, coWhileBack, cfStopBack},
 			{tkFor, cmExp, coFor, coForBack, cfStopBack},
 			{tkReturn, cmExp, coReturn, coReturnBack, cfStopBack},
+			{tkBreak, 0, coBreak, nil, 0},
+			{tkContinue, 0, coContinue, nil, 0},
 		},
 		cmExp: {
 			{tkDefault, ErrValue, coError, nil, 0},

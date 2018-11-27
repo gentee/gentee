@@ -1,3 +1,14 @@
+run {
+  for i in 1..5 :
+  if false : continue
+}
+===== 3:14: continue can only be inside while or for
+run {
+  if true {
+    break
+  }
+}
+===== 3:5: break can only be inside while or for
 run buf {
   int i = 1001
   buf a = {0, 255, i}

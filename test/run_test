@@ -1,3 +1,62 @@
+run int {
+   int k ret
+   for i in -3..3 {
+      int j = 6
+      while j > i {
+        j--
+        if j > 0 : continue; ret += 100
+        ret ++
+      }
+      if ret > 10 : ret++; continue; ret += 2
+      ret += 3
+   }
+   return ret
+}
+===== 21
+run int {
+   int k ret
+   while k < 10 {
+    for i in 1..100 {
+      ret += i
+      if i > 3 : break; ret += 7
+    }
+      if ret > 20 : break; ret += 11
+      k++
+   }
+   return ret
+}
+===== 30
+run str {
+   for i in 1..100 {
+     str pref = `end`
+     str s = str(i + 1)
+     if i==7 : return pref + s
+     s = pref
+   }
+   return `ok`
+}
+===== end8
+run int {
+   int i
+   while i < 10 {
+     if i==5 {
+       return i
+     }
+     i++
+   }
+   return i
+}
+===== 5
+run int {
+   int i
+   if false {
+     return 7
+   } elif i == 0 {
+        return 11
+    }
+   return 17
+}
+===== 11
 const {
     SRC = "/home/test/"
     IN = "one

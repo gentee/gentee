@@ -22,10 +22,19 @@ const (
 	CtBinary
 	// CtFunc is other functions
 	CtFunc
+	// CtCommand is a command of vm like break continue
+	CtCommand
 )
 const (
 	// Undefined index
 	Undefined = -1
+)
+
+const (
+	// RcBreak means break command
+	RcBreak = 1 + iota
+	// RcContinue means continue command
+	RcContinue
 )
 
 const (
@@ -91,6 +100,12 @@ type CmdValue struct {
 	CmdCommon
 	Value  interface{}
 	Result *TypeObject
+}
+
+// CmdCommand is a runtime command
+type CmdCommand struct {
+	CmdCommon
+	ID uint32 // id of the command
 }
 
 // CmdRet is the command for getting index values
@@ -293,6 +308,26 @@ func (cmd *CmdAnyFunc) GetObject() IObject {
 // GetToken returns teh index of the token
 func (cmd *CmdAnyFunc) GetToken() int {
 	return int(cmd.TokenID)
+}
+
+// GetType returns CtCommand
+func (cmd *CmdCommand) GetType() CmdType {
+	return CtCommand
+}
+
+// GetResult returns result
+func (cmd *CmdCommand) GetResult() *TypeObject {
+	return nil
+}
+
+// GetToken returns the index of the token
+func (cmd *CmdCommand) GetToken() int {
+	return int(cmd.TokenID)
+}
+
+// GetObject returns nil
+func (cmd *CmdCommand) GetObject() IObject {
+	return nil
 }
 
 // LineColumn return the line and the column of the ind-th token
