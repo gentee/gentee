@@ -7,6 +7,7 @@ package test
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -76,6 +77,17 @@ func TestRun(t *testing.T) {
 	}
 	for _, name := range []string{`run_test`, `err_test`} {
 		if err := testFile(name); err != nil {
+			t.Error(err)
+			return
+		}
+	}
+	files, err := ioutil.ReadDir("stdlib")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, file := range files {
+		if err := testFile(filepath.Join(`stdlib`, file.Name())); err != nil {
 			t.Error(err)
 			return
 		}

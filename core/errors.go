@@ -39,6 +39,8 @@ const (
 	ErrUndefined
 	// ErrByteOut is returned when value for buf is greater 255
 	ErrByteOut
+	// ErrInvalidParam is returned when the function gets invalid parameter(s)
+	ErrInvalidParam
 
 	// ErrRuntime error. It means bug
 	ErrRuntime
@@ -60,6 +62,7 @@ var (
 		ErrAssignment:   `there is a recursive or self assignment`,
 		ErrUndefined:    `undefined value`,
 		ErrByteOut:      `byte value is out of range`,
+		ErrInvalidParam: `invalid value of parameter(s)`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

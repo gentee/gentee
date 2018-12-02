@@ -87,8 +87,10 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 		rt.Stack = rt.Stack[:lenStack]
 		result = reflect.ValueOf(cmd.GetObject().(*EmbedObject).Func).Call(pars)
 		last := result[len(result)-1].Interface()
-		if last != nil && reflect.TypeOf(last).String() == `*errors.errorString` {
-			return runtimeError(rt, cmd, result[len(result)-1].Interface().(error))
+		if last != nil {
+			if _, isError := last.(error); isError {
+				return runtimeError(rt, cmd, result[len(result)-1].Interface().(error))
+			}
 		}
 		rt.Stack = append(rt.Stack, result[0].Interface())
 	case ObjFunc:
@@ -147,7 +149,11 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					CopyVar(&ptr, rt.Stack[len(rt.Stack)-1])
 					parr.Data = append(parr.Data, ptr)
 				}
-				rt.Stack[lenStack] = parr
+				if lenStack >= len(rt.Stack) {
+					rt.Stack = append(rt.Stack, parr)
+				} else {
+					rt.Stack[lenStack] = parr
+				}
 			case reflect.TypeOf(Buffer{}):
 				pbuf := NewBuffer()
 				for _, icmd := range cmdStack.Children {
@@ -183,7 +189,11 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					pmap.Data[keyValue.Key.(string)] = keyValue.Value
 					pmap.Keys = append(pmap.Keys, keyValue.Key.(string))
 				}
-				rt.Stack[lenStack] = pmap
+				if lenStack >= len(rt.Stack) {
+					rt.Stack = append(rt.Stack, pmap)
+				} else {
+					rt.Stack[lenStack] = pmap
+				}
 			case reflect.TypeOf(Struct{}):
 				pstruct := NewStruct(cmd.(*CmdBlock).Result)
 				for _, icmd := range cmdStack.Children {
@@ -195,7 +205,11 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					keyValue := ptr.(KeyValue)
 					pstruct.Values[keyValue.Key.(int64)] = keyValue.Value
 				}
-				rt.Stack[lenStack] = pstruct
+				if lenStack >= len(rt.Stack) {
+					rt.Stack = append(rt.Stack, pstruct)
+				} else {
+					rt.Stack[lenStack] = pstruct
+				}
 			default:
 				return runtimeError(rt, cmd, ErrRuntime, `init arr`)
 			}

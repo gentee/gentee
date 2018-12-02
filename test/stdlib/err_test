@@ -1,0 +1,27 @@
+run {
+  str s
+  s = Substr(`test`, 6, -4)
+}
+===== 3:7: invalid value of parameter(s)
+run {
+  str s
+  s = Substr(`ooops`, 3, -6)
+}
+===== 3:7: invalid value of parameter(s)
+run {
+  str s = Substr(`ooops`, 4, 5)
+}
+===== 2:11: invalid value of parameter(s)
+run {
+  str s = ReadFile(`ooops`)
+}
+===== 2:11: open ooops: no such file or directory
+run {
+  Chdir(`dir7`)
+}
+===== 2:3: chdir dir7: no such file or directory
+run {
+  arr.map a
+  Sort(a)
+}
+===== 3:3: function Sort(arr.map) has not been found

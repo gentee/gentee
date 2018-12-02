@@ -29,8 +29,12 @@ func InitStr(vm *core.VirtualMachine) {
 		AssignAddºStrStr,  // str += str
 		AssignºStrBool,    // str = bool
 		AssignºStrInt,     // str = int
+		FindºStrStr,       // Find( str, str ) int
+		HasPrefixºStrStr,  // HasPrefix( str, str ) bool
+		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
 		ReplaceºStrStrStr, // Replace( str, str, str )
 		SplitºStrArr,      // Split( str, arr )
+		SubstrºStrIntInt,  // Substr( str, int, int ) str
 		TrimSpaceºStr,     // TrimSpace( str )
 	} {
 		vm.StdLib().NewEmbed(item)
@@ -83,7 +87,7 @@ func GreaterºStrStr(left, right string) bool {
 
 // LenºStr returns the length of the string
 func LenºStr(param string) int64 {
-	return int64(len(param))
+	return int64(len([]rune(param)))
 }
 
 // LessºStrStr returns true if left < right
@@ -114,6 +118,25 @@ func boolºStr(val string) bool {
 	return len(val) != 0 && val != `0` && strings.ToLower(val) != `false`
 }
 
+// FindºStrStr returns the index of the first instance of substr
+func FindºStrStr(s, substr string) (off int64) {
+	off = int64(strings.Index(s, substr))
+	if off > 0 {
+		off = int64(len([]rune(s[:off])))
+	}
+	return
+}
+
+// HasPrefixºStrStr returns true if the string s begins with prefix
+func HasPrefixºStrStr(s, prefix string) bool {
+	return strings.HasPrefix(s, prefix)
+}
+
+// HasSuffixºStrStr returns true if the string s ends with suffix
+func HasSuffixºStrStr(s, suffix string) bool {
+	return strings.HasSuffix(s, suffix)
+}
+
 // ReplaceºStrStrStr replaces strings in a string
 func ReplaceºStrStrStr(in, old, new string) string {
 	return strings.Replace(in, old, new, -1)
@@ -126,6 +149,24 @@ func SplitºStrArr(in string, out *core.Array) *core.Array {
 		out.Data = append(out.Data, strings.Trim(item, "\r"))
 	}
 	return out
+}
+
+// SubstrºStrIntInt returns a substring with the specified offset and length
+func SubstrºStrIntInt(in string, off, length int64) (string, error) {
+	var rin []rune
+	rin = []rune(in)
+	rlen := int64(len(rin))
+	if length < 0 {
+		length = -length
+		off -= length
+	}
+	if off < 0 || off >= rlen || off+length > rlen {
+		return ``, fmt.Errorf(core.ErrorText(core.ErrInvalidParam))
+	}
+	if length == 0 {
+		length = rlen - off
+	}
+	return string(rin[off : off+length]), nil
 }
 
 // TrimSpaceºStr trims white space in a string

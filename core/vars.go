@@ -79,6 +79,21 @@ func NewArray() *Array {
 	}
 }
 
+// Len is part of sort.Interface.
+func (arr *Array) Len() int {
+	return len(arr.Data)
+}
+
+// Swap is part of sort.Interface.
+func (arr *Array) Swap(i, j int) {
+	arr.Data[i], arr.Data[j] = arr.Data[j], arr.Data[i]
+}
+
+// Less is part of sort.Interface.
+func (arr *Array) Less(i, j int) bool {
+	return arr.Data[i].(string) < arr.Data[j].(string)
+}
+
 // String interface for Buffer
 func (buf Buffer) String() string {
 	return fmt.Sprint(buf.Data)

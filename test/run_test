@@ -1,3 +1,9 @@
+run str {
+  arr.arr ina = {{},{},{}}
+  str out = $ echo %{*ina} %{*ina[2]}
+  return out
+}
+===== 3 0\n
 run int {
    int k ret
    for i in -3..3 {

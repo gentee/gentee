@@ -1,0 +1,21 @@
+run str {
+  str ina = `тест string ĠĠ`
+  return `%{HasPrefix(ina, `те`)} %{HasPrefix(ina, `ww`)} %{HasSuffix(ina, `Ġ`)} %{HasSuffix(ina, `ĠĠĠ`)}`
+}
+===== true false true false
+run str {
+  str ina = `string уникод test`
+  return Substr(ina, 4, 5) + ` ` + Substr(ina, 15, 0) + ` ` + Substr(ina, 10, -6)
+}
+===== ng ун est ng уни
+run str {
+  str ina = TrimSpace("\r\n\t результат = value \r\n\t")
+  return ina + ` %{*ina} %{Find(ina, `ул`)} %{Find(ina,`o`)}`
+}
+===== результат = value 17 3 -1
+run arr {
+  arr ina = {`alpha`, `34`, `тест`, `ĠĠĠ 2`, `ĠĠĠ 1`, Replace(`this is ĠĠĠ test`, `Ġ t`, `, ġ`)}
+  Sort(ina)
+  return ina
+}
+===== [34 alpha this is ĠĠ, ġest ĠĠĠ 1 ĠĠĠ 2 тест]
