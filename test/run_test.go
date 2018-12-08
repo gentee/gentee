@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -90,6 +91,14 @@ func TestRun(t *testing.T) {
 		if err := testFile(filepath.Join(`stdlib`, file.Name())); err != nil {
 			t.Error(err)
 			return
+		}
+	}
+	if runtime.GOOS == `linux` {
+		for _, name := range []string{`linux_test`} {
+			if err := testFile(name); err != nil {
+				t.Error(err)
+				return
+			}
 		}
 	}
 }

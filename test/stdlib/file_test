@@ -1,0 +1,21 @@
+const : TEST = `test`
+run bool {
+    str temp = TempDir(``, `gentee_test`)
+    if !HasPrefix(temp, TempDir()) : return false
+    str curDir = GetCurDir()
+    ChDir(temp)
+    str subdir = `one/тест`
+    str subfile = subdir + `/one.dat`
+    CreateDir(subdir)
+    buf b = {0, `data`, 0}
+    buf b1
+    WriteFile(subfile, b)
+    Rename(subfile, subfile + `1`)
+    WriteFile(`rw.txt`, TEST)
+    if ReadFile(`rw.txt`) != TEST : return false
+    if *ReadFile(subfile + `1`, b1) != *b : return false
+    ChDir(curDir)
+    RemoveDir(temp)
+    return true
+}
+===== true

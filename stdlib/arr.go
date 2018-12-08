@@ -6,6 +6,7 @@ package stdlib
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/gentee/gentee/core"
 )
@@ -26,6 +27,7 @@ func InitArray(vm *core.VirtualMachine) {
 		{AssignAddºArrBool, `arr.bool,bool`, `arr.bool`}, // arr += bool
 		{AssignAddºArrMap, `arr.map*,map*`, `arr.map*`},  // arr.map += map
 		{AssignºArrArr, `arr*,arr*`, `arr*`},             // arr = arr
+		{JoinºArrStr, `arr.str,str`, `str`},              // Join( arr.str, str )
 		{SortºArr, `arr.str`, `arr.str`},                 // Sort( arr.str )
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
@@ -71,6 +73,15 @@ func AssignAddºArrInt(ptr *interface{}, value int64) *core.Array {
 func AssignAddºArrBool(ptr *interface{}, value bool) *core.Array {
 	(*ptr).(*core.Array).Data = append((*ptr).(*core.Array).Data, value)
 	return (*ptr).(*core.Array)
+}
+
+// JoinºArrStr concatenates the elements of a to create a single string.
+func JoinºArrStr(value *core.Array, sep string) string {
+	tmp := make([]string, len(value.Data))
+	for i, item := range value.Data {
+		tmp[i] = item.(string)
+	}
+	return strings.Join(tmp, sep)
 }
 
 // SortºArr sorts an array of strings

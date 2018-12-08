@@ -53,9 +53,10 @@ type TypeObject struct {
 // EmbedObject contains information about the golang function
 type EmbedObject struct {
 	Object
-	Func   interface{}   // golang function
-	Return *TypeObject   // the type of the result
-	Params []*TypeObject // the types of parameters
+	Func     interface{}   // golang function
+	Return   *TypeObject   // the type of the result
+	Params   []*TypeObject // the types of parameters
+	Variadic bool
 }
 
 // FuncObject contains information about the function

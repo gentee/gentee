@@ -14,10 +14,16 @@ import (
 // InitFile appends stdlib int functions to the virtual machine
 func InitFile(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		ChdirºStr,        // Chdir( str )
+		ChDirºStr,        // ChDir( str )
+		CreateDirºStr,    // CreateDir( str )
+		GetCurDir,        // GetCurDir( ) str
 		ReadFileºStr,     // ReadFile( str ) str
 		ReadFileºStrBuf,  // ReadFile( str, buf ) buf
 		RemoveºStr,       // Remove( str )
+		RemoveDirºStr,    // RemoveDir( str )
+		RenameºStrStr,    // Rename( str, str )
+		TempDir,          // TempDir()
+		TempDirºStrStr,   // TempDir(str, str)
 		WriteFileºStrBuf, // WriteFile( str, buf )
 		WriteFileºStrStr, // WriteFile( str, str )
 	} {
@@ -25,9 +31,19 @@ func InitFile(vm *core.VirtualMachine) {
 	}
 }
 
-// ChdirºStr change the current directory
-func ChdirºStr(dirname string) error {
+// ChDirºStr change the current directory
+func ChDirºStr(dirname string) error {
 	return os.Chdir(dirname)
+}
+
+// GetCurDir returns the current directory
+func GetCurDir() (string, error) {
+	return os.Getwd()
+}
+
+// CreateDirºStr creates the directory(s)
+func CreateDirºStr(dirname string) error {
+	return os.MkdirAll(dirname, os.ModePerm)
 }
 
 // ReadFileºStr reads a file
@@ -49,9 +65,29 @@ func ReadFileºStrBuf(filename string, buf *core.Buffer) (*core.Buffer, error) {
 	return buf, nil
 }
 
+// RenameºStrStr renames a file or a directory
+func RenameºStrStr(oldname, newname string) error {
+	return os.Rename(oldname, newname)
+}
+
 // RemoveºStr removes a file or an empty directory
 func RemoveºStr(filename string) error {
 	return os.Remove(filename)
+}
+
+// RemoveDirºStr removes a directory
+func RemoveDirºStr(dirname string) error {
+	return os.RemoveAll(dirname)
+}
+
+// TempDir returns the temporary directory
+func TempDir() string {
+	return os.TempDir()
+}
+
+// TempDirºStrStr creates a directory in the temporary directory
+func TempDirºStrStr(dir, prefix string) (string, error) {
+	return ioutil.TempDir(dir, prefix)
 }
 
 // WriteFileºStrBuf write a buffer to a file

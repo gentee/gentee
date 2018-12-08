@@ -25,6 +25,7 @@ type lexEngine struct {
 	Callback bool
 	Colon    bool
 	Error    int
+	Off      int
 }
 
 // LexParsing performs lexical analysis of the input string and returns a sequence of lexical tokens.
@@ -124,13 +125,12 @@ main:
 			}
 		}
 		if pLexItem.Func != nil {
+			lex.Off = off
 			pLexItem.Func(&lex, start, off)
 			if lex.State != 0 {
 				action = lex.State & 0xff
 				flag = lex.State & 0xffff00
-				if flag&fShift != 0 {
-					off--
-				}
+				off = lex.Off
 			}
 		}
 		switch action {
@@ -144,7 +144,9 @@ main:
 				state = prev.State
 				lex.Stack = lex.Stack[:len(lex.Stack)-1]
 				if prev.Action.Func != nil {
+					lex.Off = off
 					prev.Action.Func(&lex, prev.Offset, off)
+					off = lex.Off
 					if lex.State != 0 {
 						action = lex.State
 					}

@@ -22,7 +22,7 @@ func coReturnBack(cmpl *compiler) error {
 	switch len(owner.Children) {
 	case 0:
 		if funcObj.Block.Result != nil {
-			return cmpl.Error(ErrCompiler, `coReturn 0`)
+			return cmpl.Error(ErrMustReturn)
 		}
 	case 1:
 		if funcObj.Block.Result == nil {

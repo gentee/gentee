@@ -136,6 +136,7 @@ type CmdBlock struct {
 	ID       uint32 // cmdType
 	Vars     []*TypeObject
 	ParCount int // the count of parameters
+	Variadic bool
 	VarNames map[string]int
 	Result   *TypeObject
 	Children []ICmd

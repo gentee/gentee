@@ -1,0 +1,7 @@
+run str {
+  str ina = `те =string =ĠĠ`
+  arr tmp 
+  Split(ina, ` =`, tmp)
+  return Join(tmp, `®`)
+}
+===== те®string®ĠĠ

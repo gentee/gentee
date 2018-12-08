@@ -1,4 +1,63 @@
 run str {
+  map.float m = {`1`: 1.01, "2": 0.0000567 }
+  int ln = Println(1.234, `ok`, 324)
+  int n = Print(`str`, 10, `абв`, m)
+  return str(n) + str(ln)
+}
+===== 3313
+struct tmp : int a; str s
+run str {
+  int i = 2
+  tmp t = {a: 99, s: `TMP`}
+  map.int m = {`тест`: 101, "first": 99 }
+  arr.int mya = {0, 1, 2 + 4}
+  str out = Format(`ooops %d`) + Format(`%d %v=%[1]d`, i + 3, m)
+  return out + Format(`%s %v %v %g %6.2[4]f`, `ok`, mya, t, 99.0 + 1., 99.0 + 1.)
+}
+===== ooops %!d(MISSING)5 map[тест:101 first:99]=5ok [0 1 6] tmp[a:99 s:TMP] 100 100.00
+struct tmp : int a
+func getTmp(int i) tmp {
+  tmp ret = {a: i*2 + 1}
+  return ret
+}
+run int {
+  tmp t = getTmp(-2)
+  return t.a //+ getTmp(1).a + getTmp(2).a
+}
+===== -3
+func length(arr pars...) int {
+  int sum
+  for v in pars : sum += *v
+  return sum
+} 
+run int {
+  arr pars = {`1`, `2`}
+  arr pars2 = {`1`, `2`, `3`}
+  return length(pars, pars2)
+}
+===== 5
+func sum(int pars...) int {
+  int i = 1
+  for v in pars : i += v
+  return i  
+}
+func var(int i, int pars ...) int {
+  return sum(i, pars, i)
+}
+run int {
+  int ret = 1 + sum() + sum(1) + sum(2,3) - sum(0, 1, 2) // == 6
+  return ret + var(1, 2, 3, 4)
+}
+===== 18
+func none int {
+  return 100
+}
+run int {
+  int r = none() + 10
+  return r + none() * 2 
+}
+===== 310
+run str {
   arr.arr ina = {{},{},{}}
   str out = $ echo %{*ina} %{*ina[2]}
   return out
@@ -72,7 +131,7 @@ three"
 run str {
     str out = $ echo -av --exclude=".git" %{SRC} "test"
     arr lines 
-    Split(IN, lines)
+    Lines(IN, lines)
     out = TrimSpace(out)
     for s in lines : out += s
     return out

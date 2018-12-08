@@ -18,7 +18,8 @@ const (
 	cmParams   // parameters of the function
 	cmParam    // getting type name
 	cmWantVar
-	cmVar // getting var name
+	cmVar      // getting var name
+	cmWantRPar // expecting ')'
 	cmWantType
 	cmMustVarType    // define variables
 	cmVarType        // define variables
@@ -88,7 +89,8 @@ var (
 			{tkDefault, ErrValue, coError, nil, 0},
 			{[]int{tkInt, tkFloat, tkFalse, tkTrue, tkStr, tkChar}, cmExpOper, coPush, nil, cfStopBack},
 			{[]int{tkSub, tkMul, tkNot, tkBitNot, tkInc, tkDec}, 0, coUnaryOperator, nil, 0},
-			{[]int{tkLPar, tkRPar}, 0, coOperator, nil, 0},
+			{[]int{tkLPar}, 0, coOperator, nil, 0},
+			{[]int{tkRPar}, 0, coRPar, nil, 0},
 			{[]int{tkLSBracket, tkRSBracket}, 0, coOperator, nil, 0},
 			{tkLine, cmBack, coExpEnd, nil, 0},
 			{[]int{tkLCurly, tkRCurly, tkColon}, cmBack, coExpEnd, nil, cfStay},
@@ -148,6 +150,12 @@ var (
 			{tkDefault, ErrName, coError, nil, 0},
 			{tkIdent, 0, coVar, nil, 0},
 			{tkComma, cmWantType, nil, nil, 0},
+			{tkVariadic, cmWantRPar, coVariadic, nil, 0},
+			{tkRPar, cmBack, nil, nil, cfStay},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmWantRPar: {
+			{tkDefault, ErrNotRPar, coError, nil, 0},
 			{tkRPar, cmBack, nil, nil, cfStay},
 			{tkLine, 0, nil, nil, 0},
 		},

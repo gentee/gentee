@@ -1,0 +1,5 @@
+run str {
+   str s = $ bash -c "echo OK"
+   return TrimSpace(s) + $ bash -c `echo "OOOPS тест" end`
+}
+===== OKOOOPS тест end\n

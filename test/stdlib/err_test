@@ -17,7 +17,7 @@ run {
 }
 ===== 2:11: open ooops: no such file or directory
 run {
-  Chdir(`dir7`)
+  ChDir(`dir7`)
 }
 ===== 2:3: chdir dir7: no such file or directory
 run {

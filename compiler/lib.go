@@ -33,6 +33,11 @@ func isCapital(name string) bool {
 	return true
 }
 
+func isVariadic(obj core.IObject) bool {
+	return (obj.GetType() == core.ObjFunc && obj.(*core.FuncObject).Block.Variadic) ||
+		(obj.GetType() == core.ObjEmbedded && obj.(*core.EmbedObject).Variadic)
+}
+
 func randName() string {
 	alpha := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	length := len(alpha)

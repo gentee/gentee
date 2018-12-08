@@ -5,6 +5,7 @@
 package compiler
 
 import (
+	"reflect"
 	"strings"
 
 	"github.com/gentee/gentee/core"
@@ -87,10 +88,19 @@ func coRetType(cmpl *compiler) error {
 func coFuncStart(cmpl *compiler) error {
 	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
 	funcObj.Block.ParCount = len(funcObj.Block.Vars)
-	if obj := getFunc(cmpl, funcObj.Name, funcObj.GetParams(), true); obj != nil &&
+	params := funcObj.GetParams()
+	if funcObj.Block.Variadic {
+		funcObj.Block.ParCount--
+		params = nil
+	}
+	if obj := getFunc(cmpl, funcObj.Name, params, true); obj != nil &&
 		obj != cmpl.unit.Objects[len(cmpl.unit.Objects)-1] {
+		if isVariadic(obj) {
+			return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
+				append(funcObj.GetParams(), nil))
+		}
 		return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
-			funcObj.GetParams())
+			obj.GetParams())
 	}
 	return nil
 }
@@ -99,7 +109,37 @@ func getFunc(cmpl *compiler, name string, params []*core.TypeObject, isFunc bool
 	checkUnit := func(unit *core.Unit) core.IObject {
 		obj = unit.Names[name]
 		for obj != nil {
+			if params == nil && (obj.GetType() == core.ObjFunc || obj.GetType() == core.ObjEmbedded) {
+				return obj
+			}
 			objPars := obj.GetParams()
+			if isVariadic(obj) && len(params) >= len(objPars) {
+				equal := true
+				for i, typeParam := range objPars {
+					if !isEqualTypes(typeParam, params[i]) {
+						equal = false
+						break
+					}
+				}
+				if obj.GetType() == core.ObjFunc {
+					block := obj.(*core.FuncObject).Block
+					for i := len(objPars); i < len(params); i++ {
+						ptype := params[i]
+						if !isEqualTypes(block.Vars[len(objPars)].IndexOf, ptype) {
+							if ptype.Original == reflect.TypeOf(core.Array{}) {
+								if isEqualTypes(block.Vars[len(objPars)].IndexOf, ptype.IndexOf) {
+									continue
+								}
+							}
+							equal = false
+							break
+						}
+					}
+				}
+				if equal {
+					return obj
+				}
+			}
 			if len(params) == len(objPars) {
 				equal := true
 				for i, typeParam := range objPars {
@@ -119,7 +159,7 @@ func getFunc(cmpl *compiler, name string, params []*core.TypeObject, isFunc bool
 	if obj = checkUnit(cmpl.vm.StdLib()); obj == nil && isFunc {
 		obj = checkUnit(cmpl.unit)
 	}
-	if obj != nil {
+	if obj != nil && params != nil {
 		if name == `AssignAdd` && strings.HasPrefix(params[0].GetName(), `arr.arr`) &&
 			!isEqualTypes(params[0].IndexOf, params[1]) {
 			return nil

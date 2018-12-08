@@ -463,6 +463,15 @@ func coOperator(cmpl *compiler) error {
 	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type))
 }
 
+func coRPar(cmpl *compiler) error {
+	if cmpl.getLex().Tokens[cmpl.pos-1].Type == tkLPar {
+		// This is for calling functions without parameters - 2 * sum() + 1
+		cmpl.dynamic = &cmState{tkRPar, cmExpOper, nil, nil, cfStay | cfStopBack}
+		return nil
+	}
+	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type))
+}
+
 func coCallFunc(cmpl *compiler) error {
 	return appendExpBuf(cmpl, tkCallFunc)
 }

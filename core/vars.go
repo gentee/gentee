@@ -398,16 +398,34 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 }
 
 func initVars(rt *RunTime, cmdStack *CmdBlock) (count int) {
+	var variadicCount int
+
 	rtBlock := RunTimeBlock{Block: cmdStack}
+	if cmdStack.Variadic {
+		variadicCount = rt.AllCount - cmdStack.ParCount
+	}
+	count = variadicCount + cmdStack.ParCount
+
 	if len(cmdStack.Vars) > 0 {
 		for i := 0; i < cmdStack.ParCount; i++ {
-			rtBlock.Vars = append(rtBlock.Vars, rt.Stack[len(rt.Stack)-cmdStack.ParCount+i])
-			count++
+			rtBlock.Vars = append(rtBlock.Vars, rt.Stack[len(rt.Stack)-count+i])
 		}
-		rt.Stack = rt.Stack[:len(rt.Stack)-cmdStack.ParCount]
 		for i := cmdStack.ParCount; i < len(cmdStack.Vars); i++ {
 			rtBlock.Vars = append(rtBlock.Vars, initVar(cmdStack.Vars[i]))
 		}
+		if cmdStack.Variadic {
+			aVar := rtBlock.Vars[cmdStack.ParCount].(*Array)
+			for i := 0; i < variadicCount; i++ {
+				value := rt.Stack[len(rt.Stack)-variadicCount+i]
+				if v, ok := value.(*Array); ok &&
+					cmdStack.Vars[cmdStack.ParCount].IndexOf.Original != reflect.TypeOf(Array{}) {
+					aVar.Data = append(aVar.Data, v.Data...)
+				} else {
+					aVar.Data = append(aVar.Data, value)
+				}
+			}
+		}
+		rt.Stack = rt.Stack[:len(rt.Stack)-count]
 	}
 	rt.Blocks = append(rt.Blocks, rtBlock)
 	return

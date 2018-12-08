@@ -66,6 +66,7 @@ const (
 	tkColon                    // :
 	tkDot                      // .
 	tkRange                    // ..
+	tkVariadic                 // ...
 )
 
 // Keywords
@@ -145,5 +146,6 @@ var (
 		`:`:   tkColon,
 		`.`:   tkDot,
 		`..`:  tkRange,
+		`...`: tkVariadic,
 	}
 )

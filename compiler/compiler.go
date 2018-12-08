@@ -160,8 +160,8 @@ main:
 		cmpl.states = &stackState
 		cmpl.dynamic = nil
 		cmpl.newPos = 0
-		//		fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v\r\n", i, state, token.Type,
-		//			getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next)
+		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v %v\r\n", i, state, token.Type,
+		//getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next, stackState)
 		if (state == cmExp || state == cmExpOper) && token.Type == tkLine {
 			if state == cmExp && lp.Tokens[i-1].Type >= tkAdd && lp.Tokens[i-1].Type <= tkComma {
 				continue
@@ -416,6 +416,17 @@ func coVarToken(cmpl *compiler, token string) error {
 
 func coVar(cmpl *compiler) error {
 	return coVarToken(cmpl, getToken(cmpl.getLex(), cmpl.pos))
+}
+
+func coVariadic(cmpl *compiler) error {
+	block := cmpl.curOwner()
+	block.Variadic = true
+	obj, err := autoType(cmpl, `arr.`+cmpl.curType.GetName())
+	if err != nil {
+		return err
+	}
+	block.Vars[len(block.Vars)-1] = obj.(*core.TypeObject)
+	return nil
 }
 
 func coVarType(cmpl *compiler) error {

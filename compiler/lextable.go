@@ -5,6 +5,7 @@
 package compiler
 
 import (
+	"strings"
 	"unicode"
 
 	"github.com/gentee/gentee/core"
@@ -48,7 +49,6 @@ const (
 	fBack   = 0x010000 << iota // go to back further when callback
 	fNewBuf                    // Start a new buffer
 	fSkip                      // Skip next rune
-	fShift                     // go back one position
 )
 
 const (
@@ -99,7 +99,7 @@ var (
 			{[]string{`+=`, `++`, `+`}, 0, newOper},
 			{[]string{`-=`, `--`, `-`}, 0, newOper},
 			{[]string{`*=`, `*`}, 0, newOper},
-			{[]string{`..`, `.`}, 0, newOper},
+			{[]string{`...`, `..`, `.`}, 0, newOper},
 			{[]string{`==`, `=`}, 0, newOper},
 			{[]string{`!=`, `!`}, 0, newOper},
 			{[]string{`<<=`, `<=`, `<<`, `<`}, 0, newOper},
@@ -305,11 +305,14 @@ func makeLexTable() {
 
 func newIdent(lex *lexEngine, start, off int) {
 	if lex.Callback {
+		original := string(lex.Lex.Source[start:off])
+		name := strings.TrimRight(original, `.`)
+		lex.Off -= len(original) - len(name)
 		tokType := tkIdent
-		if keyType, ok := keywords[string(lex.Lex.Source[start:off])]; ok {
+		if keyType, ok := keywords[name]; ok {
 			tokType = keyType
 		}
-		lex.Lex.NewToken(tokType, start, off-start)
+		lex.Lex.NewToken(tokType, start, lex.Off-start)
 	}
 }
 
@@ -340,7 +343,8 @@ func isFloat(lex *lexEngine, start, off int) {
 	oper := string(lex.Lex.Source[start : off+1])
 	switch oper2tk[oper] {
 	case tkRange:
-		lex.State = lexBack | fShift
+		lex.State = lexBack
+		lex.Off--
 	case tkDot:
 		lex.State = lexFloat
 		lex.Stack[len(lex.Stack)-1].Action = &preFloat

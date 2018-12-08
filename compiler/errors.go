@@ -126,6 +126,8 @@ const (
 	ErrBreak
 	// ErrContinue returns when continue is placed outside of loops
 	ErrContinue
+	// ErrNotRPar is returned when the compiler gets unexpected token instead of )
+	ErrNotRPar
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -202,6 +204,7 @@ var (
 		ErrWrongField:     `there is not %s field in %s struct`,
 		ErrBreak:          `break can only be inside while or for`,
 		ErrContinue:       `continue can only be inside while or for`,
+		ErrNotRPar:        `unexpected token, expecting ')'`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}
@@ -220,7 +223,11 @@ func (cmpl *compiler) Error(errID int, pars ...interface{}) error {
 func (cmpl *compiler) ErrorFunction(errID int, pos int, name string, pars []*core.TypeObject) error {
 	var params []string
 	for _, par := range pars {
-		params = append(params, par.GetName())
+		if par != nil {
+			params = append(params, par.GetName())
+		} else {
+			params = append(params, `...`)
+		}
 	}
 	return cmpl.ErrorPos(pos, errID, fmt.Sprintf(`%s(%s)`, name, strings.Join(params, `, `)))
 }

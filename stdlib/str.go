@@ -30,10 +30,14 @@ func InitStr(vm *core.VirtualMachine) {
 		AssignºStrBool,    // str = bool
 		AssignºStrInt,     // str = int
 		FindºStrStr,       // Find( str, str ) int
+		FormatºStr,        // Format( str, ... ) str
 		HasPrefixºStrStr,  // HasPrefix( str, str ) bool
 		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
+		Print,             // Print()
+		Println,           // Println()
 		ReplaceºStrStrStr, // Replace( str, str, str )
-		SplitºStrArr,      // Split( str, arr )
+		LinesºStrArr,      // Lines( str, arr )
+		SplitºStrStrArr,   // Split( str, str, arr )
 		SubstrºStrIntInt,  // Substr( str, int, int ) str
 		TrimSpaceºStr,     // TrimSpace( str )
 	} {
@@ -127,6 +131,11 @@ func FindºStrStr(s, substr string) (off int64) {
 	return
 }
 
+// FormatºStr formats according to a format specifier and returns the resulting string
+func FormatºStr(pattern string, pars ...interface{}) string {
+	return fmt.Sprintf(pattern, pars...)
+}
+
 // HasPrefixºStrStr returns true if the string s begins with prefix
 func HasPrefixºStrStr(s, prefix string) bool {
 	return strings.HasPrefix(s, prefix)
@@ -137,16 +146,37 @@ func HasSuffixºStrStr(s, suffix string) bool {
 	return strings.HasSuffix(s, suffix)
 }
 
+// Print writes to standard output.
+func Print(pars ...interface{}) (int64, error) {
+	n, err := fmt.Print(pars...)
+	return int64(n), err
+}
+
+// Println writes to standard output.
+func Println(pars ...interface{}) (int64, error) {
+	n, err := fmt.Println(pars...)
+	return int64(n), err
+}
+
 // ReplaceºStrStrStr replaces strings in a string
 func ReplaceºStrStrStr(in, old, new string) string {
 	return strings.Replace(in, old, new, -1)
 }
 
-// SplitºStrArr splits a string to a array of strings
-func SplitºStrArr(in string, out *core.Array) *core.Array {
+// LinesºStrArr splits a string to a array of strings
+func LinesºStrArr(in string, out *core.Array) *core.Array {
 	items := strings.Split(in, "\n")
 	for _, item := range items {
 		out.Data = append(out.Data, strings.Trim(item, "\r"))
+	}
+	return out
+}
+
+// SplitºStrStrArr splits a string to a array of strings
+func SplitºStrStrArr(in, sep string, out *core.Array) *core.Array {
+	items := strings.Split(in, sep)
+	for _, item := range items {
+		out.Data = append(out.Data, item)
 	}
 	return out
 }

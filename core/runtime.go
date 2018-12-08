@@ -16,13 +16,14 @@ type RunTimeBlock struct {
 
 // RunTime is the structure for running compiled functions
 type RunTime struct {
-	VM      *VirtualMachine
-	Stack   []interface{} // the stack of values
-	Calls   []ICmd        // the stack of calling functions
-	Blocks  []RunTimeBlock
-	Result  interface{} // result value
-	Command uint32
-	Consts  map[string]interface{}
+	VM       *VirtualMachine
+	Stack    []interface{} // the stack of values
+	Calls    []ICmd        // the stack of calling functions
+	Blocks   []RunTimeBlock
+	Result   interface{} // result value
+	Command  uint32
+	AllCount int
+	Consts   map[string]interface{}
 }
 
 func newRunTime(vm *VirtualMachine) *RunTime {
@@ -67,6 +68,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 				return
 			}
 		}
+		rt.AllCount = len(cmd.(*CmdAnyFunc).Children)
 	case CtBinary:
 		if err = rt.runCmd(cmd.(*CmdBinary).Left); err != nil {
 			return
