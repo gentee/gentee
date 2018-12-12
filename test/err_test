@@ -1,3 +1,7 @@
+run str {
+  str 10
+}
+===== 2:7: unexpected token, expecting the name of the identifier
 func vary(arr pars...) int : return 1
 run {
   arr pars = {`1`, `2`}
@@ -539,7 +543,7 @@ run str {
 run str {
   str(10) += `abc`
 }
-===== 2:6: unexpected token, expecting the name of the identifier
+===== 2:11: expecting l-value in the left operand of assign operator
 run int {return int(`text`)}
 =====  1:17: converting string to integer is invalid
 const {EMPTY}

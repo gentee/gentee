@@ -1,0 +1,7 @@
+run str {
+  map.float m = {`1`: 1.01, "2": 0.0000567 }
+  int ln = Println(1.234, `ok`, 324)
+  int n = Print(`str`, 10, `абв`, m)
+  return str(n) + str(ln)
+}
+===== 3313

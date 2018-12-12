@@ -6,6 +6,7 @@ package stdlib
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/gentee/gentee/core"
 )
@@ -60,4 +61,21 @@ func InitTypes(vm *core.VirtualMachine) {
 	}
 	defType(`arr`, typeArr)
 	defType(`map`, typeMap)
+}
+
+// NewStructType adds a new struct type to Unit
+func NewStructType(vm *core.VirtualMachine, name string, fields []string) *core.TypeObject {
+	names := make(map[string]int64)
+	types := make([]*core.TypeObject, len(fields))
+	for i, item := range fields {
+		itype := strings.SplitN(item, `:`, 2)
+		names[itype[0]] = int64(i)
+		types[i] = vm.StdLib().Names[itype[1]].(*core.TypeObject)
+	}
+	pType := vm.StdLib().NewType(name, reflect.TypeOf(core.Struct{}), nil).(*core.TypeObject)
+	pType.Custom = &core.StructType{
+		Fields: names,
+		Types:  types,
+	}
+	return pType
 }

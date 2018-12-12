@@ -1,3 +1,13 @@
+struct tmp : int a; str s
+run str {
+  int i = 2
+  tmp t = {a: 99, s: `TMP`}
+  map.int m = {`тест`: 101, "first": 99 }
+  arr.int mya = {0, 1, 2 + 4}
+  str out = Format(`ooops %d`) + Format(`%d %v=%[1]d`, i + 3, m)
+  return out + Format(`%s %v %v %g %6.2[4]f`, `ok`, mya, t, 99.0 + 1.)
+}
+===== ooops %!d(MISSING)5 map[тест:101 first:99]=5ok [0 1 6] tmp[a:99 s:TMP] 100 100.00
 run str {
   str ina = `тест string ĠĠ`
   return `%{HasPrefix(ina, `те`)} %{HasPrefix(ina, `ww`)} %{HasSuffix(ina, `Ġ`)} %{HasSuffix(ina, `ĠĠĠ`)}`

@@ -150,7 +150,8 @@ main:
 		}
 		cmpl.pos = i
 		token := lp.Tokens[i]
-		if state == cmBody && token.Type == tkIdent {
+		if state == cmBody && token.Type == tkIdent && i+1 < len(lp.Tokens) &&
+			lp.Tokens[i+1].Type != tkLPar {
 			obj, _ := getType(cmpl)
 			if obj != nil {
 				token.Type = tkType

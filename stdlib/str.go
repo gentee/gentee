@@ -13,7 +13,7 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-// InitStr appends stdlib int functions to the virtual machine
+// InitStr appends stdlib string functions to the virtual machine
 func InitStr(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
 		AddºStrStr,        // binary +
@@ -33,8 +33,6 @@ func InitStr(vm *core.VirtualMachine) {
 		FormatºStr,        // Format( str, ... ) str
 		HasPrefixºStrStr,  // HasPrefix( str, str ) bool
 		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
-		Print,             // Print()
-		Println,           // Println()
 		ReplaceºStrStrStr, // Replace( str, str, str )
 		LinesºStrArr,      // Lines( str, arr )
 		SplitºStrStrArr,   // Split( str, str, arr )
@@ -144,18 +142,6 @@ func HasPrefixºStrStr(s, prefix string) bool {
 // HasSuffixºStrStr returns true if the string s ends with suffix
 func HasSuffixºStrStr(s, suffix string) bool {
 	return strings.HasSuffix(s, suffix)
-}
-
-// Print writes to standard output.
-func Print(pars ...interface{}) (int64, error) {
-	n, err := fmt.Print(pars...)
-	return int64(n), err
-}
-
-// Println writes to standard output.
-func Println(pars ...interface{}) (int64, error) {
-	n, err := fmt.Println(pars...)
-	return int64(n), err
 }
 
 // ReplaceºStrStrStr replaces strings in a string
