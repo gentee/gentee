@@ -33,11 +33,13 @@ func InitStr(vm *core.VirtualMachine) {
 		FormatºStr,        // Format( str, ... ) str
 		HasPrefixºStrStr,  // HasPrefix( str, str ) bool
 		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
-		ReplaceºStrStrStr, // Replace( str, str, str )
 		LinesºStrArr,      // Lines( str, arr )
+		LowerºStr,         // Lower( str ) str
+		ReplaceºStrStrStr, // Replace( str, str, str )
 		SplitºStrStrArr,   // Split( str, str, arr )
 		SubstrºStrIntInt,  // Substr( str, int, int ) str
 		TrimSpaceºStr,     // TrimSpace( str )
+		UpperºStr,         // Upper( str ) str
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -144,11 +146,6 @@ func HasSuffixºStrStr(s, suffix string) bool {
 	return strings.HasSuffix(s, suffix)
 }
 
-// ReplaceºStrStrStr replaces strings in a string
-func ReplaceºStrStrStr(in, old, new string) string {
-	return strings.Replace(in, old, new, -1)
-}
-
 // LinesºStrArr splits a string to a array of strings
 func LinesºStrArr(in string, out *core.Array) *core.Array {
 	items := strings.Split(in, "\n")
@@ -156,6 +153,16 @@ func LinesºStrArr(in string, out *core.Array) *core.Array {
 		out.Data = append(out.Data, strings.Trim(item, "\r"))
 	}
 	return out
+}
+
+// LowerºStr converts a copy of the string to their lower case and returns it.
+func LowerºStr(s string) string {
+	return strings.ToLower(s)
+}
+
+// ReplaceºStrStrStr replaces strings in a string
+func ReplaceºStrStrStr(in, old, new string) string {
+	return strings.Replace(in, old, new, -1)
 }
 
 // SplitºStrStrArr splits a string to a array of strings
@@ -188,4 +195,9 @@ func SubstrºStrIntInt(in string, off, length int64) (string, error) {
 // TrimSpaceºStr trims white space in a string
 func TrimSpaceºStr(in string) string {
 	return strings.TrimSpace(in)
+}
+
+// UpperºStr converts a copy of the string to their upper case and returns it.
+func UpperºStr(s string) string {
+	return strings.ToUpper(s)
 }

@@ -7,6 +7,7 @@ package test
 import (
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -19,8 +20,22 @@ type testItem struct {
 }
 
 func TestCli(t *testing.T) {
-	var err error
+	var (
+		err    error
+		gopath string
+		stdout []byte
+	)
 
+	cmd := exec.Command(`go`, `env`)
+	if stdout, err = cmd.CombinedOutput(); err != nil {
+		t.Error(err)
+		return
+	}
+	ret := regexp.MustCompile(`GOPATH="(.*)"`).FindStringSubmatch(string(stdout))
+	if len(ret) == 2 {
+		gopath = ret[1]
+	}
+	os.Setenv(`GOPATH`, gopath)
 	outputFile := os.ExpandEnv(`${GOPATH}/bin/gentee`)
 
 	call := func(want string, params ...string) error {
@@ -34,8 +49,7 @@ func TestCli(t *testing.T) {
 		}
 		return nil
 	}
-
-	cmd := exec.Command(`go`, `build`, `-o`, outputFile, `../cli/gentee.go`)
+	cmd = exec.Command(`go`, `build`, `-o`, outputFile, `../cli/gentee.go`)
 	if err = cmd.Run(); err != nil {
 		t.Error(err)
 		return

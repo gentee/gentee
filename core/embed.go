@@ -82,7 +82,11 @@ func (unit *Unit) NewEmbedExt(Func interface{}, in string, out string) {
 	for i, item := range ins {
 		inTypes[i] = unit.NameToType(item).(*TypeObject)
 	}
-	unit.NewEmbedTypes(Func, inTypes, unit.NameToType(out).(*TypeObject))
+	var retType *TypeObject
+	if len(out) > 0 {
+		retType = unit.NameToType(out).(*TypeObject)
+	}
+	unit.NewEmbedTypes(Func, inTypes, retType)
 }
 
 // NameToType searches the type by its name. It accepts names like name.name.name.

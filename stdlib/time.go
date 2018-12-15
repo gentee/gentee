@@ -17,6 +17,12 @@ func InitTime(vm *core.VirtualMachine) {
 		`Hour:int`, `Minute:int`, `Second:int`,
 	})
 
+	for _, item := range []interface{}{
+		SleepºInt, // Sleep( int )
+	} {
+		vm.StdLib().NewEmbed(item)
+	}
+
 	for _, item := range []embedInfo{
 		{intºTime, `time`, `int`},                               // int( time )
 		{timeºTimeInt, `time,int`, `time`},                      // time( int, time )
@@ -80,4 +86,9 @@ func LessºTimeTime(left, right *core.Struct) bool {
 // Now returns the current time
 func Now(it *core.Struct) *core.Struct {
 	return fromTime(it, time.Now())
+}
+
+// SleepºInt pauses the current script for at least the specified duration in milliseconds.
+func SleepºInt(d int64) {
+	time.Sleep(time.Duration(d) * time.Millisecond)
 }

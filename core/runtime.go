@@ -88,13 +88,15 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 		}
 		rt.Stack = rt.Stack[:lenStack]
 		result = reflect.ValueOf(cmd.GetObject().(*EmbedObject).Func).Call(pars)
-		last := result[len(result)-1].Interface()
-		if last != nil {
-			if _, isError := last.(error); isError {
-				return runtimeError(rt, cmd, result[len(result)-1].Interface().(error))
+		if len(result) > 0 {
+			last := result[len(result)-1].Interface()
+			if last != nil {
+				if _, isError := last.(error); isError {
+					return runtimeError(rt, cmd, result[len(result)-1].Interface().(error))
+				}
 			}
+			rt.Stack = append(rt.Stack, result[0].Interface())
 		}
-		rt.Stack = append(rt.Stack, result[0].Interface())
 	case ObjFunc:
 		if err = rt.runCmd(&cmd.GetObject().(*FuncObject).Block); err != nil {
 			return

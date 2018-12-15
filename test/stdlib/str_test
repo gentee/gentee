@@ -1,3 +1,8 @@
+run str {
+  str ina = `ТесТ STRring ĠĠ`
+  return Lower(ina) + Upper(ina)
+}
+===== тест strring ġġТЕСТ STRRING ĠĠ
 struct tmp : int a; str s
 run str {
   int i = 2

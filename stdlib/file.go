@@ -13,6 +13,11 @@ import (
 
 // InitFile appends stdlib int functions to the virtual machine
 func InitFile(vm *core.VirtualMachine) {
+	NewStructType(vm, `finfo`, []string{
+		`Name:str`, `Size:int`, `Mode:int`,
+		`Time:time`, `IsDir:bool`,
+	})
+
 	for _, item := range []interface{}{
 		ChDirºStr,        // ChDir( str )
 		CreateDirºStr,    // CreateDir( str )
@@ -29,6 +34,12 @@ func InitFile(vm *core.VirtualMachine) {
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
+	for _, item := range []embedInfo{
+		{FileInfoºStrFInfo, `str,finfo`, `finfo`}, // FileInfo( str, finfo ) finfo
+		{SetFileTimeºStrTime, `str,time`, ``},     // SetFileTime( str, time )
+	} {
+		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+	}
 }
 
 // ChDirºStr change the current directory
@@ -44,6 +55,25 @@ func GetCurDir() (string, error) {
 // CreateDirºStr creates the directory(s)
 func CreateDirºStr(dirname string) error {
 	return os.MkdirAll(dirname, os.ModePerm)
+}
+
+// FileInfoºStrFInfo returns the finfo describing the named file.
+func FileInfoºStrFInfo(name string, finfo *core.Struct) (*core.Struct, error) {
+	handle, err := os.Open(name)
+	if err != nil {
+		return finfo, err
+	}
+	defer handle.Close()
+	fileInfo, err := handle.Stat()
+	if err != nil {
+		return finfo, err
+	}
+	finfo.Values[0] = fileInfo.Name()
+	finfo.Values[1] = fileInfo.Size()
+	finfo.Values[2] = fileInfo.Mode()
+	fromTime(finfo.Values[3].(*core.Struct), fileInfo.ModTime())
+	finfo.Values[4] = fileInfo.IsDir()
+	return finfo, nil
 }
 
 // ReadFileºStr reads a file
@@ -78,6 +108,12 @@ func RemoveºStr(filename string) error {
 // RemoveDirºStr removes a directory
 func RemoveDirºStr(dirname string) error {
 	return os.RemoveAll(dirname)
+}
+
+// SetFileTimeºStrTime changes the modification time of the named file
+func SetFileTimeºStrTime(name string, ftime *core.Struct) error {
+	mtime := toTime(ftime)
+	return os.Chtimes(name, mtime, mtime)
 }
 
 // TempDir returns the temporary directory
