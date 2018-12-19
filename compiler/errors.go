@@ -5,6 +5,7 @@
 package compiler
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -211,9 +212,9 @@ var (
 )
 
 func (cmpl *compiler) ErrorPos(pos int, errID int, pars ...interface{}) error {
-
-	line, column := cmpl.getLex().LineColumn(pos)
-	return fmt.Errorf(`%d:%d: %s`, line, column, fmt.Sprintf(errText[errID], pars...))
+	lex := cmpl.getLex()
+	line, column := lex.LineColumn(pos)
+	return errors.New(core.ErrFormat(lex.Path, line, column, fmt.Sprintf(errText[errID], pars...)))
 }
 
 func (cmpl *compiler) Error(errID int, pars ...interface{}) error {

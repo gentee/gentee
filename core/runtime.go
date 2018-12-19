@@ -83,11 +83,15 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	}
 	switch cmd.GetObject().GetType() {
 	case ObjEmbedded:
+		obj := cmd.GetObject().(*EmbedObject)
+		if obj.Runtime {
+			pars = append(pars, reflect.ValueOf(rt))
+		}
 		for i := lenStack; i < len(rt.Stack); i++ {
 			pars = append(pars, reflect.ValueOf(rt.Stack[i]))
 		}
 		rt.Stack = rt.Stack[:lenStack]
-		result = reflect.ValueOf(cmd.GetObject().(*EmbedObject).Func).Call(pars)
+		result = reflect.ValueOf(obj.Func).Call(pars)
 		if len(result) > 0 {
 			last := result[len(result)-1].Interface()
 			if last != nil {

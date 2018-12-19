@@ -6,6 +6,8 @@ package core
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -42,9 +44,32 @@ const (
 	// ErrInvalidParam is returned when the function gets invalid parameter(s)
 	ErrInvalidParam
 
+	// ErrEmbedded means golang error in embedded functions
+	ErrEmbedded = 254
 	// ErrRuntime error. It means bug
-	ErrRuntime
+	ErrRuntime = 255
 )
+
+// TraceInfo is a structure for stack func info
+type TraceInfo struct {
+	Path  string // the full path name of the source
+	Entry string // the entry function name
+	Func  string // the called function
+	Line  int    // line position in the source
+	Pos   int    // column position in the line
+}
+
+// RuntimeError is a runtime error type
+type RuntimeError struct {
+	ID      int
+	Message string
+	Trace   []TraceInfo
+}
+
+func (re *RuntimeError) Error() string {
+	si := re.Trace[len(re.Trace)-1]
+	return ErrFormat(si.Path, si.Line, si.Pos, re.Message)
+}
 
 var (
 	errText = map[int]string{
@@ -68,33 +93,95 @@ var (
 	}
 )
 
+// ErrFormat is a function for formating error message
+func ErrFormat(path string, line, pos int, message string) string {
+	dirs := strings.Split(filepath.ToSlash(path), `/`)
+	if len(dirs) > 3 {
+		path = `...` + path[len(path)-len(strings.Join(dirs[len(dirs)-3:], `/`))-1:]
+	}
+	return strings.TrimSpace(fmt.Sprintf(`%s [%d:%d] %s`, path, line, pos, message))
+
+}
+
 // ErrorText returns the text of the error message
 func ErrorText(id int) string {
 	return errText[id]
 }
 
-func runtimeError(rt *RunTime, cmd ICmd, idError interface{}, labels ...interface{}) error {
+// GetTrace returns information about called functions
+func GetTrace(rt *RunTime, cmd ICmd) []TraceInfo {
 	var (
-		line, column int
+		entry        string
 		lex          *Lex
-		errText      string
+		line, column int
+		last         ICmd
 	)
-	for i := len(rt.Calls) - 1; i >= 0 && lex == nil; i-- {
-		if cmd != nil && rt.Calls[i].GetObject() != nil {
-			if lex = rt.Calls[i].GetObject().GetLex(); lex != nil {
-				line, column = lex.LineColumn(cmd.GetToken())
-				break
+
+	ret := make([]TraceInfo, 0, 16)
+
+	for _, cmd := range rt.Calls {
+		if cmd == nil {
+			continue
+		}
+		obj := cmd.GetObject()
+		if obj == nil {
+			continue
+		}
+		if plex := obj.GetLex(); plex != nil {
+			lex = plex
+		}
+
+		if obj.GetType() == ObjFunc || obj.GetType() == ObjEmbedded {
+			if len(entry) == 0 && obj.GetType() == ObjFunc {
+				entry = obj.GetName()
+				continue
+			}
+			line, column = lex.LineColumn(cmd.GetToken())
+			ret = append(ret, TraceInfo{
+				Path:  lex.Path,
+				Entry: entry,
+				Func:  obj.GetName(),
+				Line:  line,
+				Pos:   column,
+			})
+			last = cmd
+			if obj.GetType() == ObjFunc {
+				entry = ``
 			}
 		}
 	}
-	switch v := idError.(type) {
+	if cmd != nil && cmd != last {
+		line, column = lex.LineColumn(cmd.GetToken())
+		ret = append(ret, TraceInfo{
+			Path:  lex.Path,
+			Entry: entry,
+			Func:  ``,
+			Line:  line,
+			Pos:   column,
+		})
+	}
+	return ret
+}
+
+func runtimeError(rt *RunTime, cmd ICmd, err interface{}, labels ...interface{}) error {
+	var (
+		errText string
+		idError int
+	)
+	switch v := err.(type) {
 	case int:
 		errText = ErrorText(v)
+		idError = v
 	case error:
 		errText = v.Error()
+		idError = ErrEmbedded
 	}
 	for _, item := range labels {
 		errText += fmt.Sprintf(` [%v]`, item)
 	}
-	return fmt.Errorf(`%d:%d: %s`, line, column, errText)
+	return &RuntimeError{
+		ID:      idError,
+		Message: errText,
+		Trace:   GetTrace(rt, cmd),
+	}
 }

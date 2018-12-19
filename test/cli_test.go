@@ -57,10 +57,14 @@ func TestCli(t *testing.T) {
 	testList := []testItem{
 		{``, []string{`-t`, `ok.g`}},
 		{"ok 777\n", []string{`ok.g`}},
-		{"test\nERROR: 3:1: script ok has already been linked", []string{`runname.g`, `ok.g`}},
+		{"test\nERROR: .../test/scripts/ok.g [3:1] script ok has already been linked",
+			[]string{`runname.g`, `ok.g`}},
 		{core.Version, []string{`-ver`}},
 		{``, []string{`nothing.g`}},
 		{core.Version, []string{`const.g`}},
+		{"ERROR: .../test/scripts/traceerror.g [2:13] divided by zero\n" +
+			".../test/scripts/traceerror.g [5:5] run -> myfunc\n" +
+			".../test/scripts/traceerror.g [2:13] myfunc -> Div", []string{`traceerror.g`}},
 	}
 	for _, item := range testList {
 		for i, v := range item.params {

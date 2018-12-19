@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -49,6 +50,16 @@ func main() {
 	isError := func(code int) {
 		if err != nil {
 			fmt.Println(`ERROR:`, err.Error())
+			if errTrace, ok := err.(*core.RuntimeError); ok {
+				for _, trace := range errTrace.Trace {
+					path := trace.Path
+					dirs := strings.Split(filepath.ToSlash(path), `/`)
+					if len(dirs) > 3 {
+						path = `...` + path[len(path)-len(strings.Join(dirs[len(dirs)-3:], `/`))-1:]
+					}
+					fmt.Printf("%s [%d:%d] %s -> %s\n", path, trace.Line, trace.Pos, trace.Entry, trace.Func)
+				}
+			}
 			os.Exit(code)
 		}
 	}

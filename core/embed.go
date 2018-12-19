@@ -29,7 +29,7 @@ var (
 
 // NewEmbedTypes adds a new EmbedObject to Unit with types
 func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
-	var variadic bool
+	var variadic, isRuntime bool
 
 	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
 	name = name[strings.LastIndexByte(name, '.')+1:]
@@ -46,13 +46,16 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 	if variadic = t.IsVariadic(); variadic {
 		inCount--
 	}
-	if inCount > 0 && inTypes == nil {
-		inTypes = make([]*TypeObject, inCount)
-		for i := 0; i < inCount; i++ {
-			inTypes[i] = unit.TypeByGoType(t.In(i))
-		}
-		if strings.HasPrefix(name, `Assign`) {
-			inTypes[0] = outType
+	if inCount > 0 {
+		isRuntime = t.In(0) == reflect.TypeOf(&RunTime{})
+		if inTypes == nil {
+			inTypes = make([]*TypeObject, inCount)
+			for i := 0; i < inCount; i++ {
+				inTypes[i] = unit.TypeByGoType(t.In(i))
+			}
+			if strings.HasPrefix(name, `Assign`) {
+				inTypes[0] = outType
+			}
 		}
 	}
 	obj := unit.NewObject(&EmbedObject{
@@ -64,6 +67,7 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 		Return:   outType,
 		Params:   inTypes,
 		Variadic: variadic,
+		Runtime:  isRuntime,
 	})
 	if defFuncs[originalName] {
 		unit.Names[originalName] = obj

@@ -1,0 +1,11 @@
+func first(int i) str {
+    arr.trace st
+    return str(i) + Format(`%v`, Trace(st))
+}
+func Runtime(int i) str {
+    return first(i+2)
+}
+run str {
+    return Runtime(10)
+}
+===== 12[trace[Path: Entry:run Func:Runtime Line:9 Pos:12] trace[Path: Entry:Runtime Func:first Line:6 Pos:12] trace[Path: Entry:first Func:Add Line:3 Pos:19] trace[Path: Entry:first Func:Format Line:3 Pos:21] trace[Path: Entry:first Func:Trace Line:3 Pos:34]]
