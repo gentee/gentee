@@ -1,4 +1,17 @@
 run {
+  if true {
+      error(77, `1. %s - %d`, `тест`, 70+7)
+  }
+}
+===== [3:7] 1. тест - 77
+func myerr(int code) {
+  error(code, `My error text`)
+}
+run {
+  myerr(1001)
+}
+===== [2:3] My error text
+run {
   str s
   s = Substr(`test`, 6, -4)
 }

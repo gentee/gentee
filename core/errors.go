@@ -172,6 +172,9 @@ func runtimeError(rt *RunTime, cmd ICmd, err interface{}, labels ...interface{})
 	case int:
 		errText = ErrorText(v)
 		idError = v
+	case *RuntimeError:
+		errText = v.Message
+		idError = v.ID
 	case error:
 		errText = v.Error()
 		idError = ErrEmbedded

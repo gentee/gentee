@@ -5,6 +5,8 @@
 package stdlib
 
 import (
+	"fmt"
+
 	"github.com/gentee/gentee/core"
 )
 
@@ -14,9 +16,21 @@ func InitRuntime(vm *core.VirtualMachine) {
 		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
 	})
 	for _, item := range []embedInfo{
+		{errorºIntStr, `int,str`, ``},           // error( int, str )
 		{TraceºTrace, `arr.trace`, `arr.trace`}, // Trace( trace )
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+	}
+}
+
+// errorºIntStr throws an error
+func errorºIntStr(code int64, text string, pars ...interface{}) error {
+	if len(pars) > 0 {
+		text = fmt.Sprintf(text, pars...)
+	}
+	return &core.RuntimeError{
+		ID:      int(code),
+		Message: text,
 	}
 }
 

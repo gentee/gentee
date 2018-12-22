@@ -120,6 +120,11 @@ func NewStruct(ptype *TypeObject) *Struct {
 	}
 }
 
+// NewStructObj creates a stdlib struct object
+func NewStructObj(rt *RunTime, name string) *Struct {
+	return NewStruct(rt.VM.StdLib().Names[name].(*TypeObject))
+}
+
 // String interface for Struct
 func (pstruct Struct) String() string {
 	name := pstruct.Type.GetName()

@@ -2,16 +2,15 @@ run str {
     str temp = TempDir(``, `gentee_test`)
     str fname = temp + `/тест file.bin`
     WriteFile(fname, `TEST`)
-    finfo fi
-    FileInfo(fname, fi)
+    finfo fi = FileInfo(fname)
     str out = str(fi.Size == 4)
     time tm = fi.Time
     Sleep(1500)
     WriteFile(fname, `TESTА`)
-    FileInfo(fname, fi)
+    fi = FileInfo(fname)
     out += str(fi.Size == 6) + str(tm < fi.Time)
     SetFileTime(fname, tm)
-    FileInfo(fname, fi)
+    fi = FileInfo(fname)
     RemoveDir(temp)
     return out + str(tm == fi.Time)
 }

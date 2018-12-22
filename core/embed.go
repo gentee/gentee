@@ -81,7 +81,10 @@ func (unit *Unit) NewEmbed(Func interface{}) {
 
 // NewEmbedExt adds a new EmbedObject to Unit with string types
 func (unit *Unit) NewEmbedExt(Func interface{}, in string, out string) {
-	ins := strings.Split(in, `,`)
+	var ins []string
+	if len(in) > 0 {
+		ins = strings.Split(in, `,`)
+	}
 	inTypes := make([]*TypeObject, len(ins))
 	for i, item := range ins {
 		inTypes[i] = unit.NameToType(item).(*TypeObject)

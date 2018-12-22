@@ -1,0 +1,12 @@
+run str {
+  buf ba = buf(`Hello ŋ`)
+  str s = Hex(ba += '0')
+  return s + str(UnHex(s)) + str(UnHex(Upper(s)))
+}
+===== 48656c6c6f20c58b30Hello ŋ0Hello ŋ0
+run str {
+  buf ba = buf(`Тесt Ġ`)
+  buf bb
+  return Format(`%v %v`, buf(`OK1`), ba)
+}
+===== [79 75 49] [208 162 208 181 209 129 116 32 196 160]

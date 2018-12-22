@@ -49,8 +49,9 @@ func main() {
 
 	isError := func(code int) {
 		if err != nil {
-			fmt.Println(`ERROR:`, err.Error())
+			fmt.Print(`ERROR`)
 			if errTrace, ok := err.(*core.RuntimeError); ok {
+				fmt.Printf(" %d: %s\n", errTrace.ID, err.Error())
 				for _, trace := range errTrace.Trace {
 					path := trace.Path
 					dirs := strings.Split(filepath.ToSlash(path), `/`)
@@ -59,6 +60,9 @@ func main() {
 					}
 					fmt.Printf("%s [%d:%d] %s -> %s\n", path, trace.Line, trace.Pos, trace.Entry, trace.Func)
 				}
+				code = errTrace.ID
+			} else {
+				fmt.Println(`:`, err.Error())
 			}
 			os.Exit(code)
 		}

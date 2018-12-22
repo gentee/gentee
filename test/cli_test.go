@@ -37,6 +37,11 @@ func TestCli(t *testing.T) {
 	}
 	os.Setenv(`GOPATH`, gopath)
 	outputFile := os.ExpandEnv(`${GOPATH}/bin/gentee`)
+	cmd = exec.Command(`go`, `build`, `-o`, outputFile, `../cli/gentee.go`)
+	if err = cmd.Run(); err != nil {
+		t.Error(err)
+		return
+	}
 
 	call := func(want string, params ...string) error {
 		cmd := exec.Command(outputFile, params...)
@@ -49,11 +54,7 @@ func TestCli(t *testing.T) {
 		}
 		return nil
 	}
-	cmd = exec.Command(`go`, `build`, `-o`, outputFile, `../cli/gentee.go`)
-	if err = cmd.Run(); err != nil {
-		t.Error(err)
-		return
-	}
+
 	testList := []testItem{
 		{``, []string{`-t`, `ok.g`}},
 		{"ok 777\n", []string{`ok.g`}},
@@ -62,9 +63,12 @@ func TestCli(t *testing.T) {
 		{core.Version, []string{`-ver`}},
 		{``, []string{`nothing.g`}},
 		{core.Version, []string{`const.g`}},
-		{"ERROR: .../test/scripts/traceerror.g [2:13] divided by zero\n" +
+		{"ERROR 254: .../test/scripts/traceerror.g [2:13] divided by zero\n" +
 			".../test/scripts/traceerror.g [5:5] run -> myfunc\n" +
 			".../test/scripts/traceerror.g [2:13] myfunc -> Div", []string{`traceerror.g`}},
+		{"ERROR 300: .../test/scripts/customerror.g [3:24] Σ custom error №5\n" +
+			".../test/scripts/customerror.g [9:12] run -> myerr\n" +
+			".../test/scripts/customerror.g [3:24] myerr -> error", []string{`customerror.g`}},
 	}
 	for _, item := range testList {
 		for i, v := range item.params {

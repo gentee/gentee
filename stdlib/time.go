@@ -24,16 +24,20 @@ func InitTime(vm *core.VirtualMachine) {
 	}
 
 	for _, item := range []embedInfo{
-		{intºTime, `time`, `int`},                               // int( time )
-		{timeºTimeInt, `time,int`, `time`},                      // time( int, time )
-		{DateTimeºTime, `time,int,int,int,int,int,int`, `time`}, // DateTime()
-		{EqualºTimeTime, `time,time`, `bool`},                   // binary ==
-		{GreaterºTimeTime, `time,time`, `bool`},                 // binary >
-		{LessºTimeTime, `time,time`, `bool`},                    // binary <
-		{Now, `time`, `time`},                                   // Now()
+		{intºTime, `time`, `int`},                          // int( time )
+		{timeºInt, `int`, `time`},                          // time( int, time )
+		{DateTimeºInts, `int,int,int,int,int,int`, `time`}, // DateTime()
+		{EqualºTimeTime, `time,time`, `bool`},              // binary ==
+		{GreaterºTimeTime, `time,time`, `bool`},            // binary >
+		{LessºTimeTime, `time,time`, `bool`},               // binary <
+		{Now, ``, `time`},                                  // Now()
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
+}
+
+func newTime(rt *core.RunTime) *core.Struct {
+	return core.NewStructObj(rt, `time`)
 }
 
 func fromTime(it *core.Struct, in time.Time) *core.Struct {
@@ -57,14 +61,14 @@ func intºTime(it *core.Struct) int64 {
 	return toTime(it).Unix()
 }
 
-// timeºTimeInt converts Unix time to time
-func timeºTimeInt(it *core.Struct, unix int64) *core.Struct {
-	return fromTime(it, time.Unix(unix, 0))
+// timeºInt converts Unix time to time
+func timeºInt(rt *core.RunTime, unix int64) *core.Struct {
+	return fromTime(newTime(rt), time.Unix(unix, 0))
 }
 
-// DateTimeºTime returns time
-func DateTimeºTime(it *core.Struct, year, month, day, hour, minute, second int64) *core.Struct {
-	return fromTime(it, time.Date(int(year), time.Month(month), int(day), int(hour), int(minute),
+// DateTimeºInts returns time
+func DateTimeºInts(rt *core.RunTime, year, month, day, hour, minute, second int64) *core.Struct {
+	return fromTime(newTime(rt), time.Date(int(year), time.Month(month), int(day), int(hour), int(minute),
 		int(second), 0, time.Local))
 }
 
@@ -84,8 +88,8 @@ func LessºTimeTime(left, right *core.Struct) bool {
 }
 
 // Now returns the current time
-func Now(it *core.Struct) *core.Struct {
-	return fromTime(it, time.Now())
+func Now(rt *core.RunTime) *core.Struct {
+	return fromTime(newTime(rt), time.Now())
 }
 
 // SleepºInt pauses the current script for at least the specified duration in milliseconds.

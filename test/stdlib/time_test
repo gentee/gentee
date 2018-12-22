@@ -2,8 +2,8 @@ run str {
   str out
   time tm tm2 tm3 tmNew
   time tmOld = {Year:1900, Month:10, Day:20 }
-  time(tm2, int(Now(tm)))
-  DateTime(tmNew, 2100, 01, 10, 1, 2, 3)
+  tm2 = time(int(tm = Now()))
+  tmNew = DateTime(2100, 01, 10, 1, 2, 3)
   out = str(tm == tm2) 
   return out + ` %{int(tmOld)} %{tm > tmOld} %{tm < tmNew}`
 }

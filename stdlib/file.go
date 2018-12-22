@@ -35,8 +35,8 @@ func InitFile(vm *core.VirtualMachine) {
 		vm.StdLib().NewEmbed(item)
 	}
 	for _, item := range []embedInfo{
-		{FileInfoºStrFInfo, `str,finfo`, `finfo`}, // FileInfo( str, finfo ) finfo
-		{SetFileTimeºStrTime, `str,time`, ``},     // SetFileTime( str, time )
+		{FileInfoºStr, `str`, `finfo`},        // FileInfo( str ) finfo
+		{SetFileTimeºStrTime, `str,time`, ``}, // SetFileTime( str, time )
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -57,8 +57,9 @@ func CreateDirºStr(dirname string) error {
 	return os.MkdirAll(dirname, os.ModePerm)
 }
 
-// FileInfoºStrFInfo returns the finfo describing the named file.
-func FileInfoºStrFInfo(name string, finfo *core.Struct) (*core.Struct, error) {
+// FileInfoºStr returns the finfo describing the named file.
+func FileInfoºStr(rt *core.RunTime, name string) (*core.Struct, error) {
+	finfo := core.NewStructObj(rt, `finfo`)
 	handle, err := os.Open(name)
 	if err != nil {
 		return finfo, err
