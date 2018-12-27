@@ -5,6 +5,7 @@
 package stdlib
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -19,18 +20,21 @@ func InitFile(vm *core.VirtualMachine) {
 	})
 
 	for _, item := range []interface{}{
-		ChDirºStr,        // ChDir( str )
-		CreateDirºStr,    // CreateDir( str )
-		GetCurDir,        // GetCurDir( ) str
-		ReadFileºStr,     // ReadFile( str ) str
-		ReadFileºStrBuf,  // ReadFile( str, buf ) buf
-		RemoveºStr,       // Remove( str )
-		RemoveDirºStr,    // RemoveDir( str )
-		RenameºStrStr,    // Rename( str, str )
-		TempDir,          // TempDir()
-		TempDirºStrStr,   // TempDir(str, str)
-		WriteFileºStrBuf, // WriteFile( str, buf )
-		WriteFileºStrStr, // WriteFile( str, str )
+		AppendFileºStrBuf, // AppendFile( str, buf )
+		AppendFileºStrStr, // AppendFile( str, str )
+		ChDirºStr,         // ChDir( str )
+		CopyFileºStrStr,   // CopyFile( str, str )
+		CreateDirºStr,     // CreateDir( str )
+		GetCurDir,         // GetCurDir( ) str
+		ReadFileºStr,      // ReadFile( str ) str
+		ReadFileºStrBuf,   // ReadFile( str, buf ) buf
+		RemoveºStr,        // Remove( str )
+		RemoveDirºStr,     // RemoveDir( str )
+		RenameºStrStr,     // Rename( str, str )
+		TempDir,           // TempDir()
+		TempDirºStrStr,    // TempDir(str, str)
+		WriteFileºStrBuf,  // WriteFile( str, buf )
+		WriteFileºStrStr,  // WriteFile( str, str )
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -42,9 +46,44 @@ func InitFile(vm *core.VirtualMachine) {
 	}
 }
 
+func appendFile(filename string, data []byte) error {
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.Write(data)
+	return err
+}
+
+// AppendFileºStrBuf appends a buffer to a file
+func AppendFileºStrBuf(filename string, buf *core.Buffer) error {
+	return appendFile(filename, buf.Data)
+}
+
+// AppendFileºStrStr appends a string to a file
+func AppendFileºStrStr(filename, s string) error {
+	return appendFile(filename, []byte(s))
+}
+
 // ChDirºStr change the current directory
 func ChDirºStr(dirname string) error {
 	return os.Chdir(dirname)
+}
+
+// CopyFileºStrStr copies a file
+func CopyFileºStrStr(src, dest string) (int64, error) {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer srcFile.Close()
+	destFile, err := os.Create(dest)
+	if err != nil {
+		return 0, err
+	}
+	defer destFile.Close()
+	return io.Copy(destFile, srcFile)
 }
 
 // GetCurDir returns the current directory
@@ -127,20 +166,12 @@ func TempDirºStrStr(dir, prefix string) (string, error) {
 	return ioutil.TempDir(dir, prefix)
 }
 
-// WriteFileºStrBuf write a buffer to a file
+// WriteFileºStrBuf writes a buffer to a file
 func WriteFileºStrBuf(filename string, buf *core.Buffer) error {
-	err := ioutil.WriteFile(filename, buf.Data, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(filename, buf.Data, os.ModePerm)
 }
 
-// WriteFileºStrStr write a string to a file
+// WriteFileºStrStr writes a string to a file
 func WriteFileºStrStr(filename, in string) error {
-	err := ioutil.WriteFile(filename, []byte(in), os.ModePerm)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(filename, []byte(in), os.ModePerm)
 }

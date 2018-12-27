@@ -18,7 +18,7 @@ func InitConsole(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
 		Print,      // Print()
 		Println,    // Println()
-		ReadString, // ReadString() str
+		ReadString, // ReadString(str) str
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -37,11 +37,11 @@ func Println(pars ...interface{}) (int64, error) {
 }
 
 // ReadString reads a string from standard input.
-func ReadString(text string) string {
+func ReadString(text string) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	if len(text) > 0 {
 		fmt.Print(text)
 	}
-	ret, _ := reader.ReadString('\n')
-	return strings.TrimSpace(ret)
+	ret, err := reader.ReadString('\n')
+	return strings.TrimSpace(ret), err
 }

@@ -1,4 +1,18 @@
 run str {
+    str data = `TEST`
+    str temp = TempDir(``, `gentee_test`)
+    str src = temp + `/src.txt`
+    str dest = temp + `/dest.txt`
+    WriteFile(src, `TEST`)
+    int count = CopyFile(src, dest)
+    AppendFile(dest, data)
+    AppendFile(dest, buf(data))
+    data = ReadFile(dest)
+    RemoveDir(temp)
+    return data
+}
+===== TESTTESTTEST
+run str {
     str temp = TempDir(``, `gentee_test`)
     str fname = temp + `/тест file.bin`
     WriteFile(fname, `TEST`)
