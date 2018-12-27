@@ -145,6 +145,64 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 		cmdStack := cmd.(*CmdBlock)
 		lenStack := len(rt.Stack)
 		switch cmd.(*CmdBlock).ID {
+		case StackSwitch:
+			if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+				return err
+			}
+			original := rt.Stack[len(rt.Stack)-1]
+			rt.Stack = rt.Stack[:len(rt.Stack)-1]
+			var (
+				done bool
+				def  ICmd
+			)
+			for i := 1; i < len(cmdStack.Children); i++ {
+				caseStack := cmdStack.Children[i].(*CmdBlock)
+				if caseStack.ID == StackDefault {
+					def = caseStack
+					break
+				}
+				for j := 0; j < len(caseStack.Children)-1; j++ {
+					if err = rt.runCmd(caseStack.Children[j]); err != nil {
+						return err
+					}
+					val := rt.Stack[len(rt.Stack)-1]
+					rt.Stack = rt.Stack[:len(rt.Stack)-1]
+					var equal bool
+					switch v := original.(type) {
+					case int64:
+						equal = v == val.(int64)
+					case rune:
+						equal = v == val.(rune)
+					case bool:
+						equal = v == val.(bool)
+					case string:
+						equal = v == val.(string)
+					case float64:
+						equal = v == val.(float64)
+					}
+					if equal {
+						if err = rt.runCmd(caseStack.Children[len(caseStack.Children)-1]); err != nil {
+							return err
+						}
+						done = true
+						if rt.Command == RcBreak {
+							rt.Command = 0
+						}
+						break
+					}
+				}
+				if done {
+					break
+				}
+			}
+			if !done && def != nil {
+				if err = rt.runCmd(def); err != nil {
+					return err
+				}
+				if rt.Command == RcBreak {
+					rt.Command = 0
+				}
+			}
 		case StackNew:
 			switch cmd.(*CmdBlock).Result.Original {
 			case reflect.TypeOf(Array{}):
@@ -369,7 +427,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				}
 			}
 			deleteVars(rt)
-		case StackBlock:
+		case StackBlock, StackDefault:
 			rt.Result = nil
 			lenStack -= initVars(rt, cmdStack)
 			for _, item := range cmdStack.Children {

@@ -86,7 +86,10 @@ const (
 	tkStruct
 	tkBreak
 	tkContinue
-	tkDefault // is used for preCompileTable
+	tkSwitch
+	tkCase
+	tkDefault
+	tkToken // is used for preCompileTable
 )
 
 // Flags

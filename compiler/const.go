@@ -31,7 +31,7 @@ func coConstEnumBack(cmpl *compiler) error {
 		owner := cmpl.curOwner()
 		cmpl.expConst = owner.Children[0]
 		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-		cmpl.dynamic = &cmState{tkDefault, cmConstListStart, nil, nil, 0}
+		cmpl.dynamic = &cmState{tkToken, cmConstListStart, nil, nil, 0}
 	} else { // const finishes
 		cmpl.curIota = core.NotIota
 	}

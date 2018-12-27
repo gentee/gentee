@@ -129,6 +129,10 @@ const (
 	ErrContinue
 	// ErrNotRPar is returned when the compiler gets unexpected token instead of )
 	ErrNotRPar
+	// ErrNotCase is returned if case missing after switch
+	ErrNotCase
+	// ErrSwitchType means that type of switch statement is wrong
+	ErrSwitchType
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -206,6 +210,8 @@ var (
 		ErrBreak:          `break can only be inside while or for`,
 		ErrContinue:       `continue can only be inside while or for`,
 		ErrNotRPar:        `unexpected token, expecting ')'`,
+		ErrNotCase:        `unexpected token, expecting 'case'`,
+		ErrSwitchType:     `wrong type %s for switch, expecting int, float, bool, char or str`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

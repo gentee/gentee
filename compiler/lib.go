@@ -20,6 +20,19 @@ func isIntResult(cmd core.ICmd) bool {
 	return cmd.GetResult().GetName() == `int`
 }
 
+func isBaseResult(cmd core.ICmd) bool {
+	switch cmd.GetResult().GetName() {
+	case `int`, `bool`, `float`, `char`, `str`:
+		return true
+	}
+	return false
+}
+
+func isCase(cmpl *compiler) bool {
+	parent := cmpl.owners[len(cmpl.owners)-1]
+	return parent.GetType() == core.CtStack && parent.(*core.CmdBlock).ID == core.StackCase
+}
+
 func isIndexResult(cmd core.ICmd) bool {
 	return cmd.GetResult().IndexOf != nil
 }

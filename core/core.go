@@ -46,6 +46,12 @@ const (
 	StackIf
 	// StackWhile is the while statement
 	StackWhile
+	// StackSwitch is the switch statement
+	StackSwitch
+	// StackCase is the case statement
+	StackCase
+	// StackDefault is the default statement of switch
+	StackDefault
 	// StackAssign is an assign operator
 	StackAssign
 	// StackAnd is a logical AND

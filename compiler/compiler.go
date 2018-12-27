@@ -58,35 +58,35 @@ var (
 	priority = map[int]Priority{
 		tkRange: {3, true, `NewRange`},
 		//		tkColon:        {4, true, `NewKeyValue`},
-		tkAssign:       {5, true, `Assign`},
-		tkAddEq:        {5, true, `AssignAdd`},
-		tkSubEq:        {5, true, `AssignSub`},
-		tkMulEq:        {5, true, `AssignMul`},
-		tkDivEq:        {5, true, `AssignDiv`},
-		tkModEq:        {5, true, `AssignMod`},
-		tkLShiftEq:     {5, true, `AssignLShift`},
-		tkRShiftEq:     {5, true, `AssignRShift`},
-		tkBitAndEq:     {5, true, `AssignBitAnd`},
-		tkBitOrEq:      {5, true, `AssignBitOr`},
-		tkBitXorEq:     {5, true, `AssignBitXor`},
-		tkAnd:          {7, false, ``},
-		tkOr:           {8, false, ``},
-		tkEqual:        {10, false, `Equal`},
-		tkNotEqual:     {10, false, `Equal`},
-		tkLess:         {10, false, `Less`},
-		tkLessEqual:    {10, false, `Greater`},
-		tkGreater:      {10, false, `Greater`},
-		tkGreaterEqual: {10, false, `Less`},
-		tkBitOr:        {11, false, `BitOr`},
-		tkBitXor:       {12, false, `BitXor`},
-		tkBitAnd:       {13, false, `BitAnd`},
-		tkLShift:       {14, false, `LShift`},
-		tkRShift:       {14, false, `RShift`},
-		tkAdd:          {15, false, `Add`},
-		tkSub:          {15, false, `Sub`},
-		tkDiv:          {20, false, `Div`},
-		tkMod:          {20, false, `Mod`},
-		tkMul:          {20, false, `Mul`},
+		tkAssign:                 {5, true, `Assign`},
+		tkAddEq:                  {5, true, `AssignAdd`},
+		tkSubEq:                  {5, true, `AssignSub`},
+		tkMulEq:                  {5, true, `AssignMul`},
+		tkDivEq:                  {5, true, `AssignDiv`},
+		tkModEq:                  {5, true, `AssignMod`},
+		tkLShiftEq:               {5, true, `AssignLShift`},
+		tkRShiftEq:               {5, true, `AssignRShift`},
+		tkBitAndEq:               {5, true, `AssignBitAnd`},
+		tkBitOrEq:                {5, true, `AssignBitOr`},
+		tkBitXorEq:               {5, true, `AssignBitXor`},
+		tkAnd:                    {7, false, ``},
+		tkOr:                     {8, false, ``},
+		tkEqual:                  {10, false, `Equal`},
+		tkNotEqual:               {10, false, `Equal`},
+		tkLess:                   {10, false, `Less`},
+		tkLessEqual:              {10, false, `Greater`},
+		tkGreater:                {10, false, `Greater`},
+		tkGreaterEqual:           {10, false, `Less`},
+		tkBitOr:                  {11, false, `BitOr`},
+		tkBitXor:                 {12, false, `BitXor`},
+		tkBitAnd:                 {13, false, `BitAnd`},
+		tkLShift:                 {14, false, `LShift`},
+		tkRShift:                 {14, false, `RShift`},
+		tkAdd:                    {15, false, `Add`},
+		tkSub:                    {15, false, `Sub`},
+		tkDiv:                    {20, false, `Div`},
+		tkMod:                    {20, false, `Mod`},
+		tkMul:                    {20, false, `Mul`},
 		tkInc | tkUnary | tkPost: {29, false, ``},
 		tkDec | tkUnary | tkPost: {29, false, ``},
 		tkBitNot | tkUnary:       {30, true, `BitNot`},
@@ -500,11 +500,12 @@ func coExpEnv(cmpl *compiler) error {
 	return nil
 }
 
-func isInLoop(cmpl *compiler) bool {
+func isInLoop(cmpl *compiler, incase bool) bool {
 	for _, item := range cmpl.owners {
 		if item.GetType() == core.CtStack {
 			id := item.(*core.CmdBlock).ID
-			if id == core.StackWhile || id == core.StackFor {
+			if id == core.StackWhile || id == core.StackFor ||
+				(incase && (id == core.StackCase || id == core.StackDefault)) {
 				return true
 			}
 		}
@@ -513,7 +514,7 @@ func isInLoop(cmpl *compiler) bool {
 }
 
 func coBreak(cmpl *compiler) error {
-	if !isInLoop(cmpl) {
+	if !isInLoop(cmpl, true) {
 		return cmpl.Error(ErrBreak)
 	}
 	appendCmd(cmpl, &core.CmdCommand{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
@@ -522,7 +523,7 @@ func coBreak(cmpl *compiler) error {
 }
 
 func coContinue(cmpl *compiler) error {
-	if !isInLoop(cmpl) {
+	if !isInLoop(cmpl, false) {
 		return cmpl.Error(ErrContinue)
 	}
 	appendCmd(cmpl, &core.CmdCommand{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},

@@ -1,3 +1,54 @@
+run {
+  switch 1 
+  default {}
+}
+===== [3:3] unexpected token, expecting 'case'
+run {
+  switch 1 
+  case 2 {}
+  default {}
+  case 3 {}
+}
+===== [5:3] unexpected token, expecting value, identifier or calling func
+run {
+  switch 3.14
+  case 0.1, 0.2 + 0.3, `4.5` + `23` {
+  }
+}
+===== [3:30] wrong type, expecting float type
+run {
+  switch 'a'
+  case 10 {
+    false 
+  }
+}
+===== [3:8] wrong type, expecting char type
+run {
+  switch true 
+  case {
+    false 
+  }
+}
+===== [3:8] unexpected token, expecting expression or statement
+run {
+  arr myarr
+  switch myarr  
+  case myarr {}
+}
+===== [3:10] wrong type arr.str for switch, expecting int, float, bool, char or str
+run {
+  switch true 
+  case false 
+}
+===== [4:1] unexpected token, expecting {
+run {
+  switch true {}
+}
+===== [2:15] unexpected token, expecting 'case'
+run {
+  switch {}
+}
+===== [2:10] unexpected token, expecting expression or statement
 run str {
   str 10
 }

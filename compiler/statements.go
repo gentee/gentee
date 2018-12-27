@@ -199,3 +199,71 @@ func coForBack(cmpl *compiler) error {
 	}
 	return nil
 }
+
+func coSwitch(cmpl *compiler) error {
+	coExpStart(cmpl)
+	cmd := core.CmdBlock{ID: core.StackSwitch, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+	appendCmd(cmpl, &cmd)
+	cmpl.owners = append(cmpl.owners, &cmd)
+	return nil
+}
+
+func coSwitchBack(cmpl *compiler) error {
+	cmd := cmpl.curOwner()
+	if cmd.ID == core.StackSwitch {
+		if len(cmd.Children) == 1 {
+			if !isBaseResult(cmd.Children[0]) {
+				return cmpl.ErrorPos(cmd.Children[0].GetToken(), ErrSwitchType,
+					cmd.Children[0].GetResult().GetName())
+			}
+			cmpl.dynamic = &cmState{tkCase, cmCaseMust, nil, nil, 0}
+		} else {
+			cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+		}
+	}
+	return nil
+}
+
+func coCase(cmpl *compiler) error {
+	coExpStart(cmpl)
+	cmd := core.CmdBlock{ID: core.StackCase, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+	appendCmd(cmpl, &cmd)
+	cmpl.owners = append(cmpl.owners, &cmd)
+	return nil
+}
+
+func coCaseBack(cmpl *compiler) error {
+	cmd := cmpl.curOwner()
+	if cmd.ID == core.StackCase {
+		if len(cmd.Children) >= 1 {
+			switchType := cmd.Parent.Children[0].GetResult()
+			for _, cmdExp := range cmd.Children {
+				if switchType != cmdExp.GetResult() {
+					return cmpl.ErrorPos(cmdExp.GetToken(), ErrWrongType,
+						switchType.GetName())
+
+				}
+			}
+			cmdIf := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
+				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+			cmd.Children = append(cmd.Children, &cmdIf)
+			cmpl.owners = append(cmpl.owners, &cmdIf)
+			cmpl.dynamic = &cmState{tkLCurly, cmLCurly, nil, nil, 0}
+		}
+	} else {
+		cmpl.owners = cmpl.owners[:len(cmpl.owners)-2]
+	}
+	return nil
+}
+
+func coDefault(cmpl *compiler) error {
+	cmd := core.CmdBlock{ID: core.StackDefault, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+	appendCmd(cmpl, &cmd)
+	cmpl.owners = append(cmpl.owners, &cmd)
+	return nil
+}
+
+func coDefaultBack(cmpl *compiler) error {
+	cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+	return nil
+}

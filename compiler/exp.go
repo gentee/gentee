@@ -152,7 +152,7 @@ func coExpEnd(cmpl *compiler) error {
 		}
 	}
 	init := isInState(cmpl, cmInit, 0)
-	if len(cmpl.exp) > 1 && !init {
+	if len(cmpl.exp) > 1 && !init && !isCase(cmpl) {
 		return cmpl.Error(ErrCompiler, `coExpEnd`)
 	}
 	for len(cmpl.exp) > 0 {
@@ -477,6 +477,14 @@ func coCallFunc(cmpl *compiler) error {
 }
 
 func coComma(cmpl *compiler) error {
+	if isCase(cmpl) {
+		for len(cmpl.expbuf) > 0 {
+			if err := popBuf(cmpl); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 	for len(cmpl.expbuf) > 0 && cmpl.expbuf[len(cmpl.expbuf)-1].Oper != tkLPar {
 		if err := popBuf(cmpl); err != nil {
 			return err

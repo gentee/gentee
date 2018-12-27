@@ -1,3 +1,70 @@
+run str {
+  str out = `*`
+  switch out 
+  case `1`, `2` { out += `-` }
+  case `*` {out += `@`
+    if true : break
+    out += `=`
+  }
+  case `*`, `*@` {out += `-`}
+  default {}
+  switch out 
+  case `*@` {}
+  return out
+}
+===== *@
+run int {
+  int i = 22
+  switch i 
+  case 21, 23, 0 { i*=100 }
+  default { 
+    while i < 50 {
+      i++
+      if i == 29 : break
+    } 
+    i += 1
+  }
+  return i
+}
+===== 30
+run int {
+  int i = 2
+  switch i*i 
+  case 20 { i /=2 } case 4 {i *=i }
+  return i
+}
+===== 4
+run int {
+  int i = 67
+  int j
+  switch i+3 
+  case 20,10,5 {
+    i +=10
+  } case j,20+ 50,80 {
+    i -=10
+  }
+  switch 'a' 
+  case 'c', 'b', 'a' : i += 100
+  return i
+}
+===== 157
+run int {
+  int i
+  while i < 5 {
+    i++
+    return 100
+  }
+  return i
+}
+===== 100
+run str {
+  switch true 
+  case true {
+    return `OK`
+  }
+  return `OOOPS`
+}
+===== OK
 run {
   int t = 10
   int(`10`)

@@ -83,6 +83,9 @@ var (
 		`true`:     tkTrue,
 		`const`:    tkConst,
 		`struct`:   tkStruct,
+		`switch`:   tkSwitch,
+		`case`:     tkCase,
+		`default`:  tkDefault,
 	}
 
 	charType [alphabet]int
