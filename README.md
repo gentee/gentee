@@ -2,8 +2,6 @@
 
 Gentee is a free open source script programming language. The Gentee programming language is designed to create scripts to automate repetitive actions and processes on your computer. If you use or plan to use .bat files, bash, PowerShell or special programs to automate actions, then try doing the same thing with Gentee. 
 
-At this moment, the language is **under construction** but it supports all the features described in the documentation.
-
 ## Documentation
 
 All documentation is available on [GitHub pages](https://github.com/gentee/gentee.github.io). It describes features that have already been realized.
@@ -12,9 +10,9 @@ All documentation is available on [GitHub pages](https://github.com/gentee/gente
 
 ## Download
 
-- [Linux amd64](https://github.com/gentee/gentee/releases/download/v1.0.0-beta.1/gentee-1.0.0-beta.1-linux-amd64.zip)
-- [Windows amd64](https://github.com/gentee/gentee/releases/download/v1.0.0-beta.1/gentee-1.0.0-beta.1-windows-amd64.zip)
-- [macOS amd64](https://github.com/gentee/gentee/releases/download/v1.0.0-beta.1/gentee-1.0.0-beta.1-darwin-amd64.zip)
+- [Linux amd64](https://github.com/gentee/gentee/releases/download/v1.0.0-beta.2/gentee-1.0.0-beta.2-linux-amd64.zip)
+- [Windows amd64](https://github.com/gentee/gentee/releases/download/v1.0.0-beta.2/gentee-1.0.0-beta.2-windows-amd64.zip)
+- [macOS amd64](https://github.com/gentee/gentee/releases/download/v1.0.0-beta.2/gentee-1.0.0-beta.2-darwin-amd64.zip)
 
 You can download other binary distributions for Linux, macOS, Windows [here](https://github.com/gentee/gentee/releases).
 
