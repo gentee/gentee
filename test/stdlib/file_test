@@ -1,3 +1,19 @@
+run arr {
+    str temp = TempDir(``, `gentee_test`)
+    str sub = temp + `/subdir`
+    CreateDir( sub )
+    WriteFile( sub + `/subfile.txt`, `TEST`)
+    WriteFile(temp + `/myfile.txt`, `TEST2`)
+    WriteFile(temp + `/тест`, `TEST21`)
+    arr.finfo fi = ReadDir(temp)
+    arr ret
+    for item in fi {
+        ret += `%{item.Name} %{item.Size}`
+    }
+    RemoveDir(temp)
+    return ret
+}
+===== [myfile.txt 5 subdir 4096 тест 6]
 run str {
     str data = `TEST`
     str temp = TempDir(``, `gentee_test`)

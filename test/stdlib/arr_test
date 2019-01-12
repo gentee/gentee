@@ -1,7 +1,5 @@
 run str {
   str ina = `те =string =ĠĠ`
-  arr tmp 
-  Split(ina, ` =`, tmp)
-  return Join(tmp, `®`)
+  return Join(Split(ina, ` =`), `®`)
 }
 ===== те®string®ĠĠ

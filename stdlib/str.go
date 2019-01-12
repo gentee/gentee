@@ -33,15 +33,20 @@ func InitStr(vm *core.VirtualMachine) {
 		FormatºStr,        // Format( str, ... ) str
 		HasPrefixºStrStr,  // HasPrefix( str, str ) bool
 		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
-		LinesºStrArr,      // Lines( str, arr )
 		LowerºStr,         // Lower( str ) str
 		ReplaceºStrStrStr, // Replace( str, str, str )
-		SplitºStrStrArr,   // Split( str, str, arr )
 		SubstrºStrIntInt,  // Substr( str, int, int ) str
 		TrimSpaceºStr,     // TrimSpace( str )
 		UpperºStr,         // Upper( str ) str
 	} {
 		vm.StdLib().NewEmbed(item)
+	}
+
+	for _, item := range []embedInfo{
+		{LinesºStr, `str`, `arr.str`},        // Lines( str ) arr
+		{SplitºStrStr, `str,str`, `arr.str`}, // Split( str, str ) arr
+	} {
+		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 
@@ -146,8 +151,9 @@ func HasSuffixºStrStr(s, suffix string) bool {
 	return strings.HasSuffix(s, suffix)
 }
 
-// LinesºStrArr splits a string to a array of strings
-func LinesºStrArr(in string, out *core.Array) *core.Array {
+// LinesºStr splits a string to a array of strings
+func LinesºStr(in string) *core.Array {
+	out := core.NewArray()
 	items := strings.Split(in, "\n")
 	for _, item := range items {
 		out.Data = append(out.Data, strings.Trim(item, "\r"))
@@ -165,8 +171,9 @@ func ReplaceºStrStrStr(in, old, new string) string {
 	return strings.Replace(in, old, new, -1)
 }
 
-// SplitºStrStrArr splits a string to a array of strings
-func SplitºStrStrArr(in, sep string, out *core.Array) *core.Array {
+// SplitºStrStr splits a string to a array of strings
+func SplitºStrStr(in, sep string) *core.Array {
+	out := core.NewArray()
 	items := strings.Split(in, sep)
 	for _, item := range items {
 		out.Data = append(out.Data, item)

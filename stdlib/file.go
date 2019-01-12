@@ -40,6 +40,7 @@ func InitFile(vm *core.VirtualMachine) {
 	}
 	for _, item := range []embedInfo{
 		{FileInfoºStr, `str`, `finfo`},        // FileInfo( str ) finfo
+		{ReadDirºStr, `str`, `arr.finfo`},     // ReadDir( str ) arr.finfo
 		{SetFileTimeºStrTime, `str,time`, ``}, // SetFileTime( str, time )
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
@@ -54,6 +55,15 @@ func appendFile(filename string, data []byte) error {
 	defer f.Close()
 	_, err = f.Write(data)
 	return err
+}
+
+func fromFileInfo(fileInfo os.FileInfo, finfo *core.Struct) *core.Struct {
+	finfo.Values[0] = fileInfo.Name()
+	finfo.Values[1] = fileInfo.Size()
+	finfo.Values[2] = fileInfo.Mode()
+	fromTime(finfo.Values[3].(*core.Struct), fileInfo.ModTime())
+	finfo.Values[4] = fileInfo.IsDir()
+	return finfo
 }
 
 // AppendFileºStrBuf appends a buffer to a file
@@ -108,12 +118,20 @@ func FileInfoºStr(rt *core.RunTime, name string) (*core.Struct, error) {
 	if err != nil {
 		return finfo, err
 	}
-	finfo.Values[0] = fileInfo.Name()
-	finfo.Values[1] = fileInfo.Size()
-	finfo.Values[2] = fileInfo.Mode()
-	fromTime(finfo.Values[3].(*core.Struct), fileInfo.ModTime())
-	finfo.Values[4] = fileInfo.IsDir()
-	return finfo, nil
+	return fromFileInfo(fileInfo, finfo), nil
+}
+
+// ReadDirºStr reads a directory
+func ReadDirºStr(rt *core.RunTime, dirname string) (*core.Array, error) {
+	ret := core.NewArray()
+	fileList, err := ioutil.ReadDir(dirname)
+	if err != nil {
+		return ret, err
+	}
+	for _, fileInfo := range fileList {
+		ret.Data = append(ret.Data, fromFileInfo(fileInfo, core.NewStructObj(rt, `finfo`)))
+	}
+	return ret, nil
 }
 
 // ReadFileºStr reads a file

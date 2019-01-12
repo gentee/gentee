@@ -185,10 +185,8 @@ three"
 }
 run str {
     str out = $ echo -av --exclude=".git" %{SRC} "test"
-    arr lines 
-    Lines(IN, lines)
     out = TrimSpace(out)
-    for s in lines : out += s
+    for s in Lines(IN) : out += s
     return out
 }
 ===== -av --exclude=".git" /home/test/ testonetwothree
