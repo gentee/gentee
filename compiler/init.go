@@ -184,9 +184,8 @@ func initStructEnd(cmpl *compiler) error {
 		)
 		if ind, ok = block.GetResult().Custom.Fields[fieldName]; !ok {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrWrongField, fieldName, block.GetResult().GetName())
-		} else {
-			item.(*core.CmdValue).Value = ind
 		}
+		item.(*core.CmdValue).Value = ind
 
 		cmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(item.GetToken())},
 			Object: obj, Result: obj.Result(), Left: item, Right: nil}

@@ -34,7 +34,9 @@ const (
 	cmStructFields   // struct fields
 	cmStructName     // struct the name of the field
 	cmCaseMust
-	cmCase // case after switch
+	cmCase        // case after switch
+	cmInclude     // include command
+	cmIncludeFile // include file
 
 	cmBack // go to back
 
@@ -62,6 +64,7 @@ var (
 			{tkConst, cmConst, nil, nil, cfStopBack},
 			{tkFunc, cmFunc, nil, coFuncBack, cfStopBack},
 			{tkStruct, cmStruct, nil, nil, cfStopBack},
+			{tkInclude, cmInclude, nil, nil, cfStopBack},
 		},
 		cmRun: {
 			{tkToken, ErrLCurly, coError, nil, 0},
@@ -241,6 +244,16 @@ var (
 			{tkCase, cmExp, coCase, coCaseBack, cfStopBack},
 			{tkDefault, cmLCurly, coDefault, coDefaultBack, 0},
 			{tkLine, 0, nil, nil, 0},
+		},
+		cmInclude: {
+			{tkToken, ErrLCurly, coError, nil, 0},
+			{tkLCurly, cmIncludeFile, nil, nil, 0},
+		},
+		cmIncludeFile: {
+			{tkToken, ErrString, coError, nil, 0},
+			{tkStr, 0, coInclude, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkRCurly, cmBack, nil, nil, 0},
 		},
 	}
 	compileTable [][tkToken]*cmState

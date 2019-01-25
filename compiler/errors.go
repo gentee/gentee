@@ -133,6 +133,12 @@ const (
 	ErrNotCase
 	// ErrSwitchType means that type of switch statement is wrong
 	ErrSwitchType
+	// ErrString is returned when expecting a string value
+	ErrString
+	// ErrIncludeFile is returned when an include file is incorrect
+	ErrIncludeFile
+	// ErrDupObject is returned when the duplicate object has been found in include or import
+	ErrDupObject
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -212,6 +218,9 @@ var (
 		ErrNotRPar:        `unexpected token, expecting ')'`,
 		ErrNotCase:        `unexpected token, expecting 'case'`,
 		ErrSwitchType:     `wrong type %s for switch, expecting int, float, bool, char or str`,
+		ErrString:         `unexpected token, expecting a string`,
+		ErrIncludeFile:    `can't read include file: %s`,
+		ErrDupObject:      `Duplicate of %s has been found after include/import`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

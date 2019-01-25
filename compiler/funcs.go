@@ -25,13 +25,13 @@ func newFunc(cmpl *compiler, name string) int {
 	}
 	funcObj.Block.Object = funcObj
 	cmpl.owners = []core.ICmd{&funcObj.Block}
-	cmpl.unit.Objects = append(cmpl.unit.Objects, funcObj)
+	ind := cmpl.appendObj(funcObj)
 	if curName := cmpl.unit.Names[name]; curName == nil {
 		cmpl.unit.Names[name] = funcObj
 	} else {
 		curName.SetNext(funcObj)
 	}
-	return len(cmpl.unit.Objects) - 1
+	return ind
 }
 
 func coRun(cmpl *compiler) error {
@@ -43,7 +43,7 @@ func coRun(cmpl *compiler) error {
 }
 
 func coRunBack(cmpl *compiler) error {
-	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
+	funcObj := cmpl.latestFunc()
 	if funcObj.Block.Result == nil {
 		return nil
 	}
@@ -80,13 +80,13 @@ func coRetType(cmpl *compiler) error {
 	if err != nil {
 		return err
 	}
-	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
+	funcObj := cmpl.latestFunc()
 	funcObj.Block.Result = obj.(*core.TypeObject)
 	return coFuncStart(cmpl)
 }
 
 func coFuncStart(cmpl *compiler) error {
-	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
+	funcObj := cmpl.latestFunc()
 	funcObj.Block.ParCount = len(funcObj.Block.Vars)
 	params := funcObj.GetParams()
 	if funcObj.Block.Variadic {
@@ -94,7 +94,7 @@ func coFuncStart(cmpl *compiler) error {
 		params = nil
 	}
 	if obj := getFunc(cmpl, funcObj.Name, params, true); obj != nil &&
-		obj != cmpl.unit.Objects[len(cmpl.unit.Objects)-1] {
+		obj != funcObj { // cmpl.latestFunc() {
 		if isVariadic(obj) {
 			return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
 				append(funcObj.GetParams(), nil))
@@ -182,7 +182,7 @@ func getOperator(cmpl *compiler, name string, left, right core.ICmd) (obj core.I
 }
 
 func coFuncBack(cmpl *compiler) error {
-	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
+	funcObj := cmpl.latestFunc()
 	if funcObj.Block.Result != nil {
 		if len(funcObj.Block.Children) == 0 {
 			return cmpl.Error(ErrMustReturn)

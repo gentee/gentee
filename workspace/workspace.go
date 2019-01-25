@@ -28,29 +28,31 @@ func New() *Workspace {
 }
 
 // Compile compiles the source code
-func (workspace *Workspace) Compile(input, path string) (*core.Unit, error) {
-	if err := compiler.Compile(workspace.VM, input, path); err != nil {
-		return nil, err
-	}
-	return workspace.VM.Units[workspace.VM.Compiled], nil
+func (workspace *Workspace) Compile(input, path string) (int, error) {
+	return compiler.Compile(workspace.VM, input, path)
 }
 
 // CompileFile compiles the source file
-func (workspace *Workspace) CompileFile(filename string) (*core.Unit, error) {
+func (workspace *Workspace) CompileFile(filename string) (int, error) {
 	absname, err := filepath.Abs(filename)
 	if err != nil {
-		return nil, err
+		return core.Undefined, err
 	}
 	input, err := ioutil.ReadFile(absname)
 	if err != nil {
-		return nil, err
+		return core.Undefined, err
 	}
 	return workspace.Compile(string(input), absname)
 }
 
+// Unit returns the unit structure by its index
+func (workspace *Workspace) Unit(unitID int) *core.Unit {
+	return workspace.VM.Units[unitID]
+}
+
 // Run executes the unit with specified name
-func (workspace *Workspace) Run(name string) (interface{}, error) {
-	return workspace.VM.Run(name)
+func (workspace *Workspace) Run(unitID int) (interface{}, error) {
+	return workspace.VM.Run(unitID)
 }
 
 // Version returns th ecurrent version of the Gentee compiler

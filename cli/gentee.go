@@ -70,15 +70,15 @@ func main() {
 	for _, script := range files {
 		var (
 			result interface{}
-			unit   *core.Unit
+			unitID int
 		)
-		unit, err = workspace.CompileFile(script)
+		unitID, err = workspace.CompileFile(script)
 		isError(errCompile)
-		result, err = workspace.Run(unit.Name)
+		result, err = workspace.Run(unitID)
 		isError(errRun)
 		resultStr := fmt.Sprint(result)
 		if testMode {
-			for _, line := range strings.Split(unit.Lexeme[0].Header, "\n") {
+			for _, line := range strings.Split(workspace.Unit(unitID).Lexeme[0].Header, "\n") {
 				ret := regexp.MustCompile(`\s*result\s*=\s*(.*)$`).FindStringSubmatch(line)
 				if len(ret) == 2 {
 					if ret[1] == strings.TrimSpace(resultStr) {

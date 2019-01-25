@@ -31,6 +31,7 @@ type IObject interface {
 	GetParams() []*TypeObject
 	GetType() ObjectType
 	SetNext(IObject)
+	SetPub()
 }
 
 // Object contains infromation about any compiled object of the virtual machine
@@ -40,6 +41,7 @@ type Object struct {
 	Next  IObject // Next object with the same name
 	LexID int     // the identifier of source code in Lexeme of Unit
 	Unit  *Unit
+	Pub   bool // public object
 }
 
 // TypeObject contains information about the type
@@ -126,6 +128,11 @@ func (typeObj *TypeObject) GetParams() []*TypeObject {
 	return nil
 }
 
+// SetPub set Pub state
+func (typeObj *TypeObject) SetPub() {
+	typeObj.Pub = true
+}
+
 // GetName returns the name of the object
 func (funcObj *FuncObject) GetName() string {
 	return funcObj.Name
@@ -165,6 +172,11 @@ func (funcObj *FuncObject) GetParams() []*TypeObject {
 	return funcObj.Block.Vars[:funcObj.Block.ParCount]
 }
 
+// SetPub set Pub state
+func (funcObj *FuncObject) SetPub() {
+	funcObj.Pub = true
+}
+
 // GetName returns the name of the object
 func (embedObj *EmbedObject) GetName() string {
 	return embedObj.Name
@@ -202,6 +214,11 @@ func (embedObj *EmbedObject) Result() *TypeObject {
 // GetParams returns the slice of parameters
 func (embedObj *EmbedObject) GetParams() []*TypeObject {
 	return embedObj.Params
+}
+
+// SetPub set Pub state
+func (embedObj *EmbedObject) SetPub() {
+	embedObj.Pub = true
 }
 
 // GetName returns the name of the object
@@ -244,8 +261,20 @@ func (constObj *ConstObject) GetParams() []*TypeObject {
 	return nil
 }
 
+// SetPub set Pub state
+func (constObj *ConstObject) SetPub() {
+	constObj.Pub = true
+}
+
 // NewObject adds a new IObject to Unit
 func (unit *Unit) NewObject(obj IObject) IObject {
+	if unit.Pub > 0 {
+		obj.SetPub()
+		if unit.Pub == PubOne {
+			unit.Pub = 0
+		}
+	}
+	unit.VM.Objects = append(unit.VM.Objects, obj)
 	name := obj.GetName()
 	if curName := unit.Names[name]; curName == nil {
 		unit.Names[name] = obj
@@ -266,5 +295,11 @@ func (unit *Unit) NewType(name string, original reflect.Type, indexOf IObject) I
 	if indexOf != nil {
 		typeObject.IndexOf = indexOf.(*TypeObject)
 	}
-	return unit.NewObject(&typeObject)
+	unit.NewObject(&typeObject)
+	ind := uint32(len(unit.VM.Objects) - 1)
+	if typeObject.Pub {
+		ind |= NSPub
+	}
+	unit.NSpace[npType+name] = ind
+	return &typeObject
 }

@@ -8,53 +8,54 @@ import (
 	"reflect"
 )
 
+// VirtualMachine contains information of compiled source code
+type VirtualMachine struct {
+	Units     []*Unit
+	UnitNames map[string]int
+	Objects   []IObject
+	//	Included map[string]int // map of compiled files
+}
+
 const (
 	// DefName is the key name for stdlib
 	DefName = `stdlib`
+
+	// PubOne means the only next object is public
+	PubOne = 1
+	// PubAll means all objects are public
+	PubAll = 2
 )
 
-// VirtualMachine contains information of compiled source code
-type VirtualMachine struct {
-	Units    []*Unit
-	Names    map[string]int
-	Compiled int // the index of the latest compiled unit
-}
-
-// UnitType is used for types of runs or packages
-type UnitType int
-
-const (
-	// UnitPackage is a package
-	UnitPackage UnitType = iota + 1
-	// UnitRun is an executing module
-	UnitRun
-)
-
-// Unit is a common structure for Library and Run packages
+// Unit is a common structure for source code
 type Unit struct {
-	Type    UnitType
-	Objects []IObject
+	VM      *VirtualMachine
 	Names   map[string]IObject
-	Lexeme  []*Lex // The array of source code
-	RunID   int    // The index of run function. Undefined (-1) - run has not yet been defined
-	Name    string // The name of the unit
+	NSpace  map[string]uint32   // name space of the unit
+	NCustom map[string][]uint32 // space name of variadic and not strict parameters func
+	Lexeme  []*Lex              // The array of source code
+	RunID   int                 // The index of run function. Undefined (-1) - run has not yet been defined
+	Name    string              // The name of the unit
+	Pub     int                 // Public mode
 }
 
 // NewVM returns a new virtual machine
 func NewVM() *VirtualMachine {
 	vm := VirtualMachine{
-		Names: make(map[string]int),
-		Units: make([]*Unit, 0, 32),
+		UnitNames: make(map[string]int),
+		Units:     make([]*Unit, 0, 32),
+		Objects:   make([]IObject, 0, 500),
 	}
 	return &vm
 }
 
 // InitUnit initialize a unit structure
-func InitUnit(unitType UnitType) *Unit {
+func (vm *VirtualMachine) InitUnit() *Unit {
 	return &Unit{
-		Type:    unitType,
-		Objects: make([]IObject, 0),
+		VM:      vm,
+		RunID:   Undefined,
 		Names:   make(map[string]IObject),
+		NSpace:  make(map[string]uint32),
+		NCustom: make(map[string][]uint32),
 	}
 }
 
@@ -93,22 +94,25 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 
 // StdLib returns the pointer to Standard Library Unit
 func (vm *VirtualMachine) StdLib() *Unit {
-	return vm.Units[vm.Names[DefName]]
+	return vm.Unit(DefName)
 }
 
 // Unit returns the pointer to Unit by its name
 func (vm *VirtualMachine) Unit(name string) *Unit {
-	return vm.Units[vm.Names[name]]
+	return vm.Units[vm.UnitNames[name]]
 }
 
 // Run executes run block
-func (vm *VirtualMachine) Run(name string) (interface{}, error) {
+func (vm *VirtualMachine) Run(unitID int) (interface{}, error) {
 	rt := newRunTime(vm)
-	unit := vm.Unit(name)
-	if unit == nil || unit.Type == UnitPackage {
+	if unitID < 0 || unitID >= len(vm.Units) {
 		return nil, runtimeError(rt, nil, ErrRunIndex)
 	}
-	funcRun := unit.Objects[unit.RunID].(*FuncObject)
+	unit := vm.Units[unitID]
+	if unit.RunID == Undefined {
+		return nil, runtimeError(rt, nil, ErrNotRun)
+	}
+	funcRun := vm.Objects[unit.RunID].(*FuncObject)
 	if err := rt.runCmd(&funcRun.Block); err != nil {
 		return nil, err
 	}

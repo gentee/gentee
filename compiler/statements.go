@@ -18,7 +18,7 @@ func coReturn(cmpl *compiler) error {
 
 func coReturnBack(cmpl *compiler) error {
 	owner := cmpl.curOwner()
-	funcObj := cmpl.unit.Objects[len(cmpl.unit.Objects)-1].(*core.FuncObject)
+	funcObj := cmpl.latestFunc()
 	switch len(owner.Children) {
 	case 0:
 		if funcObj.Block.Result != nil {

@@ -34,30 +34,23 @@ func InitTypes(vm *core.VirtualMachine) {
 		{`struct`, typeStruct, ``},
 		// arr* is for embedded array funcs. It means array of any type
 		{`arr*`, typeArr, ``},
-		{`arr`, typeArr, `str`},
-		{`arr`, typeArr, `int`},
-		{`arr`, typeArr, `bool`},
+		{`arr.str`, typeArr, `str`},
+		{`arr.int`, typeArr, `int`},
+		{`arr.bool`, typeArr, `bool`},
 		// map* is for embedded map funcs. It means map of any type
 		{`map*`, typeMap, ``},
-		{`map`, typeMap, `str`},
-		{`map`, typeMap, `int`},
-		{`map`, typeMap, `bool`},
+		{`map.str`, typeMap, `str`},
+		{`map.int`, typeMap, `int`},
+		{`map.bool`, typeMap, `bool`},
 	} {
-		var indexOf core.IObject //*core.TypeObject
+		var indexOf core.IObject
 		if len(item.index) > 0 {
-			indexOf = vm.StdLib().Names[item.index]
+			indexOf = vm.StdLib().FindType(item.index)
 		}
 		vm.StdLib().NewType(item.name, item.original, indexOf)
 	}
 	defType := func(name string, original reflect.Type) {
-		typeObject := core.TypeObject{
-			Object: core.Object{
-				Name: name,
-			},
-			Original: original,
-		}
-		vm.StdLib().NewObject(&typeObject)
-		typeObject.IndexOf = vm.StdLib().Names[`str`].(*core.TypeObject)
+		vm.StdLib().NewType(name, original, vm.StdLib().FindType(`str`))
 	}
 	defType(`arr`, typeArr)
 	defType(`map`, typeMap)

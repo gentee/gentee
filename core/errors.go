@@ -43,6 +43,8 @@ const (
 	ErrByteOut
 	// ErrInvalidParam is returned when the function gets invalid parameter(s)
 	ErrInvalidParam
+	// ErrNotRun is returned when the executing unit doesn't have run function
+	ErrNotRun
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -67,6 +69,9 @@ type RuntimeError struct {
 }
 
 func (re *RuntimeError) Error() string {
+	if len(re.Trace) == 0 {
+		return re.Message
+	}
 	si := re.Trace[len(re.Trace)-1]
 	return ErrFormat(si.Path, si.Line, si.Pos, re.Message)
 }
@@ -88,6 +93,7 @@ var (
 		ErrUndefined:    `undefined value`,
 		ErrByteOut:      `byte value is out of range`,
 		ErrInvalidParam: `invalid value of parameter(s)`,
+		ErrNotRun:       `there is not run function`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

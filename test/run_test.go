@@ -57,7 +57,7 @@ func TestRun(t *testing.T) {
 			}
 
 			want := strings.TrimSpace(strings.TrimLeft(line, `=`))
-			unit, err := workspace.Compile(strings.Join(source, "\n"), ``)
+			unitID, err := workspace.Compile(strings.Join(source, "\n"), ``)
 			source = source[:0]
 			if err != nil && err.Error() != strings.TrimSpace(want) {
 				return testErr(err)
@@ -65,7 +65,7 @@ func TestRun(t *testing.T) {
 			if err != nil {
 				continue
 			}
-			result, err := workspace.Run(unit.Name)
+			result, err := workspace.Run(unitID)
 			if err == nil {
 				if err = getWant(result, want); err != nil {
 					return testErr(err)

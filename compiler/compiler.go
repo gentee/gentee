@@ -25,6 +25,7 @@ type compiler struct {
 	states   *[]StateStack
 	curType  *core.TypeObject // the current type of parameters or variables
 	curConst string
+	curFunc  int       // index of the latest func
 	expConst core.ICmd // expression for constants
 	curIota  int64     // current iota
 	inits    int       // initilization level mode
@@ -112,18 +113,28 @@ func (cmpl *compiler) curOwner() *core.CmdBlock {
 	return cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock)
 }
 
+func (cmpl *compiler) appendObj(obj core.IObject) (ret int) {
+	//	cmpl.unit.NewObject(obj)
+	cmpl.unit.VM.Objects = append(cmpl.unit.VM.Objects, obj)
+	ret = len(cmpl.vm.Objects) - 1
+	if obj.GetType() == core.ObjFunc {
+		cmpl.curFunc = ret
+	}
+	return
+}
+
+func (cmpl *compiler) latestFunc() *core.FuncObject {
+	return cmpl.vm.Objects[cmpl.curFunc].(*core.FuncObject)
+}
+
 // Compile compiles the source code
-func Compile(vm *core.VirtualMachine, input, path string) error {
+func Compile(vm *core.VirtualMachine, input, path string) (int, error) {
 
 	lp, errID := LexParsing([]rune(input))
 	lp.Path = path
 	cmpl := &compiler{
-		vm: vm,
-		unit: &core.Unit{
-			Objects: make([]core.IObject, 0),
-			Names:   make(map[string]core.IObject),
-			Lexeme:  []*core.Lex{lp},
-		},
+		vm:      vm,
+		unit:    vm.InitUnit(),
 		lexems:  []int{0}, // added lp in Lexeme
 		runID:   core.Undefined,
 		owners:  make([]core.ICmd, 0, 128),
@@ -131,12 +142,22 @@ func Compile(vm *core.VirtualMachine, input, path string) error {
 		expbuf:  make([]ExpBuf, 0, 128),
 		curIota: core.NotIota,
 	}
+	cmpl.unit.Lexeme = []*core.Lex{lp}
+	cmpl.CopyNameSpace(vm.StdLib(), true)
+
+	cmplError := func(err interface{}) (int, error) {
+		if v, ok := err.(int); ok {
+			err = cmpl.Error(v)
+		}
+		return core.Undefined, err.(error)
+	}
+
 	if len(lp.Tokens) == 0 {
-		return cmpl.Error(ErrEmptyCode)
+		return cmplError(ErrEmptyCode)
 	}
 	if errID != 0 {
 		cmpl.pos = len(lp.Tokens) - 1
-		return cmpl.Error(errID)
+		return cmplError(errID)
 	}
 
 	stackState := make([]StateStack, 0, 32)
@@ -145,7 +166,7 @@ main:
 	for i := 0; i < len(lp.Tokens); i++ {
 		if cmpl.inits == 0 && lp.Tokens[i].Type == tkColon {
 			if err := colonToLine(cmpl, i); err != nil {
-				return err
+				return cmplError(err)
 			}
 		}
 		cmpl.pos = i
@@ -175,7 +196,7 @@ main:
 		}
 		if cmpl.next.Func != nil {
 			if err := cmpl.next.Func(cmpl); err != nil {
-				return err
+				return cmplError(err)
 			}
 			if cmpl.newPos != 0 {
 				i = cmpl.newPos
@@ -197,7 +218,7 @@ main:
 		}
 		if cmpl.next.State == cmBack {
 			if len(stackState) == 0 {
-				return cmpl.Error(ErrCompiler, `Compile`)
+				return cmplError(cmpl.Error(ErrCompiler, `Compile`))
 			}
 			for len(stackState) > 0 {
 				prev := stackState[len(stackState)-1]
@@ -205,7 +226,7 @@ main:
 				if prev.Origin.Callback != nil {
 					cmpl.pos = prev.Pos
 					if err := prev.Origin.Callback(cmpl); err != nil {
-						return err
+						return cmplError(err)
 					}
 					if cmpl.dynamic != nil {
 						stackState = append(stackState, StateStack{Origin: cmpl.dynamic, Pos: i, State: state})
@@ -228,32 +249,28 @@ main:
 	}
 	if len(stackState) > 0 {
 		//		cmpl.pos = stackState[len(stackState)-1].Pos + 1
-		return cmpl.ErrorPos(len(lp.Tokens), ErrEnd)
+		return cmplError(cmpl.ErrorPos(len(lp.Tokens), ErrEnd))
 	}
 
 	if cmpl.runID != core.Undefined {
-		cmpl.unit.Type = core.UnitRun
 		cmpl.unit.RunID = cmpl.runID
 		if len(cmpl.unit.Name) == 0 {
 			cmpl.unit.Name = path
 		}
-		if unitIndex, ok := vm.Names[cmpl.unit.Name]; ok {
+		if unitIndex, ok := vm.UnitNames[cmpl.unit.Name]; ok {
 			if vm.Units[unitIndex].Lexeme[0].Path != path {
-				return cmpl.Error(ErrLink, cmpl.unit.Name)
+				return cmplError(cmpl.Error(ErrLink, cmpl.unit.Name))
 			}
-			vm.Units[unitIndex] = cmpl.unit
-			vm.Compiled = unitIndex
-		} else {
-			vm.Units = append(vm.Units, cmpl.unit)
-			vm.Compiled = len(vm.Units) - 1
-			vm.Names[cmpl.unit.Name] = vm.Compiled
 		}
-	} else {
-		cmpl.unit.Type = core.UnitPackage
-		// TODO: append to vm.Packages
+		/*				vm.Units[unitIndex] = cmpl.unit
+						vm.Compiled = unitIndex
+					} else {*/
 	}
+	vm.Units = append(vm.Units, cmpl.unit)
+	unitID := len(vm.Units) - 1
+	vm.UnitNames[cmpl.unit.Name] = unitID
 
-	return nil
+	return unitID, nil
 }
 
 func colonToLine(cmpl *compiler, i int) error {
@@ -289,6 +306,7 @@ func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
 		if right.Original != reflect.TypeOf(core.Array{}) {
 			return false
 		}
+		// compare for arr*
 		if left.IndexOf == nil || right.IndexOf == nil {
 			return true
 		}
@@ -298,6 +316,7 @@ func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
 		if right.Original != reflect.TypeOf(core.Map{}) {
 			return false
 		}
+		// compare for map*
 		if left.IndexOf == nil || right.IndexOf == nil {
 			return true
 		}
@@ -307,15 +326,16 @@ func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
 }
 
 func autoType(cmpl *compiler, name string) (obj core.IObject, err error) {
-	findType := func(src core.IObject) {
-		for obj = src; obj != nil && obj.GetType() != core.ObjType; {
-			obj = obj.GetNext()
+	/*	findType := func(src core.IObject) {
+			for obj = src; obj != nil && obj.GetType() != core.ObjType; {
+				obj = obj.GetNext()
+			}
 		}
-	}
-	findType(cmpl.unit.Names[name])
-	if obj == nil {
-		findType(cmpl.vm.StdLib().Names[name])
-	}
+		findType(cmpl.unit.Names[name])
+		if obj == nil {
+			findType(cmpl.vm.StdLib().Names[name])
+		}*/
+	obj = cmpl.unit.FindType(name)
 	if obj == nil {
 		ins := strings.SplitN(name, `.`, 2)
 		if len(ins) == 2 {

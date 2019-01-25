@@ -62,7 +62,7 @@ func coConstExpBack(cmpl *compiler) error {
 		return cmpl.ErrorPos(cmpl.pos-1, ErrConstDef, cmpl.curConst)
 	}
 
-	cmpl.unit.Objects = append(cmpl.unit.Objects, constObj)
+	cmpl.appendObj(constObj)
 	if curName := cmpl.unit.Names[cmpl.curConst]; curName == nil {
 		cmpl.unit.Names[cmpl.curConst] = constObj
 	} else {
@@ -88,7 +88,7 @@ func coConstList(cmpl *compiler) error {
 		Iota:      cmpl.curIota,
 	}
 	cmpl.curIota++
-	cmpl.unit.Objects = append(cmpl.unit.Objects, constObj)
+	cmpl.appendObj(constObj)
 	if findObj(cmpl, cmpl.curConst, core.ObjConst) {
 		return cmpl.Error(ErrConstDef, cmpl.curConst)
 	}

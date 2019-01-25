@@ -60,9 +60,7 @@ func coPush(cmpl *compiler) error {
 	case tkStr:
 		v = lp.Strings[lp.Tokens[cmpl.pos].Index]
 		if token[0] == '"' {
-			v, err = strconv.Unquote(`"` + strings.Replace(strings.Replace(v.(string),
-				"\n", `\n`, -1), "\r", `\r`, -1) + `"`)
-			if err != nil {
+			if v, err = unNewLine(v.(string)); err != nil {
 				return cmpl.Error(ErrDoubleQuotes)
 			}
 		}

@@ -10,8 +10,10 @@ import (
 
 // InitStdlib appends stdlib types and fucntions to the virtual machine
 func InitStdlib(vm *core.VirtualMachine) {
-	vm.Units = append(vm.Units, core.InitUnit(core.UnitPackage))
-	vm.Names[core.DefName] = len(vm.Units) - 1
+	stdlib := vm.InitUnit()
+	stdlib.Pub = core.PubAll
+	vm.Units = append(vm.Units, stdlib)
+	vm.UnitNames[core.DefName] = len(vm.Units) - 1
 	InitTypes(vm)
 	InitInt(vm)
 	InitFloat(vm)
@@ -30,8 +32,8 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitConsole(vm)
 	InitRuntime(vm)
 
-	vm.StdLib().NewConst(core.ConstDepth, int64(1000), true)
-	vm.StdLib().NewConst(core.ConstCycle, int64(16000000), true)
-	vm.StdLib().NewConst(core.ConstIota, int64(0), false)
-	vm.StdLib().NewConst(core.ConstVersion, core.Version, false)
+	stdlib.NewConst(core.ConstDepth, int64(1000), true)
+	stdlib.NewConst(core.ConstCycle, int64(16000000), true)
+	stdlib.NewConst(core.ConstIota, int64(0), false)
+	stdlib.NewConst(core.ConstVersion, core.Version, false)
 }

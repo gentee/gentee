@@ -85,6 +85,7 @@ var (
 		`struct`:   tkStruct,
 		`switch`:   tkSwitch,
 		`case`:     tkCase,
+		`include`:  tkInclude,
 		`default`:  tkDefault,
 	}
 

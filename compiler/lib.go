@@ -6,6 +6,8 @@ package compiler
 
 import (
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 	"unicode"
 
@@ -60,4 +62,9 @@ func randName() string {
 		b[i] = alpha[rand.Intn(length)]
 	}
 	return string(b)
+}
+
+func unNewLine(in string) (string, error) {
+	return strconv.Unquote(`"` + strings.Replace(strings.Replace(in, "\n", `\n`, -1),
+		"\r", `\r`, -1) + `"`)
 }

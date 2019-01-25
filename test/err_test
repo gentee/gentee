@@ -1,3 +1,17 @@
+func my() {
+}
+===== there is not run function
+include { "../filename" 
+===== [1:11] can't read include file: ../filename
+include { "" }
+===== [1:11] can't read include file:
+include { 
+===== [1:10] unexpected end of the source
+include { 
+   `${VAL} abc`}
+===== [2:4] can't read include file:
+include { abc}
+===== [1:11] unexpected token, expecting a string
 run {
   switch 1 
   default {}
