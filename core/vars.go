@@ -122,7 +122,7 @@ func NewStruct(ptype *TypeObject) *Struct {
 
 // NewStructObj creates a stdlib struct object
 func NewStructObj(rt *RunTime, name string) *Struct {
-	return NewStruct(rt.VM.StdLib().Names[name].(*TypeObject))
+	return NewStruct(rt.VM.StdLib().FindType(name).(*TypeObject))
 }
 
 // String interface for Struct

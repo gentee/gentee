@@ -37,7 +37,7 @@ func errorºIntStr(code int64, text string, pars ...interface{}) error {
 // TraceºTrace gets trace information
 func TraceºTrace(rt *core.RunTime, it *core.Array) *core.Array {
 	for _, item := range core.GetTrace(rt, nil) {
-		trace := core.NewStruct(rt.VM.StdLib().Names[`trace`].(*core.TypeObject))
+		trace := core.NewStruct(rt.VM.StdLib().FindType(`trace`).(*core.TypeObject))
 		trace.Values[0] = item.Path
 		trace.Values[1] = item.Entry
 		trace.Values[2] = item.Func

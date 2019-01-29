@@ -25,21 +25,17 @@ const (
 // IObject describes interface for all objects
 type IObject interface {
 	GetName() string
-	GetNext() IObject
 	Result() *TypeObject
 	GetLex() *Lex
 	GetParams() []*TypeObject
 	GetType() ObjectType
-	SetNext(IObject)
 	SetPub()
 }
 
 // Object contains infromation about any compiled object of the virtual machine
 type Object struct {
-	//	Type  ObjectType
 	Name  string
-	Next  IObject // Next object with the same name
-	LexID int     // the identifier of source code in Lexeme of Unit
+	LexID int // the identifier of source code in Lexeme of Unit
 	Unit  *Unit
 	Pub   bool // public object
 }
@@ -103,21 +99,6 @@ func (typeObj *TypeObject) GetType() ObjectType {
 	return ObjType
 }
 
-// SetNext sets the next with the same name
-func (typeObj *TypeObject) SetNext(next IObject) {
-	if typeObj.Next == nil {
-		typeObj.Next = next
-	} else {
-		typeObj.Next.SetNext(next)
-	}
-
-}
-
-// GetNext returns the next object with the same name
-func (typeObj *TypeObject) GetNext() IObject {
-	return typeObj.Next
-}
-
 // Result returns the type of the result
 func (typeObj *TypeObject) Result() *TypeObject {
 	return nil
@@ -146,20 +127,6 @@ func (funcObj *FuncObject) GetLex() *Lex {
 // GetType returns ObjFunc
 func (funcObj *FuncObject) GetType() ObjectType {
 	return ObjFunc
-}
-
-// SetNext sets the next with the same name
-func (funcObj *FuncObject) SetNext(next IObject) {
-	if funcObj.Next == nil {
-		funcObj.Next = next
-	} else {
-		funcObj.Next.SetNext(next)
-	}
-}
-
-// GetNext returns the next object with the same name
-func (funcObj *FuncObject) GetNext() IObject {
-	return funcObj.Next
 }
 
 // Result returns the type of the result
@@ -192,20 +159,6 @@ func (embedObj *EmbedObject) GetType() ObjectType {
 	return ObjEmbedded
 }
 
-// SetNext sets the next with the same name
-func (embedObj *EmbedObject) SetNext(next IObject) {
-	if embedObj.Next == nil {
-		embedObj.Next = next
-	} else {
-		embedObj.Next.SetNext(next)
-	}
-}
-
-// GetNext returns the next object with the same name
-func (embedObj *EmbedObject) GetNext() IObject {
-	return embedObj.Next
-}
-
 // Result returns the type of the result
 func (embedObj *EmbedObject) Result() *TypeObject {
 	return embedObj.Return
@@ -236,21 +189,6 @@ func (constObj *ConstObject) GetType() ObjectType {
 	return ObjConst
 }
 
-// SetNext sets the next with the same name
-func (constObj *ConstObject) SetNext(next IObject) {
-	if constObj.Next == nil {
-		constObj.Next = next
-	} else {
-		constObj.Next.SetNext(next)
-	}
-
-}
-
-// GetNext returns the next object with the same name
-func (constObj *ConstObject) GetNext() IObject {
-	return constObj.Next
-}
-
 // Result returns the type of the result
 func (constObj *ConstObject) Result() *TypeObject {
 	return constObj.Return
@@ -275,12 +213,6 @@ func (unit *Unit) NewObject(obj IObject) IObject {
 		}
 	}
 	unit.VM.Objects = append(unit.VM.Objects, obj)
-	name := obj.GetName()
-	if curName := unit.Names[name]; curName == nil {
-		unit.Names[name] = obj
-	} else {
-		curName.SetNext(obj)
-	}
 	return obj
 }
 

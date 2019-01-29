@@ -28,7 +28,7 @@ const (
 // NewConst adds a new ConstObject to Unit
 func (unit *Unit) NewConst(name string, value interface{}, redefined bool) {
 	result := unit.TypeByGoType(reflect.TypeOf(value))
-	unit.NewObject(&ConstObject{
+	obj := &ConstObject{
 		Object: Object{
 			Name: name,
 			Unit: unit,
@@ -40,5 +40,11 @@ func (unit *Unit) NewConst(name string, value interface{}, redefined bool) {
 		},
 		Return: result,
 		Iota:   NotIota,
-	})
+	}
+	unit.NewObject(obj)
+	ind := uint32(len(unit.VM.Objects) - 1)
+	if obj.Pub {
+		ind |= NSPub
+	}
+	unit.NSpace[npConst+name] = ind
 }

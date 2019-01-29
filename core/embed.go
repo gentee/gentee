@@ -12,11 +12,15 @@ import (
 
 const (
 	// DefAssignIntInt equals int = int
-	DefAssignIntInt = `AssignºIntInt`
+	DefAssignIntInt = `#Assign#int#int`
 	// DefAssignStructStruct equals struct = struct
 	DefAssignStructStruct = `AssignºStructStruct`
 	// DefNewKeyValue returns a pair of key value
 	DefNewKeyValue = `NewKeyValue`
+	// DefSetEnv sets an environment variable
+	DefSetEnv = `SetEnv`
+	// DefGetEnv returns an environment variable
+	DefGetEnv = `GetEnv`
 )
 
 var (
@@ -24,12 +28,14 @@ var (
 		DefAssignIntInt:       true,
 		DefAssignStructStruct: true,
 		DefNewKeyValue:        true,
+		DefSetEnv:             true,
+		DefGetEnv:             true,
 	}
 )
 
 // NewEmbedTypes adds a new EmbedObject to Unit with types
 func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
-	var variadic, isRuntime bool
+	var variadic, isRuntime, isCustom bool
 
 	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
 	name = name[strings.LastIndexByte(name, '.')+1:]
@@ -58,7 +64,12 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 			}
 		}
 	}
-	obj := unit.NewObject(&EmbedObject{
+	if inCount = len(inTypes) - 1; inCount >= 0 {
+		isCustom = inTypes[inCount] == unit.FindType(`arr*`).(*TypeObject) ||
+			inTypes[inCount] == unit.FindType(`map*`).(*TypeObject)
+	}
+	/*obj :=*/
+	unit.NewObject(&EmbedObject{
 		Object: Object{
 			Name: name,
 			Unit: unit,
@@ -69,8 +80,15 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 		Variadic: variadic,
 		Runtime:  isRuntime,
 	})
+	ind := len(unit.VM.Objects) - 1
 	if defFuncs[originalName] {
-		unit.Names[originalName] = obj
+		unit.NSpace[originalName] = uint32(ind) | NSPub
+		return
+	}
+	if variadic || isCustom {
+		unit.AddCustom(ind, name, true)
+	} else {
+		unit.AddFunc(ind, name, inTypes, true)
 	}
 }
 
@@ -99,10 +117,7 @@ func (unit *Unit) NewEmbedExt(Func interface{}, in string, out string) {
 // NameToType searches the type by its name. It accepts names like name.name.name.
 // It creates a new type if it absents.
 func (unit *Unit) NameToType(name string) IObject {
-	obj := unit.Names[name]
-	for obj != nil && obj.GetType() != ObjType {
-		obj = obj.GetNext()
-	}
+	obj := unit.FindType(name)
 	if obj == nil {
 		ins := strings.SplitN(name, `.`, 2)
 		if len(ins) == 2 {

@@ -48,7 +48,6 @@ const (
 	tkMod                      // %
 	tkLShift                   // <<
 	tkRShift                   // >>
-	tkBitNot                   // ~
 	tkAddEq                    // +=
 	tkSubEq                    // -=
 	tkMulEq                    // *=
@@ -131,7 +130,6 @@ var (
 		`%`:   tkMod,
 		`<<`:  tkLShift,
 		`>>`:  tkRShift,
-		`~`:   tkBitNot,
 		`+=`:  tkAddEq,
 		`-=`:  tkSubEq,
 		`*=`:  tkMulEq,

@@ -1,3 +1,24 @@
+func var(int i) int { return i*2 }
+func var(int i, int pars...) int {
+  int ret
+  for k in pars : ret += k
+  return ret * i
+}
+run int {
+  return var(5) + var(3,1,2,3)
+}
+===== 28
+func var(int i j) int { return i * j}
+
+func var(int pars...) int {
+  int ret
+  for i in pars : ret += i
+  return ret
+}
+run int {
+  return var(3,5) + var(1,2,3)
+}
+===== 21
 run str {
   str out = `*`
   switch out 
@@ -940,7 +961,7 @@ run int {
   c = 33;c/=3;c*=5;c%=7
   return a+=b-=10+c}
 ===== 6
-run int { return 1+~(1-0xFE12)*2}
+run int { return 1+^(1-0xFE12)*2}
 ===== 130081
 run int { return ((1<<0)+ 2 << 1+3) >> 2}
 ===== 12

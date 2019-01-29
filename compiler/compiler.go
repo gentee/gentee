@@ -90,7 +90,7 @@ var (
 		tkMul:                    {20, false, `Mul`},
 		tkInc | tkUnary | tkPost: {29, false, ``},
 		tkDec | tkUnary | tkPost: {29, false, ``},
-		tkBitNot | tkUnary:       {30, true, `BitNot`},
+		tkBitXor | tkUnary:       {30, true, `BitNot`},
 		tkSub | tkUnary:          {30, true, `Sign`},
 		tkNot | tkUnary:          {30, true, `Not`},
 		tkMul | tkUnary:          {30, true, `Len`},
@@ -130,6 +130,9 @@ func (cmpl *compiler) latestFunc() *core.FuncObject {
 // Compile compiles the source code
 func Compile(vm *core.VirtualMachine, input, path string) (int, error) {
 
+	countObjects := len(vm.Objects)
+	countUnits := len(vm.Units)
+
 	lp, errID := LexParsing([]rune(input))
 	lp.Path = path
 	cmpl := &compiler{
@@ -146,6 +149,15 @@ func Compile(vm *core.VirtualMachine, input, path string) (int, error) {
 	cmpl.CopyNameSpace(vm.StdLib(), true)
 
 	cmplError := func(err interface{}) (int, error) {
+		// Rollback vm
+		vm.Objects = vm.Objects[:countObjects]
+		vm.Units = vm.Units[:countUnits]
+		for key, unitID := range vm.UnitNames {
+			if unitID >= countUnits {
+				delete(vm.UnitNames, key)
+			}
+		}
+
 		if v, ok := err.(int); ok {
 			err = cmpl.Error(v)
 		}
@@ -248,7 +260,6 @@ main:
 		state = cmpl.next.State
 	}
 	if len(stackState) > 0 {
-		//		cmpl.pos = stackState[len(stackState)-1].Pos + 1
 		return cmplError(cmpl.ErrorPos(len(lp.Tokens), ErrEnd))
 	}
 
@@ -326,15 +337,6 @@ func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
 }
 
 func autoType(cmpl *compiler, name string) (obj core.IObject, err error) {
-	/*	findType := func(src core.IObject) {
-			for obj = src; obj != nil && obj.GetType() != core.ObjType; {
-				obj = obj.GetNext()
-			}
-		}
-		findType(cmpl.unit.Names[name])
-		if obj == nil {
-			findType(cmpl.vm.StdLib().Names[name])
-		}*/
 	obj = cmpl.unit.FindType(name)
 	if obj == nil {
 		ins := strings.SplitN(name, `.`, 2)
@@ -414,8 +416,7 @@ func coVarToken(cmpl *compiler, token string) error {
 	if strings.IndexRune(token, '.') >= 0 {
 		return cmpl.Error(ErrIdent)
 	}
-	if cmpl.vm.StdLib().Names[token] != nil ||
-		cmpl.unit.Names[token] != nil {
+	if cmpl.unit.FindType(token) != nil {
 		return cmpl.Error(ErrUsedName, token)
 	}
 	block := cmpl.curOwner()
@@ -499,19 +500,9 @@ func coVarExp(cmpl *compiler) error {
 	return nil
 }
 
-func findObj(cmpl *compiler, name string, objType core.ObjectType) bool {
-	if found := cmpl.unit.Names[name]; found != nil && found.GetType() == objType {
-		return true
-	}
-	if found := cmpl.vm.StdLib().Names[name]; found != nil && found.GetType() == objType {
-		return true
-	}
-	return false
-}
-
 func coExpEnv(cmpl *compiler) error {
 	token := getToken(cmpl.getLex(), cmpl.pos)
-	getEnv := cmpl.vm.StdLib().Names[`GetEnv`]
+	getEnv := cmpl.vm.StdLib().FindObj(core.DefGetEnv) //Names[`GetEnv`]
 	icmd := &core.CmdValue{Value: token,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
 		Result:    getEnv.Result()}

@@ -26,11 +26,6 @@ func newFunc(cmpl *compiler, name string) int {
 	funcObj.Block.Object = funcObj
 	cmpl.owners = []core.ICmd{&funcObj.Block}
 	ind := cmpl.appendObj(funcObj)
-	if curName := cmpl.unit.Names[name]; curName == nil {
-		cmpl.unit.Names[name] = funcObj
-	} else {
-		curName.SetNext(funcObj)
-	}
 	return ind
 }
 
@@ -93,8 +88,7 @@ func coFuncStart(cmpl *compiler) error {
 		funcObj.Block.ParCount--
 		params = nil
 	}
-	if obj := getFunc(cmpl, funcObj.Name, params, true); obj != nil &&
-		obj != funcObj { // cmpl.latestFunc() {
+	if obj := getFunc(cmpl, funcObj.Name, params, true); obj != nil {
 		if isVariadic(obj) {
 			return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
 				append(funcObj.GetParams(), nil))
@@ -102,14 +96,23 @@ func coFuncStart(cmpl *compiler) error {
 		return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
 			obj.GetParams())
 	}
+	if funcObj.Block.Variadic {
+		cmpl.unit.AddCustom(cmpl.curFunc, funcObj.GetName(), cmpl.unit.Pub != 0)
+	} else {
+		cmpl.unit.AddFunc(cmpl.curFunc, funcObj.GetName(), params, cmpl.unit.Pub != 0)
+	}
+	if cmpl.unit.Pub == core.PubOne {
+		cmpl.unit.Pub = 0
+	}
 	return nil
 }
 
 func getFunc(cmpl *compiler, name string, params []*core.TypeObject, isFunc bool) (obj core.IObject) {
-	checkUnit := func(unit *core.Unit) core.IObject {
-		obj = unit.Names[name]
-		for obj != nil {
-			if params == nil && (obj.GetType() == core.ObjFunc || obj.GetType() == core.ObjEmbedded) {
+	var custom []uint32
+	getCustom := func() core.IObject {
+		for _, ind := range custom {
+			obj = cmpl.unit.GetObj(ind)
+			if params == nil {
 				return obj
 			}
 			objPars := obj.GetParams()
@@ -152,12 +155,12 @@ func getFunc(cmpl *compiler, name string, params []*core.TypeObject, isFunc bool
 					return obj
 				}
 			}
-			obj = obj.GetNext()
 		}
 		return nil
 	}
-	if obj = checkUnit(cmpl.vm.StdLib()); obj == nil && isFunc {
-		obj = checkUnit(cmpl.unit)
+	obj, custom = cmpl.unit.FindFunc(name, params)
+	if obj == nil {
+		obj = getCustom()
 	}
 	if obj != nil && params != nil {
 		if name == `AssignAdd` && strings.HasPrefix(params[0].GetName(), `arr.arr`) &&

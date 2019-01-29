@@ -36,7 +36,7 @@ func newRunTime(vm *VirtualMachine) *RunTime {
 
 	for _, item := range []string{ConstDepth, ConstCycle} {
 		// TODO: Insert redefinition of constants here
-		rt.runCmd(vm.StdLib().Names[item].(*ConstObject).Exp)
+		rt.runCmd(vm.StdLib().FindConst(item).(*ConstObject).Exp)
 		rt.Consts[item] = rt.Stack[len(rt.Stack)-1]
 	}
 	return rt
@@ -332,7 +332,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			}
 			if err = setVar(rt, &CmdBlock{Children: []ICmd{
 				cmdVar, &CmdValue{Value: val + shift},
-			}, Object: rt.VM.StdLib().Names[DefAssignIntInt]}); err != nil {
+			}, Object: rt.VM.StdLib().FindObj(DefAssignIntInt)}); err != nil {
 				return err
 			}
 			rt.Stack = rt.Stack[:len(rt.Stack)-1]

@@ -58,16 +58,13 @@ func coConstExpBack(cmpl *compiler) error {
 		Return:    owner.Children[0].GetResult(),
 		Iota:      core.NotIota,
 	}
-	if findObj(cmpl, cmpl.curConst, core.ObjConst) {
+	if cmpl.unit.FindConst(cmpl.curConst) != nil {
 		return cmpl.ErrorPos(cmpl.pos-1, ErrConstDef, cmpl.curConst)
 	}
 
 	cmpl.appendObj(constObj)
-	if curName := cmpl.unit.Names[cmpl.curConst]; curName == nil {
-		cmpl.unit.Names[cmpl.curConst] = constObj
-	} else {
-		curName.SetNext(constObj)
-	}
+	cmpl.unit.AddConst(cmpl.curConst)
+
 	cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
 	return nil
 }
@@ -89,14 +86,10 @@ func coConstList(cmpl *compiler) error {
 	}
 	cmpl.curIota++
 	cmpl.appendObj(constObj)
-	if findObj(cmpl, cmpl.curConst, core.ObjConst) {
+	if cmpl.unit.FindConst(cmpl.curConst) != nil {
 		return cmpl.Error(ErrConstDef, cmpl.curConst)
 	}
-	if curName := cmpl.unit.Names[cmpl.curConst]; curName == nil {
-		cmpl.unit.Names[cmpl.curConst] = constObj
-	} else {
-		curName.SetNext(constObj)
-	}
+	cmpl.unit.AddConst(cmpl.curConst)
 
 	return nil
 }

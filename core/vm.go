@@ -86,7 +86,7 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 	default:
 		return nil
 	}
-	if obj, ok := unit.Names[name]; ok && obj.GetType() == ObjType {
+	if obj := unit.FindType(name); obj != nil {
 		return obj.(*TypeObject)
 	}
 	return nil

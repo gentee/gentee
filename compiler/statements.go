@@ -187,7 +187,7 @@ func coForBack(cmpl *compiler) error {
 					cmd.Children[0].GetResult().GetName())
 			}
 			cmd.Vars[0] = cmd.Children[0].GetResult().IndexOf
-			cmd.Vars[1] = cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)
+			cmd.Vars[1] = cmpl.getIntType()
 			cmdFor := core.CmdBlock{ID: core.StackBlock, Parent: cmd,
 				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
 			cmd.Children = append(cmd.Children, &cmdFor)

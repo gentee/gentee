@@ -125,7 +125,7 @@ func coInitNext(cmpl *compiler) error {
 }
 
 func initMapEnd(cmpl *compiler) error {
-	obj := cmpl.vm.StdLib().Names[core.DefNewKeyValue]
+	obj := cmpl.unit.FindObj(core.DefNewKeyValue)
 	block := cmpl.curOwner()
 	for i := 0; i < len(block.Children); i++ {
 		item := block.Children[i]
@@ -158,7 +158,7 @@ func initStructEnd(cmpl *compiler) error {
 	var (
 		fieldName string
 	)
-	obj := cmpl.vm.StdLib().Names[core.DefNewKeyValue]
+	obj := cmpl.unit.FindObj(core.DefNewKeyValue)
 	block := cmpl.curOwner()
 	for i := 0; i < len(block.Children); i++ {
 		item := block.Children[i]

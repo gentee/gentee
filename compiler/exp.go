@@ -68,7 +68,7 @@ func coPush(cmpl *compiler) error {
 	}
 	appendExp(cmpl, &core.CmdValue{Value: v,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
-		Result:    cmpl.vm.StdLib().Names[vType].(*core.TypeObject)})
+		Result:    cmpl.unit.FindType(vType).(*core.TypeObject)})
 	return nil
 }
 
@@ -82,22 +82,15 @@ func coExpVar(cmpl *compiler) error {
 		}
 		appendExp(cmpl, &core.CmdValue{Value: token,
 			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
-			Result:    cmpl.vm.StdLib().Names[`str`].(*core.TypeObject)})
+			Result:    cmpl.getStrType()})
 		return nil
 	}
 
 	if isCapital(token) {
-		var (
-			constObj core.IObject
-			ok       bool
-		)
 		if token == core.ConstIota && cmpl.curIota == core.NotIota {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrIota)
 		}
-		if constObj, ok = cmpl.unit.Names[token]; !ok {
-			constObj, _ = cmpl.vm.StdLib().Names[token]
-		}
-		if constObj != nil {
+		if constObj := cmpl.unit.FindConst(token); constObj != nil {
 			appendExp(cmpl, &core.CmdConst{
 				Object:    constObj,
 				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
@@ -127,7 +120,7 @@ func coExpVar(cmpl *compiler) error {
 			}
 			index := &core.CmdValue{Value: indField,
 				CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
-				Result:    cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)}
+				Result:    cmpl.getIntType()}
 			cmdVar.Indexes = append(cmdVar.Indexes, core.CmdRet{Cmd: index, Type: typeField})
 			typeVar = typeField
 		}
@@ -207,8 +200,8 @@ func popBuf(cmpl *compiler) error {
 		left := cmpl.exp[len(cmpl.exp)-2]
 
 		if expBuf.Oper == tkAssign && left.GetType() == core.CtUnary {
-			if left.GetObject() == cmpl.vm.StdLib().Names[`GetEnv`] {
-				setEnv := cmpl.vm.StdLib().Names[`SetEnv`]
+			if left.GetObject() == cmpl.vm.StdLib().FindObj(core.DefGetEnv) {
+				setEnv := cmpl.vm.StdLib().FindObj(core.DefSetEnv)
 				icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 					Object: setEnv,
 					Result: setEnv.Result(), Left: left.(*core.CmdUnary).Operand, Right: right}
@@ -227,7 +220,7 @@ func popBuf(cmpl *compiler) error {
 					return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
 						left.GetResult().GetName())
 				}
-				obj = cmpl.vm.StdLib().Names[core.DefAssignStructStruct]
+				obj = cmpl.vm.StdLib().FindObj(core.DefAssignStructStruct)
 			}
 			if obj == nil {
 				return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
@@ -288,7 +281,7 @@ func popBuf(cmpl *compiler) error {
 			Result: top.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Children: []core.ICmd{top}}
 		cmpl.exp[len(cmpl.exp)-1] = icmd
-	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitNot | tkUnary:
+	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitXor | tkUnary:
 		if len(cmpl.exp) == 0 {
 			return cmpl.Error(ErrValue)
 		}
@@ -439,9 +432,9 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 func setIndex(cmpl *compiler) error {
 	cmdVar := cmpl.exp[len(cmpl.exp)-2].(*core.CmdVar)
 	typeObject := cmdVar.GetResult()
-	varIndex := cmpl.vm.StdLib().Names[`int`].(*core.TypeObject)
+	varIndex := cmpl.getIntType()
 	if typeObject.Original == reflect.TypeOf(core.Map{}) {
-		varIndex = cmpl.vm.StdLib().Names[`str`].(*core.TypeObject)
+		varIndex = cmpl.getStrType()
 	}
 	if typeObject.IndexOf == nil {
 		return cmpl.ErrorPos(cmpl.expbuf[len(cmpl.expbuf)-1].Pos-1, ErrSupportIndex,

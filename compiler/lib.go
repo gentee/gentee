@@ -68,3 +68,11 @@ func unNewLine(in string) (string, error) {
 	return strconv.Unquote(`"` + strings.Replace(strings.Replace(in, "\n", `\n`, -1),
 		"\r", `\r`, -1) + `"`)
 }
+
+func (cmpl *compiler) getIntType() *core.TypeObject {
+	return cmpl.unit.FindType(`int`).(*core.TypeObject)
+}
+
+func (cmpl *compiler) getStrType() *core.TypeObject {
+	return cmpl.unit.FindType(`str`).(*core.TypeObject)
+}
