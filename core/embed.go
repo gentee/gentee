@@ -11,6 +11,18 @@ import (
 )
 
 const (
+	// DefAssignAddArr appends the array to array
+	DefAssignAddArr = `AssignAddºArrArr`
+	// DefAssignAddMap appends the map to array
+	DefAssignAddMap = `AssignAddºArrMap`
+	// DefAssignArr assigns one array to another
+	DefAssignArr = `AssignºArrArr`
+	// DefAssignMap assigns one map to another
+	DefAssignMap = `AssignºMapMap`
+	// DefLenArr returns the length of the array
+	DefLenArr = `LenºArr`
+	// DefLenMap returns the length of the map
+	DefLenMap = `LenºMap`
 	// DefAssignIntInt equals int = int
 	DefAssignIntInt = `#Assign#int#int`
 	// DefAssignStructStruct equals struct = struct
@@ -25,6 +37,12 @@ const (
 
 var (
 	defFuncs = map[string]bool{
+		DefAssignAddArr:       true,
+		DefAssignAddMap:       true,
+		DefAssignArr:          true,
+		DefAssignMap:          true,
+		DefLenArr:             true,
+		DefLenMap:             true,
 		DefAssignIntInt:       true,
 		DefAssignStructStruct: true,
 		DefNewKeyValue:        true,
@@ -35,7 +53,7 @@ var (
 
 // NewEmbedTypes adds a new EmbedObject to Unit with types
 func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
-	var variadic, isRuntime, isCustom bool
+	var variadic, isRuntime bool
 
 	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
 	name = name[strings.LastIndexByte(name, '.')+1:]
@@ -64,12 +82,7 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 			}
 		}
 	}
-	if inCount = len(inTypes) - 1; inCount >= 0 {
-		isCustom = inTypes[inCount] == unit.FindType(`arr*`).(*TypeObject) ||
-			inTypes[inCount] == unit.FindType(`map*`).(*TypeObject)
-	}
-	/*obj :=*/
-	unit.NewObject(&EmbedObject{
+	obj := unit.NewObject(&EmbedObject{
 		Object: Object{
 			Name: name,
 			Unit: unit,
@@ -82,14 +95,10 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 	})
 	ind := len(unit.VM.Objects) - 1
 	if defFuncs[originalName] {
-		unit.NSpace[originalName] = uint32(ind) | NSPub
+		unit.NameSpace[originalName] = uint32(ind) | NSPub
 		return
 	}
-	if variadic || isCustom {
-		unit.AddCustom(ind, name, true)
-	} else {
-		unit.AddFunc(ind, name, inTypes, true)
-	}
+	unit.AddFunc(ind, obj, true)
 }
 
 // NewEmbed adds a new EmbedObject to Unit

@@ -30,6 +30,7 @@ type compiler struct {
 	curIota  int64     // current iota
 	inits    int       // initilization level mode
 	endColon int
+	isImport bool // import or include mode
 	next     *cmState
 	dynamic  *cmState
 }
@@ -146,8 +147,7 @@ func Compile(vm *core.VirtualMachine, input, path string) (int, error) {
 		curIota: core.NotIota,
 	}
 	cmpl.unit.Lexeme = []*core.Lex{lp}
-	cmpl.CopyNameSpace(vm.StdLib(), true)
-
+	cmpl.copyNameSpace(vm.StdLib(), true)
 	cmplError := func(err interface{}) (int, error) {
 		// Rollback vm
 		vm.Objects = vm.Objects[:countObjects]
@@ -280,6 +280,7 @@ main:
 	vm.Units = append(vm.Units, cmpl.unit)
 	unitID := len(vm.Units) - 1
 	vm.UnitNames[cmpl.unit.Name] = unitID
+	vm.Units[unitID].Index = uint32(unitID)
 
 	return unitID, nil
 }

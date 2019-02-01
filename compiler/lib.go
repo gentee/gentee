@@ -48,11 +48,6 @@ func isCapital(name string) bool {
 	return true
 }
 
-func isVariadic(obj core.IObject) bool {
-	return (obj.GetType() == core.ObjFunc && obj.(*core.FuncObject).Block.Variadic) ||
-		(obj.GetType() == core.ObjEmbedded && obj.(*core.EmbedObject).Variadic)
-}
-
 func randName() string {
 	alpha := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	length := len(alpha)
@@ -75,4 +70,32 @@ func (cmpl *compiler) getIntType() *core.TypeObject {
 
 func (cmpl *compiler) getStrType() *core.TypeObject {
 	return cmpl.unit.FindType(`str`).(*core.TypeObject)
+}
+
+func (cmpl *compiler) copyNameSpace(srcUnit *core.Unit, imported bool) error {
+	for key, item := range srcUnit.NameSpace {
+		if (item&core.NSImported) != 0 || (imported && (item&core.NSPub) == 0) {
+			continue
+		}
+		index := cmpl.unit.GetObj(item).GetUnitIndex()
+		if _, ok := cmpl.unit.Included[index]; ok {
+			continue
+		}
+		if ind, ok := cmpl.unit.NameSpace[key]; ok {
+			return cmpl.Error(ErrDupObject, cmpl.unit.GetObj(ind).GetName())
+		}
+		if imported {
+			item = (item & core.NSIndex) | core.NSImported
+		}
+		cmpl.unit.NameSpace[key] = item
+	}
+	for index, itype := range srcUnit.Included {
+		if itype {
+			continue
+		}
+		if _, ok := cmpl.unit.Included[index]; !ok {
+			cmpl.unit.Included[index] = itype
+		}
+	}
+	return nil
 }

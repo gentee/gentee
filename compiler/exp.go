@@ -213,14 +213,32 @@ func popBuf(cmpl *compiler) error {
 		if left.GetType() != core.CtVar {
 			return cmpl.ErrorPos(expBuf.Pos, ErrLValue)
 		}
+
 		obj = getOperator(cmpl, prior.Name, left, right)
 		if obj == nil {
-			if expBuf.Oper == tkAssign && left.GetResult().Custom != nil {
-				if left.GetResult() != right.GetResult() {
-					return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
-						left.GetResult().GetName())
+			if expBuf.Oper == tkAssign {
+				if left.GetResult().Custom != nil {
+					if left.GetResult() != right.GetResult() {
+						return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
+							left.GetResult().GetName())
+					}
+					obj = cmpl.vm.StdLib().FindObj(core.DefAssignStructStruct)
+				} else if left.GetResult() == right.GetResult() {
+					if left.GetResult().Original == reflect.TypeOf(core.Array{}) {
+						obj = cmpl.unit.FindObj(core.DefAssignArr)
+					} else if left.GetResult().Original == reflect.TypeOf(core.Map{}) {
+						obj = cmpl.unit.FindObj(core.DefAssignMap)
+					}
 				}
-				obj = cmpl.vm.StdLib().FindObj(core.DefAssignStructStruct)
+			}
+			if expBuf.Oper == tkAddEq && left.GetResult().Original == reflect.TypeOf(core.Array{}) {
+				if left.GetResult().IndexOf == right.GetResult() {
+					if right.GetResult().Original == reflect.TypeOf(core.Array{}) {
+						obj = cmpl.unit.FindObj(core.DefAssignAddArr)
+					} else if right.GetResult().Original == reflect.TypeOf(core.Map{}) {
+						obj = cmpl.unit.FindObj(core.DefAssignAddMap)
+					}
+				}
 			}
 			if obj == nil {
 				return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name, []*core.TypeObject{
@@ -286,7 +304,18 @@ func popBuf(cmpl *compiler) error {
 			return cmpl.Error(ErrValue)
 		}
 		top := cmpl.exp[len(cmpl.exp)-1]
-		obj = getOperator(cmpl, prior.Name, top, nil)
+		if expBuf.Oper == (tkMul | tkUnary) {
+			switch top.GetResult().Original {
+			case reflect.TypeOf(core.Array{}):
+				obj = cmpl.unit.FindObj(core.DefLenArr)
+			case reflect.TypeOf(core.Map{}):
+				obj = cmpl.unit.FindObj(core.DefLenMap)
+			default:
+				obj = getOperator(cmpl, prior.Name, top, nil)
+			}
+		} else {
+			obj = getOperator(cmpl, prior.Name, top, nil)
+		}
 		if obj == nil {
 			return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, prior.Name,
 				[]*core.TypeObject{top.GetResult()})

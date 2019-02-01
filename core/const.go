@@ -46,5 +46,5 @@ func (unit *Unit) NewConst(name string, value interface{}, redefined bool) {
 	if obj.Pub {
 		ind |= NSPub
 	}
-	unit.NSpace[npConst+name] = ind
+	unit.NameSpace[npConst+name] = ind
 }

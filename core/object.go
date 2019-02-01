@@ -30,6 +30,7 @@ type IObject interface {
 	GetParams() []*TypeObject
 	GetType() ObjectType
 	SetPub()
+	GetUnitIndex() uint32
 }
 
 // Object contains infromation about any compiled object of the virtual machine
@@ -114,6 +115,11 @@ func (typeObj *TypeObject) SetPub() {
 	typeObj.Pub = true
 }
 
+// GetUnitIndex returns the index of the unit of this object
+func (typeObj *TypeObject) GetUnitIndex() uint32 {
+	return typeObj.Unit.Index
+}
+
 // GetName returns the name of the object
 func (funcObj *FuncObject) GetName() string {
 	return funcObj.Name
@@ -142,6 +148,11 @@ func (funcObj *FuncObject) GetParams() []*TypeObject {
 // SetPub set Pub state
 func (funcObj *FuncObject) SetPub() {
 	funcObj.Pub = true
+}
+
+// GetUnitIndex returns the index of the unit of this object
+func (funcObj *FuncObject) GetUnitIndex() uint32 {
+	return funcObj.Unit.Index
 }
 
 // GetName returns the name of the object
@@ -174,6 +185,11 @@ func (embedObj *EmbedObject) SetPub() {
 	embedObj.Pub = true
 }
 
+// GetUnitIndex returns the index of the unit of this object
+func (embedObj *EmbedObject) GetUnitIndex() uint32 {
+	return embedObj.Unit.Index
+}
+
 // GetName returns the name of the object
 func (constObj *ConstObject) GetName() string {
 	return constObj.Name
@@ -204,6 +220,11 @@ func (constObj *ConstObject) SetPub() {
 	constObj.Pub = true
 }
 
+// GetUnitIndex returns the index of the unit of this object
+func (constObj *ConstObject) GetUnitIndex() uint32 {
+	return constObj.Unit.Index
+}
+
 // NewObject adds a new IObject to Unit
 func (unit *Unit) NewObject(obj IObject) IObject {
 	if unit.Pub > 0 {
@@ -221,6 +242,7 @@ func (unit *Unit) NewType(name string, original reflect.Type, indexOf IObject) I
 	typeObject := TypeObject{
 		Object: Object{
 			Name: name,
+			Unit: unit,
 		},
 		Original: original,
 	}
@@ -232,6 +254,12 @@ func (unit *Unit) NewType(name string, original reflect.Type, indexOf IObject) I
 	if typeObject.Pub {
 		ind |= NSPub
 	}
-	unit.NSpace[npType+name] = ind
+	unit.NameSpace[npType+name] = ind
 	return &typeObject
+}
+
+// IsVariadic returns true if th efunction is variadic
+func IsVariadic(obj IObject) bool {
+	return (obj.GetType() == ObjFunc && obj.(*FuncObject).Block.Variadic) ||
+		(obj.GetType() == ObjEmbedded && obj.(*EmbedObject).Variadic)
 }

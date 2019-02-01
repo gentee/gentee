@@ -56,6 +56,7 @@ func TestCli(t *testing.T) {
 	}
 
 	testList := []testItem{
+		{``, []string{`-t`, `h.g`}},
 		{``, []string{`-t`, `ok.g`}},
 		{"ok 777\n", []string{`ok.g`}},
 		{"test\nERROR: .../test/scripts/ok.g [3:1] script ok has already been linked",
@@ -69,6 +70,19 @@ func TestCli(t *testing.T) {
 		{"ERROR 300: .../test/scripts/customerror.g [3:24] Σ custom error №5\n" +
 			".../test/scripts/customerror.g [9:12] run -> myerr\n" +
 			".../test/scripts/customerror.g [3:24] myerr -> error", []string{`customerror.g`}},
+		{"ERROR: .../test/scripts/err-a.g [6:5] Duplicate of c_func has been found after include/import",
+			[]string{`err-a.g`}},
+		{``, []string{`-t`, `a.g`}},
+		{``, []string{`-t`, `d.g`}},
+		{"ERROR: .../test/scripts/err-b.g [6:12] function c_func(int) has not been found",
+			[]string{`err-b.g`}},
+		{``, []string{`-t`, `f.g`}},
+		{"ERROR: .../test/scripts/err-c.g [7:12] function e_func(int, int) has not been found",
+			[]string{`err-c.g`}},
+		{"ERROR: .../test/scripts/err-d.g [7:7] function Assign(int, et) has not been found",
+			[]string{`err-d.g`}},
+		{"ERROR: .../test/scripts/err-e.g [6:12] unknown identifier EINT",
+			[]string{`err-e.g`}},
 	}
 	for _, item := range testList {
 		for i, v := range item.params {

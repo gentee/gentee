@@ -88,6 +88,8 @@ const (
 	tkSwitch
 	tkCase
 	tkInclude
+	tkImport
+	tkPub
 	tkDefault
 	tkToken // is used for preCompileTable
 )

@@ -5,16 +5,62 @@
 package compiler
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	//	"github.com/gentee/gentee/core"
+	"path/filepath"
+
+	"github.com/gentee/gentee/core"
 )
 
-func coInclude(cmpl *compiler) error {
+// CompileFile compiles the source file
+func CompileFile(vm *core.VirtualMachine, filename string) (unitID int, err error) {
 	var (
-		v   interface{}
-		err error
+		absname, curDir string
+		input           []byte
+	)
+	if absname, err = filepath.Abs(filename); err != nil {
+		return
+	}
+	if unitID = vm.Linked[absname]; unitID != 0 {
+		return
+	}
+	if curDir, err = os.Getwd(); err != nil {
+		return
+	}
+	if err = os.Chdir(filepath.Dir(absname)); err != nil {
+		return
+	}
+	defer os.Chdir(curDir)
+	if input, err = ioutil.ReadFile(absname); err != nil {
+		return
+	}
+	unitID, err = Compile(vm, string(input), absname)
+	if err == nil {
+		vm.Linked[absname] = unitID
+	}
+	return
+}
+
+func coInclude(cmpl *compiler) error {
+	cmpl.isImport = false
+	return nil
+}
+
+func coImport(cmpl *compiler) error {
+	cmpl.isImport = true
+	return nil
+}
+
+func coPub(cmpl *compiler) error {
+	cmpl.unit.Pub = core.PubOne
+	return nil
+}
+
+func coIncludeImport(cmpl *compiler) error {
+	var (
+		v      interface{}
+		err    error
+		unitID int
 	)
 	lp := cmpl.getLex()
 	token := getToken(lp, cmpl.pos)
@@ -25,11 +71,15 @@ func coInclude(cmpl *compiler) error {
 		}
 	}
 	includeFile := os.ExpandEnv(v.(string))
-	fmt.Println(`Include`, includeFile)
-	_, err = ioutil.ReadFile(includeFile)
-	if err != nil {
+	unitID, err = CompileFile(cmpl.vm, includeFile)
+	if err != nil && unitID == 0 {
 		return cmpl.Error(ErrIncludeFile, includeFile)
 	}
-
-	return nil
+	if err == nil {
+		if v, ok := cmpl.unit.Included[uint32(unitID)]; !ok || (v && !cmpl.isImport) {
+			err = cmpl.copyNameSpace(cmpl.vm.Units[unitID], cmpl.isImport)
+			cmpl.unit.Included[uint32(unitID)] = cmpl.isImport
+		}
+	}
+	return err
 }

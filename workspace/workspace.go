@@ -5,9 +5,6 @@
 package workspace
 
 import (
-	"io/ioutil"
-	"path/filepath"
-
 	"github.com/gentee/gentee/compiler"
 	"github.com/gentee/gentee/core"
 	"github.com/gentee/gentee/stdlib"
@@ -34,15 +31,7 @@ func (workspace *Workspace) Compile(input, path string) (int, error) {
 
 // CompileFile compiles the source file
 func (workspace *Workspace) CompileFile(filename string) (int, error) {
-	absname, err := filepath.Abs(filename)
-	if err != nil {
-		return core.Undefined, err
-	}
-	input, err := ioutil.ReadFile(absname)
-	if err != nil {
-		return core.Undefined, err
-	}
-	return workspace.Compile(string(input), absname)
+	return compiler.CompileFile(workspace.VM, filename)
 }
 
 // Unit returns the unit structure by its index

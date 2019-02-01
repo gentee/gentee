@@ -52,6 +52,7 @@ func coConstExpBack(cmpl *compiler) error {
 			Name:  cmpl.curConst,
 			LexID: len(cmpl.unit.Lexeme) - 1,
 			Unit:  cmpl.unit,
+			Pub:   cmpl.unit.Pub != 0,
 		},
 		Redefined: false,
 		Exp:       owner.Children[0],
@@ -69,6 +70,13 @@ func coConstExpBack(cmpl *compiler) error {
 	return nil
 }
 
+func coConstBack(cmpl *compiler) error {
+	if cmpl.unit.Pub == core.PubOne {
+		cmpl.unit.Pub = 0
+	}
+	return nil
+}
+
 func coConstList(cmpl *compiler) error {
 	if err := coConst(cmpl); err != nil {
 		return err
@@ -78,6 +86,7 @@ func coConstList(cmpl *compiler) error {
 			Name:  cmpl.curConst,
 			LexID: len(cmpl.unit.Lexeme) - 1,
 			Unit:  cmpl.unit,
+			Pub:   cmpl.unit.Pub != 0,
 		},
 		Redefined: false,
 		Exp:       cmpl.expConst,

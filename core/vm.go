@@ -13,7 +13,7 @@ type VirtualMachine struct {
 	Units     []*Unit
 	UnitNames map[string]int
 	Objects   []IObject
-	//	Included map[string]int // map of compiled files
+	Linked    map[string]int // compiled files
 }
 
 const (
@@ -28,14 +28,14 @@ const (
 
 // Unit is a common structure for source code
 type Unit struct {
-	VM      *VirtualMachine
-	Names   map[string]IObject
-	NSpace  map[string]uint32   // name space of the unit
-	NCustom map[string][]uint32 // space name of variadic and not strict parameters func
-	Lexeme  []*Lex              // The array of source code
-	RunID   int                 // The index of run function. Undefined (-1) - run has not yet been defined
-	Name    string              // The name of the unit
-	Pub     int                 // Public mode
+	VM        *VirtualMachine
+	Index     uint32            // Index of the Unit
+	NameSpace map[string]uint32 // name space of the unit
+	Included  map[uint32]bool   // false - included or true - imported units
+	Lexeme    []*Lex            // The array of source code
+	RunID     int               // The index of run function. Undefined (-1) - run has not yet been defined
+	Name      string            // The name of the unit
+	Pub       int               // Public mode
 }
 
 // NewVM returns a new virtual machine
@@ -44,6 +44,7 @@ func NewVM() *VirtualMachine {
 		UnitNames: make(map[string]int),
 		Units:     make([]*Unit, 0, 32),
 		Objects:   make([]IObject, 0, 500),
+		Linked:    make(map[string]int),
 	}
 	return &vm
 }
@@ -51,11 +52,10 @@ func NewVM() *VirtualMachine {
 // InitUnit initialize a unit structure
 func (vm *VirtualMachine) InitUnit() *Unit {
 	return &Unit{
-		VM:      vm,
-		RunID:   Undefined,
-		Names:   make(map[string]IObject),
-		NSpace:  make(map[string]uint32),
-		NCustom: make(map[string][]uint32),
+		VM:        vm,
+		RunID:     Undefined,
+		NameSpace: make(map[string]uint32),
+		Included:  make(map[uint32]bool),
 	}
 }
 

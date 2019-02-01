@@ -89,18 +89,17 @@ func coFuncStart(cmpl *compiler) error {
 		params = nil
 	}
 	if obj := getFunc(cmpl, funcObj.Name, params, true); obj != nil {
-		if isVariadic(obj) {
+		if core.IsVariadic(obj) {
 			return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
 				append(funcObj.GetParams(), nil))
 		}
 		return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
 			obj.GetParams())
 	}
-	if funcObj.Block.Variadic {
-		cmpl.unit.AddCustom(cmpl.curFunc, funcObj.GetName(), cmpl.unit.Pub != 0)
-	} else {
-		cmpl.unit.AddFunc(cmpl.curFunc, funcObj.GetName(), params, cmpl.unit.Pub != 0)
+	if cmpl.runID == cmpl.curFunc {
+		return nil
 	}
+	cmpl.unit.AddFunc(cmpl.curFunc, funcObj, cmpl.unit.Pub != 0)
 	if cmpl.unit.Pub == core.PubOne {
 		cmpl.unit.Pub = 0
 	}
@@ -108,72 +107,43 @@ func coFuncStart(cmpl *compiler) error {
 }
 
 func getFunc(cmpl *compiler, name string, params []*core.TypeObject, isFunc bool) (obj core.IObject) {
-	var custom []uint32
-	getCustom := func() core.IObject {
-		for _, ind := range custom {
-			obj = cmpl.unit.GetObj(ind)
-			if params == nil {
-				return obj
+	var variadic bool
+	obj, variadic = cmpl.unit.FindFunc(name, params)
+	if obj == nil || !variadic {
+		return
+	}
+	if params == nil {
+		return obj
+	}
+	objPars := obj.GetParams()
+	if len(params) >= len(objPars) {
+		equal := true
+		for i, typeParam := range objPars {
+			if !isEqualTypes(typeParam, params[i]) {
+				equal = false
+				break
 			}
-			objPars := obj.GetParams()
-			if isVariadic(obj) && len(params) >= len(objPars) {
-				equal := true
-				for i, typeParam := range objPars {
-					if !isEqualTypes(typeParam, params[i]) {
-						equal = false
-						break
-					}
-				}
-				if obj.GetType() == core.ObjFunc {
-					block := obj.(*core.FuncObject).Block
-					for i := len(objPars); i < len(params); i++ {
-						ptype := params[i]
-						if !isEqualTypes(block.Vars[len(objPars)].IndexOf, ptype) {
-							if ptype.Original == reflect.TypeOf(core.Array{}) {
-								if isEqualTypes(block.Vars[len(objPars)].IndexOf, ptype.IndexOf) {
-									continue
-								}
-							}
-							equal = false
-							break
+		}
+		if equal && obj.GetType() == core.ObjFunc {
+			block := obj.(*core.FuncObject).Block
+			for i := len(objPars); i < len(params); i++ {
+				ptype := params[i]
+				if !isEqualTypes(block.Vars[len(objPars)].IndexOf, ptype) {
+					if ptype.Original == reflect.TypeOf(core.Array{}) {
+						if isEqualTypes(block.Vars[len(objPars)].IndexOf, ptype.IndexOf) {
+							continue
 						}
 					}
-				}
-				if equal {
-					return obj
-				}
-			}
-			if len(params) == len(objPars) {
-				equal := true
-				for i, typeParam := range objPars {
-					if !isEqualTypes(typeParam, params[i]) {
-						equal = false
-						break
-					}
-				}
-				if equal {
-					return obj
+					equal = false
+					break
 				}
 			}
 		}
-		return nil
-	}
-	obj, custom = cmpl.unit.FindFunc(name, params)
-	if obj == nil {
-		obj = getCustom()
-	}
-	if obj != nil && params != nil {
-		if name == `AssignAdd` && strings.HasPrefix(params[0].GetName(), `arr.arr`) &&
-			!isEqualTypes(params[0].IndexOf, params[1]) {
-			return nil
-		}
-		if name == `Assign` && (strings.HasPrefix(params[0].GetName(), `arr`) ||
-			strings.HasPrefix(params[0].GetName(), `map`)) &&
-			!isEqualTypes(params[0], params[1]) {
-			return nil
+		if equal {
+			return obj
 		}
 	}
-	return obj
+	return nil
 }
 
 func getOperator(cmpl *compiler, name string, left, right core.ICmd) (obj core.IObject) {

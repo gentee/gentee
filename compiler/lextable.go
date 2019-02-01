@@ -86,6 +86,8 @@ var (
 		`switch`:   tkSwitch,
 		`case`:     tkCase,
 		`include`:  tkInclude,
+		`import`:   tkImport,
+		`pub`:      tkPub,
 		`default`:  tkDefault,
 	}
 

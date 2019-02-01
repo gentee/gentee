@@ -61,10 +61,12 @@ var (
 			{tkToken, ErrDecl, coError, nil, 0},
 			{tkLine, 0, nil, nil, 0},
 			{tkRun, cmRun, coRun, coRunBack, cfStopBack},
-			{tkConst, cmConst, nil, nil, cfStopBack},
+			{tkConst, cmConst, nil, coConstBack, cfStopBack},
 			{tkFunc, cmFunc, nil, coFuncBack, cfStopBack},
 			{tkStruct, cmStruct, nil, nil, cfStopBack},
-			{tkInclude, cmInclude, nil, nil, cfStopBack},
+			{tkInclude, cmInclude, coInclude, nil, cfStopBack},
+			{tkImport, cmInclude, coImport, nil, cfStopBack},
+			{tkPub, 0, coPub, nil, 0},
 		},
 		cmRun: {
 			{tkToken, ErrLCurly, coError, nil, 0},
@@ -251,7 +253,7 @@ var (
 		},
 		cmIncludeFile: {
 			{tkToken, ErrString, coError, nil, 0},
-			{tkStr, 0, coInclude, nil, 0},
+			{tkStr, 0, coIncludeImport, nil, 0},
 			{tkLine, 0, nil, nil, 0},
 			{tkRCurly, cmBack, nil, nil, 0},
 		},
