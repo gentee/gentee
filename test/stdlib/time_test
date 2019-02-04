@@ -1,10 +1,10 @@
 run str {
   str out
   time tm tm2 tm3 tmNew
-  time tmOld = {Year:1900, Month:10, Day:20 }
+  time tmOld = {Year:1970, Month:10, Day:20 }
   tm2 = time(int(tm = Now()))
   tmNew = DateTime(2100, 01, 10, 1, 2, 3)
   out = str(tm == tm2) 
   return out + ` %{int(tmOld)} %{tm > tmOld} %{tm < tmNew}`
 }
-===== true -2183774553 true true
+===== true 25210800 true true

@@ -26,14 +26,6 @@ run {
 }
 ===== [2:11] invalid value of parameter(s)
 run {
-  str s = ReadFile(`ooops`)
-}
-===== [2:11] open ooops: no such file or directory
-run {
-  ChDir(`dir7`)
-}
-===== [2:3] chdir dir7: no such file or directory
-run {
   arr.map a
   Sort(a)
 }

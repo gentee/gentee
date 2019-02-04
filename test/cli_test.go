@@ -31,7 +31,7 @@ func TestCli(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	ret := regexp.MustCompile(`GOPATH="(.*)"`).FindStringSubmatch(string(stdout))
+	ret := regexp.MustCompile(`GOPATH="?([^"|\n|\r]*)`).FindStringSubmatch(string(stdout))
 	if len(ret) == 2 {
 		gopath = ret[1]
 	}
@@ -46,7 +46,7 @@ func TestCli(t *testing.T) {
 	call := func(want string, params ...string) error {
 		cmd := exec.Command(outputFile, params...)
 		stdout, err := cmd.CombinedOutput()
-		out := string(stdout)
+		out := strings.Replace(string(stdout), `\`, `/`, -1)
 		if err != nil {
 			return getWant(out, want)
 		} else if err = getWant(out, want); err != nil {
@@ -70,7 +70,7 @@ func TestCli(t *testing.T) {
 		{"ERROR 300: .../test/scripts/customerror.g [3:24] Σ custom error №5\n" +
 			".../test/scripts/customerror.g [9:12] run -> myerr\n" +
 			".../test/scripts/customerror.g [3:24] myerr -> error", []string{`customerror.g`}},
-		{"ERROR: .../test/scripts/err-a.g [6:5] Duplicate of c_func has been found after include/import",
+		{"ERROR: .../test/scripts/err-a.g [6:5] duplicate of c_func has been found after include/import",
 			[]string{`err-a.g`}},
 		{``, []string{`-t`, `a.g`}},
 		{``, []string{`-t`, `d.g`}},

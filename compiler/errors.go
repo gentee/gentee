@@ -139,6 +139,8 @@ const (
 	ErrIncludeFile
 	// ErrDupObject is returned when the duplicate object has been found in include or import
 	ErrDupObject
+	// ErrImportStr is returned when the string contains an expression
+	ErrImportStr
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -220,7 +222,8 @@ var (
 		ErrSwitchType:     `wrong type %s for switch, expecting int, float, bool, char or str`,
 		ErrString:         `unexpected token, expecting a string`,
 		ErrIncludeFile:    `can't read include file: %s`,
-		ErrDupObject:      `Duplicate of %s has been found after include/import`,
+		ErrDupObject:      `duplicate of %s has been found after include/import`,
+		ErrImportStr:      `string cannot contain an expression`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

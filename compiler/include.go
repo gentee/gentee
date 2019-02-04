@@ -65,6 +65,9 @@ func coIncludeImport(cmpl *compiler) error {
 	lp := cmpl.getLex()
 	token := getToken(lp, cmpl.pos)
 	v = lp.Strings[lp.Tokens[cmpl.pos].Index]
+	if len(lp.Tokens) > cmpl.pos+1 && lp.Tokens[cmpl.pos+1].Type == tkStrExp {
+		return cmpl.ErrorPos(cmpl.pos+1, ErrImportStr)
+	}
 	if token[0] == '"' {
 		if v, err = unNewLine(v.(string)); err != nil {
 			return cmpl.Error(ErrDoubleQuotes)

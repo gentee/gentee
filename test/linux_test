@@ -1,5 +1,31 @@
+run {
+  ChDir(`dir7`)
+}
+===== [2:3] chdir dir7: no such file or directory
+run {
+  str s = ReadFile(`ooops`)
+}
+===== [2:11] open ooops: no such file or directory
 run str {
    str s = $ bash -c "echo OK"
    return TrimSpace(s) + $ bash -c `echo "OOOPS тест" end`
 }
 ===== OKOOOPS тест end\n
+run str {
+  $ЧИСЛО = 10
+  $строка = `стр$ок%а ${ЧИСЛО}`
+  return $ echo ${строка}=
+}
+===== стр$ок%а 10=\n
+run str {
+  str name = $ echo count: %{ "10 1" + ` 2` }
+  return $ echo %{name} %{20+10}!
+}
+===== count: 10 1 2\n 30!\n
+run str { 
+  $ dir
+  str ret = $ echo `result "value"` тест  tt
+  ret += $ echo "your name"
+  return ret + $ echo 10 a 'b' {} ()
+}
+===== result "value" тест tt\nyour name\n10 a b {} ()\n

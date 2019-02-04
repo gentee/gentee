@@ -842,12 +842,6 @@ run int {
 }
 ===== 10
 run str {
-  $ЧИСЛО = 10
-  $строка = `стр$ок%а ${ЧИСЛО}`
-  return $ echo ${строка}=
-}
-===== стр$ок%а 10=\n
-run str {
   $BOOL = 10 == 10; str bs = 10 != 10
   $INT = 123; str is = 321
   $STR = `string`
@@ -864,23 +858,11 @@ run hello {
   $ echo test
 }
 ===== <nil>
-run str {
-  str name = $ echo count: %{ "10 1" + ` 2` }
-  return $ echo %{name} %{20+10}!
-}
-===== count: 10 1 2\n 30!\n
 run hello str {
   str name = "world"
   return $ echo Hello, %{name}!
 }
 ===== Hello, world!\n
-run str { 
-  $ dir
-  str ret = $ echo `result "value"` тест  tt
-  ret += $ echo "your name"
-  return ret + $ echo 10 a 'b' {} ()
-}
-===== result "value" тест tt\nyour name\n10 a b {} ()\n
 run str {
   return $ echo "hello"
 }

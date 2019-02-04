@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/gentee/gentee/core"
@@ -51,7 +50,6 @@ func isCapital(name string) bool {
 func randName() string {
 	alpha := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	length := len(alpha)
-	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, length)
 	for i := range b {
 		b[i] = alpha[rand.Intn(length)]

@@ -79,7 +79,7 @@ func main() {
 		resultStr := fmt.Sprint(result)
 		if testMode {
 			for _, line := range strings.Split(workspace.Unit(unitID).Lexeme[0].Header, "\n") {
-				ret := regexp.MustCompile(`\s*result\s*=\s*(.*)$`).FindStringSubmatch(line)
+				ret := regexp.MustCompile(`\s*result\s*=\s*(.*)$`).FindStringSubmatch(strings.TrimSpace(line))
 				if len(ret) == 2 {
 					if ret[1] == strings.TrimSpace(resultStr) {
 						return

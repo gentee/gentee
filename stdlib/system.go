@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/gentee/gentee/core"
@@ -69,6 +70,10 @@ func splitCmdLine(cmdLine string) (*exec.Cmd, error) {
 	}
 	if len(cmds) == 0 {
 		return nil, fmt.Errorf(core.ErrorText(core.ErrEmptyCommand))
+	}
+	if cmds[0] == `echo` && runtime.GOOS == "windows" {
+		cmds[0] = `cmd.exe`
+		cmds = append(cmds[:1], append([]string{`/C`, `echo`}, cmds[1:]...)...)
 	}
 	return exec.Command(cmds[0], cmds[1:]...), nil
 }

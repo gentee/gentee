@@ -5,7 +5,9 @@
 package core
 
 import (
+	"math/rand"
 	"reflect"
+	"time"
 )
 
 // VirtualMachine contains information of compiled source code
@@ -36,6 +38,10 @@ type Unit struct {
 	RunID     int               // The index of run function. Undefined (-1) - run has not yet been defined
 	Name      string            // The name of the unit
 	Pub       int               // Public mode
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
 
 // NewVM returns a new virtual machine

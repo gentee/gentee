@@ -17,6 +17,10 @@ import (
 
 func getWant(v interface{}, want string) error {
 	get := fmt.Sprint(v)
+	if runtime.GOOS == `windows` {
+		get = strings.Replace(get, "\r", ``, -1)
+		get = strings.Replace(get, `\"`, `"`, -1)
+	}
 	want = strings.Replace(want, `\n`, "\n", -1)
 	if get != want {
 		return fmt.Errorf("get != want;\n%s !=\n%s", get, want)

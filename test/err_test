@@ -1,3 +1,5 @@
+include { `ab/%{MYPATH}/filename` }
+===== [1:16] string cannot contain an expression
 run ok {}
 run {}
 ===== [2:1] run function has already been defined
@@ -23,7 +25,7 @@ include {
 ===== [1:10] unexpected end of the source
 include { 
    `${VAL} abc`}
-===== [2:4] can't read include file:
+===== [2:10] string cannot contain an expression
 include { abc}
 ===== [1:11] unexpected token, expecting a string
 run {
