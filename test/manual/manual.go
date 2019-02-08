@@ -15,12 +15,12 @@ import (
 func main() {
 	workspace := workspace.New()
 
-	unit, err := workspace.CompileFile(`test/manual/readinput.g`)
+	unitID, err := workspace.CompileFile(`test/manual/readinput.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return
 	}
-	result, err := workspace.Run(unit.Name)
+	result, err := workspace.Run(unitID)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return
