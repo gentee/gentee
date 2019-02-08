@@ -4,5 +4,4 @@ go:
   - 1.x
 
 script: 
-  - go test ./test/run_test.go
-  - go test ./test/cli_test.go
+  - go test ./test
