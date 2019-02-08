@@ -15,6 +15,7 @@ func InitTime(vm *core.VirtualMachine) {
 	NewStructType(vm, `time`, []string{
 		`Year:int`, `Month:int`, `Day:int`,
 		`Hour:int`, `Minute:int`, `Second:int`,
+		`UTC:bool`,
 	})
 
 	for _, item := range []interface{}{
@@ -48,13 +49,18 @@ func fromTime(it *core.Struct, in time.Time) *core.Struct {
 	it.Values[3] = int64(in.Hour())
 	it.Values[4] = int64(in.Minute())
 	it.Values[5] = int64(in.Second())
+	it.Values[6] = in.Location() == time.UTC
 	return it
 }
 
 func toTime(it *core.Struct) time.Time {
+	utc := time.Local
+	if it.Values[6].(bool) {
+		utc = time.UTC
+	}
 	return time.Date(int(it.Values[0].(int64)), time.Month(it.Values[1].(int64)),
 		int(it.Values[2].(int64)), int(it.Values[3].(int64)), int(it.Values[4].(int64)),
-		int(it.Values[5].(int64)), 0, time.Local)
+		int(it.Values[5].(int64)), 0, utc)
 }
 
 // intºTime converts time to Unix time

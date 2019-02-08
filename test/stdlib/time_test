@@ -2,9 +2,10 @@ run str {
   str out
   time tm tm2 tm3 tmNew
   time tmOld = {Year:1970, Month:10, Day:20 }
+  tmOld.UTC = true
   tm2 = time(int(tm = Now()))
   tmNew = DateTime(2100, 01, 10, 1, 2, 3)
   out = str(tm == tm2) 
-  return out + ` %{int(UTC(tmOld))} %{tm > tmOld} %{tm < tmNew}`
+  return out + ` %{int(tmOld)} %{tm > tmOld} %{tm < tmNew}`
 }
-===== true 25192800 true true
+===== true 25228800 true true
