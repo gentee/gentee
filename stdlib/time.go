@@ -31,6 +31,7 @@ func InitTime(vm *core.VirtualMachine) {
 		{GreaterºTimeTime, `time,time`, `bool`},            // binary >
 		{LessºTimeTime, `time,time`, `bool`},               // binary <
 		{Now, ``, `time`},                                  // Now()
+		{UTCºTime, `time`, `time`},                         // UTC()
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -95,4 +96,9 @@ func Now(rt *core.RunTime) *core.Struct {
 // SleepºInt pauses the current script for at least the specified duration in milliseconds.
 func SleepºInt(d int64) {
 	time.Sleep(time.Duration(d) * time.Millisecond)
+}
+
+// UTCºTime converts time to UTC time.
+func UTCºTime(rt *core.RunTime, local *core.Struct) *core.Struct {
+	return fromTime(newTime(rt), toTime(local).UTC())
 }

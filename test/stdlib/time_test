@@ -5,6 +5,6 @@ run str {
   tm2 = time(int(tm = Now()))
   tmNew = DateTime(2100, 01, 10, 1, 2, 3)
   out = str(tm == tm2) 
-  return out + ` %{int(tmOld)} %{tm > tmOld} %{tm < tmNew}`
+  return out + ` %{int(UTC(tmOld))} %{tm > tmOld} %{tm < tmNew}`
 }
-===== true 25210800 true true
+===== true 25192800 true true
