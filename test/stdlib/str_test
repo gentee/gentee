@@ -1,4 +1,9 @@
 run str {
+  arr v = Split(`1.0.0+1+metadata`, `+`)
+  return v[2]
+}
+===== metadata
+run str {
   str ina = `ТесТ STRring ĠĠ`
   return Lower(ina) + Upper(ina)
 }

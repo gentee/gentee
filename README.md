@@ -1,5 +1,7 @@
 # Gentee script programming language
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/gentee/gentee)](https://goreportcard.com/report/github.com/gentee/gentee)
+
 Gentee is a free open source script programming language. The Gentee programming language is designed to create scripts to automate repetitive actions and processes on your computer. If you use or plan to use .bat files, bash, PowerShell or special programs to automate actions, then try doing the same thing with Gentee. 
 
 ## Documentation

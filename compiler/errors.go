@@ -75,7 +75,7 @@ const (
 	ErrCapitalLetters
 	// ErrConstName is returned when the name of constant doesn't consist of only capital letters
 	ErrConstName
-	// ErrMustAssign is returned when teh constant is described without assign
+	// ErrMustAssign is returned when the constant is described without assign
 	ErrMustAssign
 	// ErrIota is returned when IOTA is used outside const expression
 	ErrIota

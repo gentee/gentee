@@ -1,3 +1,18 @@
+run {
+  int a = 10
+  a %= 2 - 2
+}
+===== [3:5] divided by zero
+run {
+  int a = 10 % 0
+}
+===== [2:14] divided by zero
+const { 12 = 20 }
+===== [1:9] unexpected token, expecting the name of the identifier
+const { 1_2 = 20 }
+===== [1:10] wrong sequence of characters
+const { _12 = 20 }
+===== [1:9] unknown character
 include { `ab/%{MYPATH}/filename` }
 ===== [1:16] string cannot contain an expression
 run ok {}

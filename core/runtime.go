@@ -316,7 +316,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			lenStack++
 		case StackIncDec:
 			cmdVar := cmdStack.Children[0].(*CmdVar)
-			if vars, err = rt.getVars(cmdVar.Block); err != nil {
+			if _, err = rt.getVars(cmdVar.Block); err != nil {
 				return err
 			}
 			var post bool

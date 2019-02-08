@@ -33,7 +33,7 @@ type IObject interface {
 	GetUnitIndex() uint32
 }
 
-// Object contains infromation about any compiled object of the virtual machine
+// Object contains information about any compiled object of the virtual machine
 type Object struct {
 	Name  string
 	LexID int // the identifier of source code in Lexeme of Unit

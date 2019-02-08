@@ -8,7 +8,7 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-// InitStdlib appends stdlib types and fucntions to the virtual machine
+// InitStdlib appends stdlib types and functions to the virtual machine
 func InitStdlib(vm *core.VirtualMachine) {
 	stdlib := vm.InitUnit()
 	stdlib.Pub = core.PubAll

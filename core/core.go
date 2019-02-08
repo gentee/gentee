@@ -207,7 +207,7 @@ func (cmd *CmdVar) GetResult() *TypeObject {
 	return typeVar
 }
 
-// GetToken returns teh index of the token
+// GetToken returns the index of the token
 func (cmd *CmdVar) GetToken() int {
 	return int(cmd.TokenID)
 }
@@ -252,7 +252,7 @@ func (cmd *CmdBlock) GetObject() IObject {
 	return cmd.Object
 }
 
-// GetToken returns teh index of the token
+// GetToken returns the index of the token
 func (cmd *CmdBlock) GetToken() int {
 	return int(cmd.TokenID)
 }
@@ -272,7 +272,7 @@ func (cmd *CmdUnary) GetObject() IObject {
 	return cmd.Object
 }
 
-// GetToken returns teh index of the token
+// GetToken returns the index of the token
 func (cmd *CmdUnary) GetToken() int {
 	return int(cmd.TokenID)
 }
@@ -292,7 +292,7 @@ func (cmd *CmdBinary) GetObject() IObject {
 	return cmd.Object
 }
 
-// GetToken returns teh index of the token
+// GetToken returns the index of the token
 func (cmd *CmdBinary) GetToken() int {
 	return int(cmd.TokenID)
 }
@@ -312,7 +312,7 @@ func (cmd *CmdAnyFunc) GetObject() IObject {
 	return cmd.Object
 }
 
-// GetToken returns teh index of the token
+// GetToken returns the index of the token
 func (cmd *CmdAnyFunc) GetToken() int {
 	return int(cmd.TokenID)
 }

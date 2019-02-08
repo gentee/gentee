@@ -105,9 +105,12 @@ func AssignDivºIntInt(ptr *interface{}, value int64) (int64, error) {
 }
 
 // AssignModºIntInt equals int %= int
-func AssignModºIntInt(ptr *interface{}, value int64) int64 {
+func AssignModºIntInt(ptr *interface{}, value int64) (int64, error) {
+	if value == 0 {
+		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
+	}
 	*ptr = (*ptr).(int64) % value
-	return (*ptr).(int64)
+	return (*ptr).(int64), nil
 }
 
 // AssignMulºIntInt equals int *= int
@@ -197,8 +200,11 @@ func LShiftºIntInt(left, right int64) (int64, error) {
 }
 
 // ModºIntInt returns the remainder after division of one number by another
-func ModºIntInt(left, right int64) int64 {
-	return left % right
+func ModºIntInt(left, right int64) (int64, error) {
+	if right == 0 {
+		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
+	}
+	return left % right, nil
 }
 
 // MulºIntInt multiplies one number by another

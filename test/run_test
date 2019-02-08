@@ -1,3 +1,11 @@
+run str {
+  map.str mb = {`First`: `Begin`, `Last`: `End`}
+  arr.str b = {`Start`, `Finish`}
+  arr a = b
+  map ma = mb
+  return a[0] + ma[`Last`]
+}
+===== StartEnd
 func var(int i) int { return i*2 }
 func var(int i, int pars...) int {
   int ret

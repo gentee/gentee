@@ -49,11 +49,9 @@ func InitTypes(vm *core.VirtualMachine) {
 		}
 		vm.StdLib().NewType(item.name, item.original, indexOf)
 	}
-	defType := func(name string, original reflect.Type) {
-		vm.StdLib().NewType(name, original, vm.StdLib().FindType(`str`))
-	}
-	defType(`arr`, typeArr)
-	defType(`map`, typeMap)
+	// Define aliases
+	vm.StdLib().NameSpace[`@arr`] = vm.StdLib().NameSpace[`@arr.str`]
+	vm.StdLib().NameSpace[`@map`] = vm.StdLib().NameSpace[`@map.str`]
 }
 
 // NewStructType adds a new struct type to Unit
