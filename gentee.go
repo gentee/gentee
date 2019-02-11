@@ -24,12 +24,14 @@ func New() *Gentee {
 	return &g
 }
 
-// Compile compiles the Gentee source code. It returns id of the compiled unit or error.
+// Compile compiles the Gentee source code.
+// The function returns id of the compiled unit and error code.
 func (g *Gentee) Compile(input, path string) (int, error) {
 	return compiler.Compile(g.VirtualMachine, input, path)
 }
 
-// CompileFile compiles the source file. It returns id of the compiled unit or error.
+// CompileFile compiles the specified Gentee source file.
+// The function returns id of the compiled unit and error code.
 func (g *Gentee) CompileFile(filename string) (int, error) {
 	return compiler.CompileFile(g.VirtualMachine, filename)
 }
@@ -39,12 +41,12 @@ func (g *Gentee) Unit(unitID int) *core.Unit {
 	return g.Units[unitID]
 }
 
-// Run executes the unit with specified name.
+// Run executes the unit by its identifier.
 func (g *Gentee) Run(unitID int) (interface{}, error) {
 	return g.VirtualMachine.Run(unitID)
 }
 
-// Version returns th ecurrent version of the Gentee compiler
+// Version returns the current version of the Gentee compiler.
 func (g *Gentee) Version() string {
 	return core.Version
 }

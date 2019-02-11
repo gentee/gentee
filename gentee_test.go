@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package test
+package gentee
 
 import (
 	"fmt"
@@ -11,8 +11,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-
-	"github.com/gentee/gentee"
 )
 
 func getWant(v interface{}, want string) error {
@@ -28,12 +26,12 @@ func getWant(v interface{}, want string) error {
 	return nil
 }
 
-func TestRun(t *testing.T) {
+func TestGentee(t *testing.T) {
 
-	workspace := gentee.New()
+	workspace := New()
 
 	testFile := func(filename string) error {
-		input, err := ioutil.ReadFile(filename)
+		input, err := ioutil.ReadFile(filepath.Join(`tests`, filename))
 		if err != nil {
 			return err
 		}
@@ -86,9 +84,13 @@ func TestRun(t *testing.T) {
 			return
 		}
 	}
-	files, err := ioutil.ReadDir("stdlib")
+	files, err := ioutil.ReadDir(filepath.Join("tests", "stdlib"))
 	if err != nil {
 		t.Error(err)
+		return
+	}
+	if len(files) < 8 {
+		t.Error(`stdlib tests cannot be found`)
 		return
 	}
 	for _, file := range files {

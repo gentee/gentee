@@ -10,12 +10,12 @@ import (
 	"github.com/gentee/gentee"
 )
 
-// To run: go run test/manual/manual.go
+// To run: go run tests/manual/manual.go
 
 func main() {
 	workspace := gentee.New()
 
-	unitID, err := workspace.CompileFile(`test/manual/readinput.g`)
+	unitID, err := workspace.CompileFile(`tests/manual/readinput.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return

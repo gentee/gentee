@@ -5,9 +5,11 @@
 package test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -17,6 +19,19 @@ import (
 type testItem struct {
 	want   string
 	params []string
+}
+
+func getWant(v interface{}, want string) error {
+	get := fmt.Sprint(v)
+	if runtime.GOOS == `windows` {
+		get = strings.Replace(get, "\r", ``, -1)
+		get = strings.Replace(get, `\"`, `"`, -1)
+	}
+	want = strings.Replace(want, `\n`, "\n", -1)
+	if get != want {
+		return fmt.Errorf("get != want;\n%s !=\n%s", get, want)
+	}
+	return nil
 }
 
 func TestCli(t *testing.T) {
@@ -59,29 +74,29 @@ func TestCli(t *testing.T) {
 		{``, []string{`-t`, `h.g`}},
 		{``, []string{`-t`, `ok.g`}},
 		{"ok 777\n", []string{`ok.g`}},
-		{"test\nERROR: .../test/scripts/ok.g [3:1] script ok has already been linked",
+		{"test\nERROR: .../tests/scripts/ok.g [3:1] script ok has already been linked",
 			[]string{`runname.g`, `ok.g`}},
 		{core.Version, []string{`-ver`}},
 		{``, []string{`nothing.g`}},
 		{core.Version, []string{`const.g`}},
-		{"ERROR 254: .../test/scripts/traceerror.g [2:13] divided by zero\n" +
-			".../test/scripts/traceerror.g [5:5] run -> myfunc\n" +
-			".../test/scripts/traceerror.g [2:13] myfunc -> Div", []string{`traceerror.g`}},
-		{"ERROR 300: .../test/scripts/customerror.g [3:24] Σ custom error №5\n" +
-			".../test/scripts/customerror.g [9:12] run -> myerr\n" +
-			".../test/scripts/customerror.g [3:24] myerr -> error", []string{`customerror.g`}},
-		{"ERROR: .../test/scripts/err-a.g [6:5] duplicate of c_func has been found after include/import",
+		{"ERROR 254: .../tests/scripts/traceerror.g [2:13] divided by zero\n" +
+			".../tests/scripts/traceerror.g [5:5] run -> myfunc\n" +
+			".../tests/scripts/traceerror.g [2:13] myfunc -> Div", []string{`traceerror.g`}},
+		{"ERROR 300: .../tests/scripts/customerror.g [3:24] Σ custom error №5\n" +
+			".../tests/scripts/customerror.g [9:12] run -> myerr\n" +
+			".../tests/scripts/customerror.g [3:24] myerr -> error", []string{`customerror.g`}},
+		{"ERROR: .../tests/scripts/err-a.g [6:5] duplicate of c_func has been found after include/import",
 			[]string{`err-a.g`}},
 		{``, []string{`-t`, `a.g`}},
 		{``, []string{`-t`, `d.g`}},
-		{"ERROR: .../test/scripts/err-b.g [6:12] function c_func(int) has not been found",
+		{"ERROR: .../tests/scripts/err-b.g [6:12] function c_func(int) has not been found",
 			[]string{`err-b.g`}},
 		{``, []string{`-t`, `f.g`}},
-		{"ERROR: .../test/scripts/err-c.g [7:12] function e_func(int, int) has not been found",
+		{"ERROR: .../tests/scripts/err-c.g [7:12] function e_func(int, int) has not been found",
 			[]string{`err-c.g`}},
-		{"ERROR: .../test/scripts/err-d.g [7:7] function Assign(int, et) has not been found",
+		{"ERROR: .../tests/scripts/err-d.g [7:7] function Assign(int, et) has not been found",
 			[]string{`err-d.g`}},
-		{"ERROR: .../test/scripts/err-e.g [6:12] unknown identifier EINT",
+		{"ERROR: .../tests/scripts/err-e.g [6:12] unknown identifier EINT",
 			[]string{`err-e.g`}},
 	}
 	for _, item := range testList {
