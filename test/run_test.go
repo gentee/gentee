@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gentee/gentee/workspace"
+	"github.com/gentee/gentee"
 )
 
 func getWant(v interface{}, want string) error {
@@ -30,7 +30,7 @@ func getWant(v interface{}, want string) error {
 
 func TestRun(t *testing.T) {
 
-	workspace := workspace.New()
+	workspace := gentee.New()
 
 	testFile := func(filename string) error {
 		input, err := ioutil.ReadFile(filename)

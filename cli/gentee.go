@@ -12,8 +12,8 @@ import (
 	"regexp"
 	"strings"
 
+	workspace "github.com/gentee/gentee"
 	"github.com/gentee/gentee/core"
-	"github.com/gentee/gentee/workspace"
 )
 
 const (

@@ -7,13 +7,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/gentee/gentee/workspace"
+	"github.com/gentee/gentee"
 )
 
 // To run: go run test/manual/manual.go
 
 func main() {
-	workspace := workspace.New()
+	workspace := gentee.New()
 
 	unitID, err := workspace.CompileFile(`test/manual/readinput.g`)
 	if err != nil {
