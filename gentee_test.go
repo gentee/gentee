@@ -107,4 +107,23 @@ func TestGentee(t *testing.T) {
 			}
 		}
 	}
+	scriptName := filepath.Join(`tests`, filepath.Join(`scripts`, `const.g`))
+	unitID, err := workspace.CompileFile(scriptName)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	result, err := workspace.Run(unitID)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if result != workspace.Version() {
+		t.Errorf(`Wrong version %v`, result)
+		return
+	}
+	if !strings.HasSuffix(workspace.Unit(unitID).Name, scriptName) {
+		t.Errorf(`Wrong unit name %v`, workspace.Unit(unitID).Name)
+		return
+	}
 }
