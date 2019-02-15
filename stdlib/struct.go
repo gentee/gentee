@@ -11,7 +11,8 @@ import (
 // InitStruct appends stdlib map functions to the virtual machine
 func InitStruct(vm *core.VirtualMachine) {
 	for _, item := range []embedInfo{
-		{AssignºStructStruct, `struct,struct`, `struct`}, // struct = struct
+		{AssignºStructStruct, `struct,struct`, `struct`},       // struct = struct
+		{AssignBitAndºStructStruct, `struct,struct`, `struct`}, // struct &= struct
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -20,5 +21,12 @@ func InitStruct(vm *core.VirtualMachine) {
 // AssignºStructStruct copies one struct to another one
 func AssignºStructStruct(ptr *interface{}, value *core.Struct) *core.Struct {
 	core.CopyVar(ptr, value)
+	return (*ptr).(*core.Struct)
+}
+
+// AssignBitAndºStructStruct assigns a pointer to data of one struct to another struct
+func AssignBitAndºStructStruct(ptr *interface{}, value *core.Struct) *core.Struct {
+	//	core.CopyPointer(ptr, value)
+	*ptr = value
 	return (*ptr).(*core.Struct)
 }

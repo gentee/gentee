@@ -230,6 +230,14 @@ func popBuf(cmpl *compiler) error {
 						obj = cmpl.unit.FindObj(core.DefAssignMap)
 					}
 				}
+			} else if expBuf.Oper == tkBitAndEq {
+				if left.GetResult().Custom != nil {
+					if left.GetResult() != right.GetResult() {
+						return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
+							left.GetResult().GetName())
+					}
+					obj = cmpl.vm.StdLib().FindObj(core.DefAssignBitAndStructStruct)
+				}
 			}
 			if expBuf.Oper == tkAddEq && left.GetResult().Original == reflect.TypeOf(core.Array{}) {
 				if left.GetResult().IndexOf == right.GetResult() {

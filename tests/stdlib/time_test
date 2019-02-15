@@ -1,3 +1,13 @@
+run arr.time {
+  arr.time at = {Now(), Now()}
+  time t 
+  t &= at[1]
+  t = DateTime(2019, 2, 14, 9, 10, 11)
+  at[0] &= at[1]
+  t.Second = 12
+  return at
+}
+===== [time[Year:2019 Month:2 Day:14 Hour:9 Minute:10 Second:12 UTC:false] time[Year:2019 Month:2 Day:14 Hour:9 Minute:10 Second:12 UTC:false]]
 run str {
   str out
   time tm tm2 tm3 tmNew

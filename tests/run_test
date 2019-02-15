@@ -1,3 +1,17 @@
+struct mystr {
+   int a
+   str b
+}
+run mystr {
+  mystr a = {a: 10, b: "string"}
+  mystr b
+  b &= a
+  a.b += "ok"
+  b.a *= 2
+  a.a += 3
+  return b
+}
+=====  mystr[a:23 b:stringok]
 run str {
   map.str mb = {`First`: `Begin`, `Last`: `End`}
   arr.str b = {`Start`, `Finish`}

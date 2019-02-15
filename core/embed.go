@@ -27,6 +27,8 @@ const (
 	DefAssignIntInt = `#Assign#int#int`
 	// DefAssignStructStruct equals struct = struct
 	DefAssignStructStruct = `AssignºStructStruct`
+	// DefAssignBitAndStructStruct equals struct &= struct
+	DefAssignBitAndStructStruct = `AssignBitAndºStructStruct`
 	// DefNewKeyValue returns a pair of key value
 	DefNewKeyValue = `NewKeyValue`
 	// DefSetEnv sets an environment variable
@@ -37,17 +39,18 @@ const (
 
 var (
 	defFuncs = map[string]bool{
-		DefAssignAddArr:       true,
-		DefAssignAddMap:       true,
-		DefAssignArr:          true,
-		DefAssignMap:          true,
-		DefLenArr:             true,
-		DefLenMap:             true,
-		DefAssignIntInt:       true,
-		DefAssignStructStruct: true,
-		DefNewKeyValue:        true,
-		DefSetEnv:             true,
-		DefGetEnv:             true,
+		DefAssignAddArr:             true,
+		DefAssignAddMap:             true,
+		DefAssignArr:                true,
+		DefAssignMap:                true,
+		DefLenArr:                   true,
+		DefLenMap:                   true,
+		DefAssignIntInt:             true,
+		DefAssignStructStruct:       true,
+		DefAssignBitAndStructStruct: true,
+		DefNewKeyValue:              true,
+		DefSetEnv:                   true,
+		DefGetEnv:                   true,
 	}
 )
 

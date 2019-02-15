@@ -1,4 +1,14 @@
 run str {
+  buf b1 = buf(`Original ŋ`)
+  buf b2
+  b2 &= b1
+  b1 += buf(`12345`)
+  Del(Del(b2, 2, 3), *b1, -2)
+  Insert(b1, 3, b2)
+  return str(b2)
+}
+===== OrnOrnal ŋ123al ŋ123
+run str {
   buf ba = buf(`Hello ŋ`)
   str s = Hex(ba += '0')
   return s + str(UnHex(s)) + str(UnHex(Upper(s)))

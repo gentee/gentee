@@ -14,16 +14,19 @@ import (
 // InitBuffer appends stdlib buffer functions to the virtual machine
 func InitBuffer(vm *core.VirtualMachine) {
 	for _, item := range []embedInfo{
-		{bufºStr, `str`, `buf`},                // buf( str ) buf
-		{strºBuf, `buf`, `str`},                // str( buf ) str
-		{LenºBuf, `buf`, `int`},                // the length of the buffer
-		{AssignºBufBuf, `buf,buf`, `buf`},      // buf = buf
-		{AssignAddºBufInt, `buf,int`, `buf`},   // buf += int
-		{AssignAddºBufStr, `buf,str`, `buf`},   // buf += str
-		{AssignAddºBufChar, `buf,char`, `buf`}, // buf += char
-		{AssignAddºBufBuf, `buf,buf`, `buf`},   // buf += buf
-		{HexºBuf, `buf`, `str`},                // Hex( buf ) str
-		{UnHexºStr, `str`, `buf`},              // UnHex( str ) buf
+		{bufºStr, `str`, `buf`},                  // buf( str ) buf
+		{strºBuf, `buf`, `str`},                  // str( buf ) str
+		{LenºBuf, `buf`, `int`},                  // the length of the buffer
+		{AssignºBufBuf, `buf,buf`, `buf`},        // buf = buf
+		{AssignAddºBufInt, `buf,int`, `buf`},     // buf += int
+		{AssignAddºBufStr, `buf,str`, `buf`},     // buf += str
+		{AssignAddºBufChar, `buf,char`, `buf`},   // buf += char
+		{AssignAddºBufBuf, `buf,buf`, `buf`},     // buf += buf
+		{AssignBitAndºBufBuf, `buf,buf`, `buf`},  // buf &= buf
+		{DelºBufIntInt, `buf,int,int`, `buf`},    // Del( buf, int, int ) buf
+		{HexºBuf, `buf`, `str`},                  // Hex( buf ) str
+		{InsertºBufIntBuf, `buf,int,buf`, `buf`}, // Insert( buf, int, buf ) buf
+		{UnHexºStr, `str`, `buf`},                // UnHex( str ) buf
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -62,6 +65,12 @@ func AssignAddºBufStr(ptr *interface{}, value string) *core.Buffer {
 	return (*ptr).(*core.Buffer)
 }
 
+// AssignBitAndºBufBuf assigns a pointer to buffer
+func AssignBitAndºBufBuf(ptr *interface{}, value *core.Buffer) *core.Buffer {
+	*ptr = value
+	return (*ptr).(*core.Buffer)
+}
+
 // bufºStr converts string to buffer
 func bufºStr(value string) *core.Buffer {
 	b := core.NewBuffer()
@@ -77,6 +86,36 @@ func strºBuf(buf *core.Buffer) string {
 // HexºBuf encodes buf to hex string
 func HexºBuf(buf *core.Buffer) string {
 	return hex.EncodeToString(buf.Data)
+}
+
+// DelºBufIntInt deletes part of the buffer
+func DelºBufIntInt(buf *core.Buffer, off, length int64) (*core.Buffer, error) {
+	size := int64(len(buf.Data))
+	if off < 0 || off > size {
+		return buf, fmt.Errorf(core.ErrorText(core.ErrInvalidParam))
+	}
+	if length < 0 {
+		off += length
+		length = -length
+	}
+	if off < 0 {
+		off = 0
+	}
+	if off+length > size {
+		length = size - off
+	}
+	buf.Data = append(buf.Data[:off], buf.Data[off+length:]...)
+	return buf, nil
+}
+
+// InsertºBufIntBuf inserts one buf object into another one
+func InsertºBufIntBuf(buf *core.Buffer, off int64, b *core.Buffer) (*core.Buffer, error) {
+	size := int64(len(buf.Data))
+	if off < 0 || off > size {
+		return buf, fmt.Errorf(core.ErrorText(core.ErrInvalidParam))
+	}
+	buf.Data = append(buf.Data[:off], append(b.Data, buf.Data[off:]...)...)
+	return buf, nil
 }
 
 // LenºBuf returns the length of the buffer
