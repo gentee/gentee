@@ -1,0 +1,11 @@
+run map.map.int {
+  map.map.int mb = {`0`: {`A`:1,`B`:2,`C`:3}, `-1`: {`D`:4,`E`:5}}
+  map.int mc = {`F`:6, `G`:7}
+  map.int ma
+  ma &= mc
+  ma[`G`] = 25
+  mb[`-2`] &= mc
+  ma[`H`] = 30
+  return mb
+}
+===== map[0:map[A:1 B:2 C:3] -1:map[D:4 E:5] -2:map[F:6 G:25 H:30]]

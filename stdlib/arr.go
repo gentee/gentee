@@ -27,6 +27,7 @@ func InitArray(vm *core.VirtualMachine) {
 		{AssignAddºArrBool, `arr.bool,bool`, `arr.bool`}, // arr += bool
 		{AssignAddºArrMap, `arr.map*,map*`, `arr.map*`},  // arr.map += map
 		{AssignºArrArr, `arr*,arr*`, `arr*`},             // arr = arr
+		{AssignBitAndºArrArr, `arr*,arr*`, `arr*`},       // arr &= arr
 		{JoinºArrStr, `arr.str,str`, `str`},              // Join( arr.str, str )
 		{SortºArr, `arr.str`, `arr.str`},                 // Sort( arr.str )
 	} {
@@ -72,6 +73,12 @@ func AssignAddºArrInt(ptr *interface{}, value int64) *core.Array {
 // AssignAddºArrBool appends one boolean value to array
 func AssignAddºArrBool(ptr *interface{}, value bool) *core.Array {
 	(*ptr).(*core.Array).Data = append((*ptr).(*core.Array).Data, value)
+	return (*ptr).(*core.Array)
+}
+
+// AssignBitAndºArrArr assigns a pointer to the array
+func AssignBitAndºArrArr(ptr *interface{}, value *core.Array) *core.Array {
+	*ptr = value
 	return (*ptr).(*core.Array)
 }
 

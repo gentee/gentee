@@ -11,8 +11,9 @@ import (
 // InitMap appends stdlib map functions to the virtual machine
 func InitMap(vm *core.VirtualMachine) {
 	for _, item := range []embedInfo{
-		{LenºMap, `map*`, `int`},             // the length of map
-		{AssignºMapMap, `map*,map*`, `map*`}, // map = map
+		{LenºMap, `map*`, `int`},                   // the length of map
+		{AssignºMapMap, `map*,map*`, `map*`},       // map = map
+		{AssignBitAndºMapMap, `map*,map*`, `map*`}, // map &= map
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -26,5 +27,11 @@ func LenºMap(pmap *core.Map) int64 {
 // AssignºMapMap copies one array to another one
 func AssignºMapMap(ptr *interface{}, value *core.Map) *core.Map {
 	core.CopyVar(ptr, value)
+	return (*ptr).(*core.Map)
+}
+
+// AssignBitAndºMapMap assigns a pointer to the map
+func AssignBitAndºMapMap(ptr *interface{}, value *core.Map) *core.Map {
+	*ptr = value
 	return (*ptr).(*core.Map)
 }

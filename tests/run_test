@@ -1,3 +1,21 @@
+run map.str {
+  map ma = {`1`:`A`, `2`:`B`, `3`:`C`}
+  map.str mc
+  mc &= ma
+  mc[`4`]= `D`
+  ma[`0`] = `Z`
+  return mc
+}
+===== map[1:A 2:B 3:C 4:D 0:Z]
+run arr.str {
+  arr ab = {`1`, `2`, `3`, `4`}
+  arr.str ac
+  ac &= ab
+  ac += `5`
+  ab[0] = `0`
+  return ac
+}
+===== [0 2 3 4 5]
 struct mystr {
    int a
    str b

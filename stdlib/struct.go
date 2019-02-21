@@ -26,7 +26,6 @@ func AssignºStructStruct(ptr *interface{}, value *core.Struct) *core.Struct {
 
 // AssignBitAndºStructStruct assigns a pointer to data of one struct to another struct
 func AssignBitAndºStructStruct(ptr *interface{}, value *core.Struct) *core.Struct {
-	//	core.CopyPointer(ptr, value)
 	*ptr = value
 	return (*ptr).(*core.Struct)
 }

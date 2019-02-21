@@ -1,3 +1,14 @@
+run arr.arr.int {
+  arr.arr.int ab = {{1,2,3}, {4,5,6}}
+  arr.int ac = {0, 1, 2}
+  arr.int aa
+  aa &= ac
+  aa[1] = 25
+  ab += ac
+  aa += 30
+  return ab
+}
+===== [[1 2 3] [4 5 6] [0 25 2 30]]
 run str {
   str ina = `те =string =ĠĠ`
   return Join(Split(ina, ` =`), `®`)

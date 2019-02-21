@@ -237,6 +237,12 @@ func popBuf(cmpl *compiler) error {
 							left.GetResult().GetName())
 					}
 					obj = cmpl.vm.StdLib().FindObj(core.DefAssignBitAndStructStruct)
+				} else if left.GetResult() == right.GetResult() {
+					if left.GetResult().Original == reflect.TypeOf(core.Array{}) {
+						obj = cmpl.unit.FindObj(core.DefAssignBitAndArrArr)
+					} else if left.GetResult().Original == reflect.TypeOf(core.Map{}) {
+						obj = cmpl.unit.FindObj(core.DefAssignBitAndMapMap)
+					}
 				}
 			}
 			if expBuf.Oper == tkAddEq && left.GetResult().Original == reflect.TypeOf(core.Array{}) {

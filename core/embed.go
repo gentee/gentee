@@ -29,6 +29,10 @@ const (
 	DefAssignStructStruct = `AssignºStructStruct`
 	// DefAssignBitAndStructStruct equals struct &= struct
 	DefAssignBitAndStructStruct = `AssignBitAndºStructStruct`
+	// DefAssignBitAndArrArr equals arr &= arr
+	DefAssignBitAndArrArr = `AssignBitAndºArrArr`
+	// DefAssignBitAndMapMap equals map &= map
+	DefAssignBitAndMapMap = `AssignBitAndºMapMap`
 	// DefNewKeyValue returns a pair of key value
 	DefNewKeyValue = `NewKeyValue`
 	// DefSetEnv sets an environment variable
@@ -48,6 +52,8 @@ var (
 		DefAssignIntInt:             true,
 		DefAssignStructStruct:       true,
 		DefAssignBitAndStructStruct: true,
+		DefAssignBitAndArrArr:       true,
+		DefAssignBitAndMapMap:       true,
 		DefNewKeyValue:              true,
 		DefSetEnv:                   true,
 		DefGetEnv:                   true,
