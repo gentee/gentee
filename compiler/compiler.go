@@ -469,7 +469,7 @@ func coVarExp(cmpl *compiler) error {
 	if len(tokens) == cmpl.pos+1 {
 		return nil
 	}
-	if tokens[cmpl.pos+1].Type == tkAssign {
+	if tokens[cmpl.pos+1].Type == tkAssign || tokens[cmpl.pos+1].Type == tkBitAndEq {
 		if len(tokens) > cmpl.pos+2 {
 			if tokens[cmpl.pos+2].Type == tkColon {
 				if err := colonToLine(cmpl, cmpl.pos+2); err != nil {

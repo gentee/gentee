@@ -1,3 +1,15 @@
+run int {
+  int i &= 0xffff
+  return i
+}
+===== 0
+run arr {
+  arr at &= {`A`, `B`, `C`}
+  arr ab &= at
+  ab += `D`
+  return at
+}
+===== [A B C D]
 run map.str {
   map ma = {`1`:`A`, `2`:`B`, `3`:`C`}
   map.str mc

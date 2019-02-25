@@ -1,3 +1,8 @@
+run str {
+  str s &= "abc"
+  return s
+}
+===== [2:9] function AssignBitAnd(str, str) has not been found
 run {
   int a = 10
   a %= 2 - 2
