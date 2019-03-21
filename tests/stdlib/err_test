@@ -1,3 +1,15 @@
+run arr.arr.str {
+  return FindRegExp(`This is a string`, `q)`)
+}
+===== [2:10] error parsing regexp: unexpected ): `q)`
+run str {
+  return ReplaceRegExp(`This is a string`, `qq(.`, `OK`)
+}
+===== [2:10] error parsing regexp: missing closing ): `qq(.`
+run bool {
+  return Match(`OK`, `qq\o`)
+}
+===== [2:10] error parsing regexp: invalid escape sequence: `\o`
 run {
   if true {
       error(77, `1. %s - %d`, `тест`, 70+7)

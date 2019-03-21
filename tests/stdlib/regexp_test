@@ -1,0 +1,29 @@
+run str {
+    str pattern = `a.b`
+    return `%{Match(`somethiabng striabnbg`, pattern)} %{Match(`somethianbg string`, pattern)}`
+}
+===== false true
+run str {
+    str src = `This is тестовая строка`
+    str pattern = `.is`
+    src = ReplaceRegExp(ReplaceRegExp(src, pattern, `sup`), `т(.{2})`, "п${1}х")
+    return ReplaceRegExp(ReplaceRegExp(src, `qwe`, `ooops`), `х(.)`, `zz`)
+}
+===== Tsupsup песzzовzzя спроzzа
+run arr.arr {
+    return FindRegExp(`This is тестовая строка`, `т(.{2})`)
+}
+===== [[тес ес] [тов ов] [тро ро]]
+run arr.arr {
+    arr.arr.str a &= FindRegExp(`This is a test string`, `abs`)
+    if *a == 0 {
+        a &= FindRegExp(`This is a test string`, `i.`)
+    }
+    return a
+}
+===== [[is] [is] [in]]
+run str {
+    arr.arr.str a &= FindRegExp(`My email is xzy@somedomainname.ooops`, `(\w+)@(\w+)\.(\w+)`)
+    return `%{a[0][1]}@%{a[0][2]}.%{a[0][3]} == ` + a[0][0]
+}
+===== xzy@somedomainname.ooops == xzy@somedomainname.ooops
