@@ -29,6 +29,8 @@ const (
 	DefAssignStructStruct = `AssignºStructStruct`
 	// DefAssignBitAndStructStruct equals struct &= struct
 	DefAssignBitAndStructStruct = `AssignBitAndºStructStruct`
+	// DefAssignFnFn equals fn = fn
+	DefAssignFnFn = `AssignºFnFn`
 	// DefAssignBitAndArrArr equals arr &= arr
 	DefAssignBitAndArrArr = `AssignBitAndºArrArr`
 	// DefAssignBitAndMapMap equals map &= map
@@ -51,6 +53,7 @@ var (
 		DefLenMap:                   true,
 		DefAssignIntInt:             true,
 		DefAssignStructStruct:       true,
+		DefAssignFnFn:               true,
 		DefAssignBitAndStructStruct: true,
 		DefAssignBitAndArrArr:       true,
 		DefAssignBitAndMapMap:       true,

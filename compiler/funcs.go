@@ -88,7 +88,7 @@ func coFuncStart(cmpl *compiler) error {
 		funcObj.Block.ParCount--
 		params = nil
 	}
-	if obj := getFunc(cmpl, funcObj.Name, params, true); obj != nil {
+	if obj := getFunc(cmpl, funcObj.Name, params); obj != nil {
 		if core.IsVariadic(obj) {
 			return cmpl.ErrorFunction(ErrFuncExists, int(funcObj.Block.TokenID), funcObj.Name,
 				append(funcObj.GetParams(), nil))
@@ -106,7 +106,7 @@ func coFuncStart(cmpl *compiler) error {
 	return nil
 }
 
-func getFunc(cmpl *compiler, name string, params []*core.TypeObject, isFunc bool) (obj core.IObject) {
+func getFunc(cmpl *compiler, name string, params []*core.TypeObject) (obj core.IObject) {
 	var variadic bool
 	obj, variadic = cmpl.unit.FindFunc(name, params)
 	if obj == nil || !variadic {
@@ -151,7 +151,7 @@ func getOperator(cmpl *compiler, name string, left, right core.ICmd) (obj core.I
 	if right != nil {
 		params = append(params, right.GetResult())
 	}
-	return getFunc(cmpl, name, params, false)
+	return getFunc(cmpl, name, params)
 }
 
 func coFuncBack(cmpl *compiler) error {

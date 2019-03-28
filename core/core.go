@@ -171,6 +171,7 @@ type CmdAnyFunc struct {
 	Object   IObject
 	Result   *TypeObject
 	Children []ICmd
+	FnVar    ICmd
 }
 
 // GetType returns CtValue

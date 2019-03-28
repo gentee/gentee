@@ -1,3 +1,10 @@
+
+run str {
+    return ReplaceRegExp("This is a string", `i(.{2})`, "xyz") +
+        ReplaceRegExp(" email is xyz@example.com", 
+            `(\w+)@(\w+)\.(\w+)`, "${3}.${2}@zzz")
+}
+===== Thxyzxyza strxyz email is com.example@zzz
 run str {
     str pattern = `a.b`
     return `%{Match(`somethiabng striabnbg`, pattern)} %{Match(`somethianbg string`, pattern)}`

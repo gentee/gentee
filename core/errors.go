@@ -45,6 +45,8 @@ const (
 	ErrInvalidParam
 	// ErrNotRun is returned when the executing unit doesn't have run function
 	ErrNotRun
+	// ErrFnEmpty is returned in case of calling undefined fn variable
+	ErrFnEmpty
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -94,6 +96,7 @@ var (
 		ErrByteOut:      `byte value is out of range`,
 		ErrInvalidParam: `invalid value of parameter(s)`,
 		ErrNotRun:       `there is not run function`,
+		ErrFnEmpty:      `fn variable has not been defined`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

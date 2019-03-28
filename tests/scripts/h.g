@@ -8,5 +8,6 @@ include {
 }
 
 run int {
+    mypubfunc mpf
     return e_func(10, 20) + cpub_func(5)
 }

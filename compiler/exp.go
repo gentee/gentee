@@ -223,6 +223,12 @@ func popBuf(cmpl *compiler) error {
 							left.GetResult().GetName())
 					}
 					obj = cmpl.vm.StdLib().FindObj(core.DefAssignStructStruct)
+				} else if left.GetResult().Func != nil {
+					if !isEqualTypes(left.GetResult(), right.GetResult()) {
+						return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
+							left.GetResult().GetName())
+					}
+					obj = cmpl.vm.StdLib().FindObj(core.DefAssignFnFn)
 				} else if left.GetResult() == right.GetResult() {
 					if left.GetResult().Original == reflect.TypeOf(core.Array{}) {
 						obj = cmpl.unit.FindObj(core.DefAssignArr)
@@ -279,7 +285,7 @@ func popBuf(cmpl *compiler) error {
 		icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Object: obj, Result: obj.Result(), Left: left, Right: right}
 		if expBuf.Oper == tkNotEqual || expBuf.Oper == tkLessEqual || expBuf.Oper == tkGreaterEqual {
-			objNot := getFunc(cmpl, `Not`, []*core.TypeObject{obj.Result()}, false)
+			objNot := getFunc(cmpl, `Not`, []*core.TypeObject{obj.Result()})
 			if objNot == nil {
 				return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, `Not`,
 					[]*core.TypeObject{obj.Result()})
@@ -345,6 +351,37 @@ func popBuf(cmpl *compiler) error {
 		return cmpl.Error(ErrCompiler, fmt.Sprintf(`popBuf unknown token %d`, expBuf.Oper))
 	}
 	cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
+	return nil
+}
+
+func coFnOperator(cmpl *compiler) error {
+	lp := cmpl.getLex()
+	if len(lp.Tokens) == cmpl.pos+1 {
+		return cmpl.ErrorPos(len(lp.Tokens), ErrEnd)
+	}
+	if lp.Tokens[cmpl.pos+1].Type != tkIdent {
+		return cmpl.ErrorPos(cmpl.pos+1, ErrName)
+	}
+	token := getToken(lp, cmpl.pos+1)
+	faddr := strings.Split(token, `.`)
+	if len(faddr) != 2 {
+		return cmpl.Error(ErrAddrFunc)
+	}
+	ftype := cmpl.unit.FindType(faddr[1])
+	if ftype == nil || ftype.(*core.TypeObject).Func == nil {
+		return cmpl.Error(ErrNoFuncType, faddr[1])
+	}
+	obj := getFunc(cmpl, faddr[0], ftype.(*core.TypeObject).Func.Params)
+	if obj == nil {
+		return cmpl.ErrorFunction(ErrFunction, cmpl.pos+1, faddr[0], ftype.(*core.TypeObject).Func.Params)
+	}
+	if !isEqualTypes(obj.Result(), ftype.(*core.TypeObject).Func.Result) {
+		return cmpl.Error(ErrFnReturn, faddr[0], faddr[1])
+	}
+	appendExp(cmpl, &core.CmdValue{Value: &core.Fn{Func: obj},
+		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos + 1)},
+		Result:    ftype.(*core.TypeObject)})
+	cmpl.newPos = cmpl.pos + 1
 	return nil
 }
 
@@ -419,12 +456,45 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 							cmpl.exp = cmpl.exp[:len(cmpl.exp)-numParams]
 							cmpl.exp = append(cmpl.exp, icmd)
 						} else {
-							obj := getFunc(cmpl, nameFunc, params, true)
+							var (
+								result *core.TypeObject
+								pobj   core.IObject
+								fnVar  core.ICmd
+							)
+							obj := getFunc(cmpl, nameFunc, params)
 							if obj == nil {
-								return cmpl.ErrorFunction(ErrFunction, prevToken.Pos-1, nameFunc, params)
+								var isMatch bool
+								block, ind := findVar(cmpl, nameFunc)
+								if block != nil {
+									fnVar = &core.CmdVar{Block: block, Index: ind,
+										CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)}}
+									if typeVar := fnVar.GetResult(); typeVar.Func != nil {
+										if len(typeVar.Func.Params) == len(params) {
+											isMatch = true
+											for i, par := range typeVar.Func.Params {
+												if !isEqualTypes(par, params[i]) {
+													isMatch = false
+													break
+												}
+											}
+										}
+										if isMatch {
+											result = typeVar.Func.Result
+										} else {
+											return cmpl.ErrorFunction(ErrFnCall, prevToken.Pos-1,
+												typeVar.GetName(), params)
+										}
+									}
+								}
+								if !isMatch {
+									return cmpl.ErrorFunction(ErrFunction, prevToken.Pos-1, nameFunc, params)
+								}
+							} else {
+								result = obj.Result()
+								pobj = obj
 							}
 							icmd := &core.CmdAnyFunc{CmdCommon: core.CmdCommon{TokenID: uint32(prevToken.Pos - 1)},
-								Object: obj, Result: obj.Result()}
+								Object: pobj, Result: result, FnVar: fnVar}
 							for i := prevToken.LenExp; i < len(cmpl.exp); i++ {
 								icmd.Children = append(icmd.Children, cmpl.exp[i])
 							}

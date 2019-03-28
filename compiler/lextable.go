@@ -88,6 +88,7 @@ var (
 		`include`:  tkInclude,
 		`import`:   tkImport,
 		`pub`:      tkPub,
+		`fn`:       tkFn,
 		`default`:  tkDefault,
 	}
 

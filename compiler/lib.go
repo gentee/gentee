@@ -50,7 +50,7 @@ func isCapital(name string) bool {
 func randName() string {
 	alpha := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	length := len(alpha)
-	b := make([]rune, length)
+	b := make([]rune, 16)
 	for i := range b {
 		b[i] = alpha[rand.Intn(length)]
 	}

@@ -38,6 +38,17 @@ type Map struct {
 	Data map[string]interface{}
 }
 
+// FnType is used for func types
+type FnType struct {
+	Params []*TypeObject // Types of parameters
+	Result *TypeObject   // Type of return value
+}
+
+// Fn is used for custom func types
+type Fn struct {
+	Func IObject
+}
+
 // StructType is used for custom struct types
 type StructType struct {
 	Fields map[string]int64 // Names of fields with indexes of the order
@@ -139,6 +150,13 @@ func (pstruct Struct) String() string {
 	return name + `[` + strings.Join(list, ` `) + `]`
 }
 
+// NewFn creates a new func var
+func NewFn(ptype *TypeObject) *Fn {
+	return &Fn{
+		Func: nil,
+	}
+}
+
 func initVar(ptype *TypeObject) interface{} {
 	var value interface{}
 	if ptype.GetName() == `char` {
@@ -154,6 +172,8 @@ func initVar(ptype *TypeObject) interface{} {
 			value = NewMap()
 		case reflect.TypeOf(Struct{}):
 			value = NewStruct(ptype)
+		case reflect.TypeOf(Fn{}):
+			value = NewFn(ptype)
 		default:
 			value = reflect.New(ptype.Original).Elem().Interface()
 		}
@@ -443,6 +463,15 @@ func deleteVars(rt *RunTime) {
 // CopyVar copies one object to another one
 func CopyVar(ptr *interface{}, value interface{}) {
 	switch vItem := value.(type) {
+	case *Fn:
+		var pfn *Fn
+		if ptr == nil || *ptr == nil {
+			pfn = &Fn{}
+		} else {
+			pfn = (*ptr).(*Fn)
+		}
+		pfn.Func = vItem.Func
+		*ptr = pfn
 	case *Struct:
 		var pstruct *Struct
 		if ptr == nil || *ptr == nil {

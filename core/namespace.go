@@ -46,6 +46,9 @@ func (unit *Unit) FindConst(name string) IObject {
 func (unit *Unit) FindFunc(name string, params []*TypeObject) (IObject, bool) {
 	key := npFunc + name
 	for _, v := range params {
+		if v == nil {
+			return nil, false
+		}
 		key += npFunc + v.GetName()
 	}
 	if obj := unit.FindObj(key); obj != nil {

@@ -11,17 +11,25 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-func coStruct(cmpl *compiler) error {
+func checkNewType(cmpl *compiler) (string, error) {
 	token := getToken(cmpl.getLex(), cmpl.pos)
 	obj, _ := getType(cmpl)
 	if obj != nil {
-		return cmpl.Error(ErrTypeExists, token)
+		return ``, cmpl.Error(ErrTypeExists, token)
 	}
 	if isCapital(token) {
-		return cmpl.Error(ErrCapitalLetters)
+		return ``, cmpl.Error(ErrCapitalLetters)
 	}
 	if strings.IndexRune(token, '.') >= 0 {
-		return cmpl.Error(ErrIdent)
+		return ``, cmpl.Error(ErrIdent)
+	}
+	return token, nil
+}
+
+func coStruct(cmpl *compiler) error {
+	token, err := checkNewType(cmpl)
+	if err != nil {
+		return err
 	}
 	pType := cmpl.unit.NewType(token, reflect.TypeOf(core.Struct{}), nil).(*core.TypeObject)
 	pType.Custom = &core.StructType{

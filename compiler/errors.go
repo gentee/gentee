@@ -141,6 +141,16 @@ const (
 	ErrDupObject
 	// ErrImportStr is returned when the string contains an expression
 	ErrImportStr
+	// ErrNewLine is retuned is case of unexpected token instead of a new line
+	ErrNewLine
+	// ErrAddrFunc means wrong definition of function address
+	ErrAddrFunc
+	// ErrNoFuncType is return when the type is not a fn type
+	ErrNoFuncType
+	// ErrFnReturn is returned when function and fn type return different types
+	ErrFnReturn
+	// ErrFnCall is return when fn var is called with wrong parameters
+	ErrFnCall
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -179,9 +189,9 @@ var (
 		ErrLSBracket:      `there is an unclosed left square bracket`,
 		ErrRSBracket:      `extra right square bracket`,
 		ErrEmptyCode:      `source code is empty`,
-		ErrFunction:       `function %s has not been found`,
+		ErrFunction:       `function %s%s has not been found`,
 		ErrBoolExp:        `wrong type of expression, expecting boolean type`,
-		ErrFuncExists:     `function %s has already been defined`,
+		ErrFuncExists:     `function %s%s has already been defined`,
 		ErrUsedName:       `"%s" has already been used as the name of the function, type or variable`,
 		ErrUnknownIdent:   `unknown identifier %s`,
 		ErrLValue:         `expecting l-value in the left operand of assign operator`,
@@ -224,6 +234,11 @@ var (
 		ErrIncludeFile:    `can't read include file: %s`,
 		ErrDupObject:      `duplicate of %s has been found after include/import`,
 		ErrImportStr:      `string cannot contain an expression`,
+		ErrNewLine:        `unexpected token, expecting a new line`,
+		ErrAddrFunc:       `address of function must be defined as &name.type`,
+		ErrNoFuncType:     `type %s is not a fn type`,
+		ErrFnReturn:       `function %s and %s fn type return different types`,
+		ErrFnCall:         `fn type %s is different from %s`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}
@@ -248,5 +263,5 @@ func (cmpl *compiler) ErrorFunction(errID int, pos int, name string, pars []*cor
 			params = append(params, `...`)
 		}
 	}
-	return cmpl.ErrorPos(pos, errID, fmt.Sprintf(`%s(%s)`, name, strings.Join(params, `, `)))
+	return cmpl.ErrorPos(pos, errID, name, fmt.Sprintf(`(%s)`, strings.Join(params, `, `)))
 }

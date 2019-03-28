@@ -97,6 +97,7 @@ var (
 		tkMul | tkUnary:          {30, true, `Len`},
 		tkInc | tkUnary:          {30, true, ``},
 		tkDec | tkUnary:          {30, true, ``},
+		tkBitAnd | tkUnary:       {35, true, ``},
 		tkStrExp:                 {35, false, `ExpStr`},
 		tkLPar:                   {50, true, ``},
 		tkRPar:                   {50, true, ``},
@@ -314,7 +315,23 @@ func coIndex(cmpl *compiler) error {
 }
 
 func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
-	if left.Original == reflect.TypeOf(core.Array{}) {
+	if left == nil || right == nil {
+		return left == right
+	}
+	switch left.Original {
+	case reflect.TypeOf(core.Fn{}):
+		if right.Original != reflect.TypeOf(core.Fn{}) ||
+			len(left.Func.Params) != len(right.Func.Params) ||
+			!isEqualTypes(left.Func.Result, right.Func.Result) {
+			return false
+		}
+		for i, param := range left.Func.Params {
+			if !isEqualTypes(param, right.Func.Params[i]) {
+				return false
+			}
+		}
+		return true
+	case reflect.TypeOf(core.Array{}):
 		if right.Original != reflect.TypeOf(core.Array{}) {
 			return false
 		}
@@ -323,8 +340,7 @@ func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
 			return true
 		}
 		return isEqualTypes(left.IndexOf, right.IndexOf)
-	}
-	if left.Original == reflect.TypeOf(core.Map{}) {
+	case reflect.TypeOf(core.Map{}):
 		if right.Original != reflect.TypeOf(core.Map{}) {
 			return false
 		}
@@ -338,6 +354,9 @@ func isEqualTypes(left *core.TypeObject, right *core.TypeObject) bool {
 }
 
 func autoType(cmpl *compiler, name string) (obj core.IObject, err error) {
+	if strings.HasSuffix(name, `.arr`) || strings.HasSuffix(name, `.map`) {
+		name += `.str`
+	}
 	obj = cmpl.unit.FindType(name)
 	if obj == nil {
 		ins := strings.SplitN(name, `.`, 2)

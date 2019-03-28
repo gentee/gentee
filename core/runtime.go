@@ -63,12 +63,27 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	lenStack := len(rt.Stack)
 	switch cmd.GetType() {
 	case CtFunc:
-		for _, param := range cmd.(*CmdAnyFunc).Children {
+		anyFunc := cmd.(*CmdAnyFunc)
+		for _, param := range anyFunc.Children {
 			if err = rt.runCmd(param); err != nil {
 				return
 			}
 		}
-		rt.AllCount = len(cmd.(*CmdAnyFunc).Children)
+		rt.AllCount = len(anyFunc.Children)
+		if anyFunc.Object == nil {
+			// We have calling Fn variable
+			if err = rt.runCmd(anyFunc.FnVar); err != nil {
+				return
+			}
+			fnObj := rt.Stack[len(rt.Stack)-1].(*Fn).Func
+			rt.Stack = rt.Stack[:len(rt.Stack)-1]
+			if fnObj == nil {
+				return runtimeError(rt, cmd, ErrFnEmpty)
+			}
+			cmd = &CmdAnyFunc{
+				Object: fnObj,
+			}
+		}
 	case CtBinary:
 		if err = rt.runCmd(cmd.(*CmdBinary).Left); err != nil {
 			return

@@ -1,3 +1,33 @@
+fn ls(str) int
+run int {
+  ls ils = &Len.ls
+  return ils(`string строка`)
+}
+===== 13
+fn myz() 
+fn myType
+fn myInt() int
+fn myStr str
+
+fn my( int int ) int
+func add( int i, int j ) int : return i + j
+func sub( int i, int j ) int : return i - j
+func my2(int i j, my f ) int : return j + f(i, j)
+
+run int {
+  my isub = &sub.my
+  return my2(1, 2, &add.my) + my2(3, 7, isub)
+}
+===== 8
+run arr.arr {
+  arr.arr a
+  arr.arr.str c
+  arr.arr.str b = {{`1`, `2`},{`3`, `4`}}
+  c = a
+  a = c
+  return a &= b
+}
+===== [[1 2] [3 4]]
 run int {
   int i &= 0xffff
   return i

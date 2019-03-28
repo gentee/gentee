@@ -98,6 +98,8 @@ func TestCli(t *testing.T) {
 			[]string{`err-d.g`}},
 		{"ERROR: .../tests/scripts/err-e.g [6:12] unknown identifier EINT",
 			[]string{`err-e.g`}},
+		{"ERROR: .../tests/scripts/err-f.g [6:5] unknown identifier myf",
+			[]string{`err-f.g`}},
 	}
 	for _, item := range testList {
 		for i, v := range item.params {

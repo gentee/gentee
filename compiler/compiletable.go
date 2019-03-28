@@ -33,6 +33,9 @@ const (
 	cmStructDef      // struct body
 	cmStructFields   // struct fields
 	cmStructName     // struct the name of the field
+	cmFn             // func type definition
+	cmFnParams       // parameters of the func type
+	cmFnParam        // parameter of the func type
 	cmCaseMust
 	cmCase        // case after switch
 	cmInclude     // include command
@@ -64,6 +67,7 @@ var (
 			{tkConst, cmConst, nil, coConstBack, cfStopBack},
 			{tkFunc, cmFunc, nil, coFuncBack, cfStopBack},
 			{tkStruct, cmStruct, nil, nil, cfStopBack},
+			{tkFn, cmFn, nil, nil, cfStopBack},
 			{tkInclude, cmInclude, coInclude, nil, cfStopBack},
 			{tkImport, cmInclude, coImport, nil, cfStopBack},
 			{tkPub, 0, coPub, nil, 0},
@@ -97,6 +101,7 @@ var (
 			{tkToken, ErrValue, coError, nil, 0},
 			{[]int{tkInt, tkFloat, tkFalse, tkTrue, tkStr, tkChar}, cmExpOper, coPush, nil, cfStopBack},
 			{[]int{tkSub, tkMul, tkNot, tkBitXor, tkInc, tkDec}, 0, coUnaryOperator, nil, 0},
+			{tkBitAnd, cmExpOper, coFnOperator, nil, cfStopBack},
 			{[]int{tkLPar}, 0, coOperator, nil, 0},
 			{[]int{tkRPar}, 0, coRPar, nil, 0},
 			{[]int{tkLSBracket, tkRSBracket}, 0, coOperator, nil, 0},
@@ -235,6 +240,24 @@ var (
 			{tkIdent, 0, coStructName, nil, 0},
 			{tkRCurly, cmBack, nil, nil, cfStay},
 			{tkLine, cmBack, nil, nil, 0},
+		},
+		cmFn: {
+			{tkToken, ErrName, coError, nil, 0},
+			{tkIdent, cmFnParams, coFn, coFnEnd, 0},
+			{tkLine, cmBack, nil, nil, 0},
+		},
+		cmFnParams: {
+			{tkToken, ErrNewLine, coError, nil, 0},
+			{tkIdent, cmBack, coFnResult, nil, 0},
+			{tkLPar, cmFnParam, nil, nil, cfStopBack},
+			{tkLine, cmBack, nil, nil, cfStay},
+		},
+		cmFnParam: {
+			{tkToken, ErrType, coError, nil, 0},
+			{tkIdent, 0, coFnType, nil, 0},
+			{tkComma, cmWantType, nil, nil, cfStopBack},
+			{tkRPar, cmBack, nil, nil, 0},
+			{tkLine, 0, nil, nil, 0},
 		},
 		cmCaseMust: {
 			{tkToken, ErrNotCase, coError, nil, 0},

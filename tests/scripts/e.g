@@ -33,3 +33,6 @@ pub func et_func et {
     et ret
     return ret
 }
+
+fn myf int
+

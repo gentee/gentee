@@ -41,4 +41,4 @@ run {
   arr.map a
   Sort(a)
 }
-===== [3:3] function Sort(arr.map) has not been found
+===== [3:3] function Sort(arr.map.str) has not been found

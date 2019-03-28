@@ -90,6 +90,7 @@ const (
 	tkInclude
 	tkImport
 	tkPub
+	tkFn
 	tkDefault
 	tkToken // is used for preCompileTable
 )

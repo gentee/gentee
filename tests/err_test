@@ -1,3 +1,128 @@
+fn my(str) int
+run {
+  my myi
+  myi(3)
+}
+===== [4:3] fn type my is different from (int)
+fn my(int) int
+run {
+  my myi
+  myi(3, 4)
+}
+===== [4:3] fn type my is different from (int, int)
+func empty : 
+run {
+  int i = empty()
+}
+===== [3:9] function Assign(int, ...) has not been found
+fn my 
+func do : 
+run {
+  my myi = &do.my 
+  int i = myi()
+}
+===== [5:9] function Assign(int, ...) has not been found
+fn my 
+run {
+  my iadd 
+  iadd()
+}
+===== [4:3] fn variable has not been defined
+fn my
+func sub {}
+run {
+  my iadd 
+  iadd = &sub.my + 1
+}
+===== [5:18] function Add(my, int) has not been found
+fn my(int) int
+fn mys(str) int
+func sub(str s) int {return 1}
+run {
+  my iadd = &sub.mys
+}
+===== [5:11] can't assign mys to my
+fn my(int) int
+func sub(int s) int {return 1}
+run {
+  my iadd 
+  iadd += &sub.my
+}
+===== [5:8] function AssignAdd(my, my) has not been found
+fn my( int, str ) int
+func my1( int i, str s ) int : return 5
+run {
+  &my1.my()
+  `ssss`()
+  &my1.my(10, `s`)
+}
+===== [4:10] unexpected token, expecting operator
+fn my( int, str ) int
+fn my1( int, str ) int 
+func my2(int i, my f ) int : return 10
+run {
+  my1 fm
+  my2(1, fm)
+}
+===== [6:3] function my2(int, my1) has not been found
+fn my( int, str ) int 
+func my2(int i, int s ) int : return 10
+run {
+  &my2.my
+}
+===== [4:4] function my2(int, str) has not been found
+fn my(int,) int : return 0
+===== [1:11] unexpected token, expecting type
+fn my(ty)
+===== [1:7] unexpected token, expecting type
+func my1 int : return 0
+fn my 
+run : &my1.my
+===== [3:7] function my1 and my fn type return different types
+run {
+  &myfunc.int
+}
+===== [2:3] type int is not a fn type
+run {
+  &myfunc.int.int
+}
+===== [2:3] address of function must be defined as &name.type
+run {
+  &myfunc
+}
+===== [2:3] address of function must be defined as &name.type
+run {
+  int a = &10
+}
+===== [2:12] unexpected token, expecting the name of the identifier
+run {
+  int i
+  struct my1
+}
+===== [3:3] unexpected token, expecting value, identifier or calling func
+run {
+  int a = &
+===== [2:12] unexpected end of the source
+run {
+  fn my1
+}
+===== [2:3] unexpected token, expecting value, identifier or calling func
+fn my1 qwer
+===== [1:8] unexpected token, expecting type
+fn my1
+fn my1
+===== [2:4] my1 type has already been defined
+struct my {
+  int a
+}
+fn my
+run {
+}
+===== [4:4] my type has already been defined
+fn mytype {
+===== [1:11] unexpected token, expecting a new line
+fn {
+===== [1:4] unexpected token, expecting the name of the identifier
 run str {
   str s &= "abc"
   return s
