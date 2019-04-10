@@ -129,5 +129,6 @@ func (vm *VirtualMachine) Run(unitID int) (interface{}, error) {
 		}
 		result = rt.Stack[len(rt.Stack)-1]
 	}
+	rt.Root.Threads.WG.Wait()
 	return result, nil
 }

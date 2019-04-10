@@ -24,7 +24,7 @@ func newFunc(cmpl *compiler, name string) int {
 		},
 	}
 	funcObj.Block.Object = funcObj
-	cmpl.owners = []core.ICmd{&funcObj.Block}
+	cmpl.owners = append(cmpl.owners, &funcObj.Block) //[]core.ICmd{&funcObj.Block}
 	ind := cmpl.appendObj(funcObj)
 	return ind
 }
@@ -50,6 +50,7 @@ func coRunBack(cmpl *compiler) error {
 		last.(*core.CmdBlock).ID != core.StackReturn {
 		return cmpl.Error(ErrMustReturn)
 	}
+	cmpl.owners = cmpl.owners[:0]
 	return nil
 }
 
@@ -166,6 +167,7 @@ func coFuncBack(cmpl *compiler) error {
 			return cmpl.Error(ErrMustReturn)
 		}
 	}
+	cmpl.owners = cmpl.owners[:0]
 	return nil
 }
 

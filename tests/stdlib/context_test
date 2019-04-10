@@ -1,0 +1,48 @@
+run str {
+    CtxSet(`a 1`, `end`)
+    CtxSet(`a 2`, `=#a 1#=`)
+    CtxSet(`a 3`, `+#a 2#+#a 1#`)
+    return CtxGet(`a 3`)
+}
+===== +=end=+end
+run str {
+    CtxSet(`тест`, `значение`)
+    return Ctx("#тест# #")
+}
+===== значение #
+run str {
+    CtxSetBool(`qq`, true)
+    CtxSetFloat(`ff`, 3.1415)
+    CtxSet(`out`, "it is #qq# that PI equals #ff#")
+    return Ctx("##out#. #out22# #out")
+}
+===== #it is true that PI equals 3.1415. #out22# #out
+run str {
+    str out
+    CtxSetBool(`qq`, true)
+    CtxSetFloat(`ff`, 3.1415)
+    out = CtxValue(`qq`) + CtxValue(`ff`)
+    return out
+}
+===== true3.1415
+func sub(int i) {
+    CtxSetInt(`i%{i}`, i)
+}
+run int {
+    int sum
+    for i in 1..10 {
+        sub(i)
+        sum += int(CtxValue(`i%{i}`))
+    }
+    return sum
+}
+===== 55
+func sub str {
+    CtxSet(`my1`, ` end`)
+    return CtxValue(`my key`) + ?(CtxIs(`ok`), `OOOPS`, `OK`) + ?(CtxIs(`my key`), `OK`, `OOOPS`)
+}
+run str {
+    CtxSet(`my key`, `My тест Value`)
+    return sub() + CtxValue(`my2`) + CtxValue(`my1`)
+}
+===== My тест ValueOKOK end

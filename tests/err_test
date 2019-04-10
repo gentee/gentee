@@ -1,3 +1,7 @@
+run {
+  go 10
+}
+===== [2:6] unexpected token, expecting {
 fn my(str) int
 run {
   my myi

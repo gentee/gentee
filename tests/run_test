@@ -1,3 +1,22 @@
+const {
+   MYCONST = 200
+   TEST = `Test`
+}
+
+run {
+  $ echo "START %{MYCONST}"
+  go { 
+    $ echo "GOOK  %{MYCONST} %{TEST}"
+    go sub {
+      $ echo "SUB"
+    }
+    $ echo "GOOK  END"
+  }
+  go name { $ echo "NAME"
+  }
+  $ echo "STOP  %{MYCONST} %{TEST}"
+}
+===== <nil>
 fn ls(str) int
 run int {
   ls ils = &Len.ls

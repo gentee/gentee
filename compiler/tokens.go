@@ -91,6 +91,7 @@ const (
 	tkImport
 	tkPub
 	tkFn
+	tkGo
 	tkDefault
 	tkToken // is used for preCompileTable
 )

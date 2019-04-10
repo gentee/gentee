@@ -89,6 +89,7 @@ var (
 		`import`:   tkImport,
 		`pub`:      tkPub,
 		`fn`:       tkFn,
+		`go`:       tkGo,
 		`default`:  tkDefault,
 	}
 

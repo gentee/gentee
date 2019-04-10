@@ -24,21 +24,31 @@ type RunTime struct {
 	Command  uint32
 	AllCount int
 	Consts   map[string]interface{}
+	Root     *RunTime
+	Threads  *RootThread
+
+	Cycle int64 // Value of constants
+	Depth int64
 }
 
 func newRunTime(vm *VirtualMachine) *RunTime {
 	rt := &RunTime{
-		VM:     vm,
-		Stack:  make([]interface{}, 0, 1024),
-		Calls:  make([]ICmd, 0, 64),
-		Consts: make(map[string]interface{}),
+		VM:      vm,
+		Stack:   make([]interface{}, 0, 1024),
+		Calls:   make([]ICmd, 0, 64),
+		Consts:  make(map[string]interface{}),
+		Threads: newRootThread(),
 	}
+	rt.Root = rt
 
 	for _, item := range []string{ConstDepth, ConstCycle} {
 		// TODO: Insert redefinition of constants here
 		rt.runCmd(vm.StdLib().FindConst(item).(*ConstObject).Exp)
 		rt.Consts[item] = rt.Stack[len(rt.Stack)-1]
 	}
+	rt.Cycle = rt.Consts[ConstCycle].(int64)
+	rt.Depth = rt.Consts[ConstDepth].(int64)
+
 	return rt
 }
 
@@ -56,7 +66,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	var (
 		result []reflect.Value
 	)
-	if int64(len(rt.Calls)) == rt.Consts[ConstDepth].(int64) {
+	if int64(len(rt.Calls)) == rt.Depth {
 		return runtimeError(rt, cmd, ErrDepth)
 	}
 	pars := make([]reflect.Value, 0)
@@ -64,6 +74,10 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	switch cmd.GetType() {
 	case CtFunc:
 		anyFunc := cmd.(*CmdAnyFunc)
+		if anyFunc.IsThread {
+			rt.Thread(cmd.GetObject().(*FuncObject))
+			return
+		}
 		for _, param := range anyFunc.Children {
 			if err = rt.runCmd(param); err != nil {
 				return
@@ -138,19 +152,8 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 	case CtValue:
 		rt.Stack = append(rt.Stack, cmd.(*CmdValue).Value)
 	case CtConst:
-		name := cmd.GetObject().GetName()
-		if v, ok := rt.Consts[name]; ok {
-			rt.Stack = append(rt.Stack, v)
-		} else {
-			// TODO: Insert redefinition of constants here
-			constObj := cmd.GetObject().(*ConstObject)
-			if constObj.Iota != NotIota {
-				rt.Consts[ConstIota] = constObj.Iota
-			}
-			if err = rt.runCmd(constObj.Exp); err != nil {
-				return err
-			}
-			rt.Consts[name] = rt.Stack[len(rt.Stack)-1]
+		if err = rt.GetConst(cmd); err != nil {
+			return err
 		}
 	case CtVar:
 		if err = getVar(rt, cmd.(*CmdVar)); err != nil {
@@ -382,7 +385,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				}
 			}
 		case StackWhile:
-			cycle := rt.Consts[ConstCycle].(int64)
+			cycle := rt.Cycle
 			for rt.Result == nil {
 				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
 					return err
@@ -419,7 +422,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			if vars, err = rt.getVars(cmdStack); err != nil {
 				return err
 			}
-			cycle := rt.Consts[ConstCycle].(int64)
+			cycle := rt.Cycle
 			for ; index < length; index++ {
 				vars[0] = getIndex(value, index)
 				vars[1] = index

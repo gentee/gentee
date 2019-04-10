@@ -172,6 +172,7 @@ type CmdAnyFunc struct {
 	Result   *TypeObject
 	Children []ICmd
 	FnVar    ICmd
+	IsThread bool
 }
 
 // GetType returns CtValue
