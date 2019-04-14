@@ -103,7 +103,8 @@ var (
 		cmExp: {
 			{tkToken, ErrValue, coError, nil, 0},
 			{[]int{tkInt, tkFloat, tkFalse, tkTrue, tkStr, tkChar}, cmExpOper, coPush, nil, cfStopBack},
-			{[]int{tkSub, tkMul, tkNot, tkBitXor, tkInc, tkDec}, 0, coUnaryOperator, nil, 0},
+			{[]int{tkSub, tkMul, tkNot, tkBitXor, tkInc, tkDec, tkDoubleCtx}, 0, coUnaryOperator, nil, 0},
+			{tkCtx, 0, coCtxOperator, nil, 0},
 			{tkBitAnd, cmExpOper, coFnOperator, nil, cfStopBack},
 			{[]int{tkLPar}, 0, coOperator, nil, 0},
 			{[]int{tkRPar}, 0, coRPar, nil, 0},
@@ -125,7 +126,7 @@ var (
 			{[]int{tkAdd, tkDiv, tkMod, tkMul, tkSub, tkEqual, tkNotEqual, tkGreater, tkGreaterEqual,
 				tkLess, tkLessEqual, tkAssign, tkOr, tkAnd, tkBitOr, tkBitAnd, tkBitXor, tkLShift,
 				tkRShift, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq,
-				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange}, cmBack,
+				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange, tkCtxEq}, cmBack,
 				coOperator, nil, 0},
 			{[]int{tkInc, tkDec}, 0, coUnaryPostOperator, nil, 0},
 			{[]int{tkRPar, tkRSBracket}, 0, coOperator, nil, 0},

@@ -85,7 +85,12 @@ func coExpVar(cmpl *compiler) error {
 			Result:    cmpl.getStrType()})
 		return nil
 	}
-
+	if cmpl.getLex().Tokens[cmpl.pos].Type == tkCtxEq {
+		appendExp(cmpl, &core.CmdValue{Value: token,
+			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
+			Result:    cmpl.unit.FindType(`str`).(*core.TypeObject)})
+		return nil
+	}
 	if isCapital(token) {
 		if token == core.ConstIota && cmpl.curIota == core.NotIota {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrIota)
@@ -271,7 +276,7 @@ func popBuf(cmpl *compiler) error {
 		cmpl.exp[len(cmpl.exp)-2] = icmd
 		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
 	case tkAdd, tkSub, tkMul, tkMod, tkDiv, tkEqual, tkNotEqual, tkLess, tkLessEqual, tkGreater,
-		tkGreaterEqual, tkBitOr, tkBitXor, tkBitAnd, tkLShift, tkRShift, tkRange:
+		tkGreaterEqual, tkBitOr, tkBitXor, tkBitAnd, tkLShift, tkRShift, tkRange, tkCtxEq:
 		if len(cmpl.exp) < 2 {
 			return cmpl.Error(ErrValue)
 		}
@@ -319,7 +324,8 @@ func popBuf(cmpl *compiler) error {
 			Result: top.GetResult(), CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 			Children: []core.ICmd{top}}
 		cmpl.exp[len(cmpl.exp)-1] = icmd
-	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitXor | tkUnary:
+	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitXor | tkUnary, tkCtx | tkUnary,
+		tkDoubleCtx | tkUnary:
 		if len(cmpl.exp) == 0 {
 			return cmpl.Error(ErrValue)
 		}
@@ -387,6 +393,18 @@ func coFnOperator(cmpl *compiler) error {
 
 func coUnaryOperator(cmpl *compiler) error {
 	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type)|tkUnary)
+}
+
+func coCtxOperator(cmpl *compiler) error {
+	lp := cmpl.getLex()
+	if len(lp.Tokens) == cmpl.pos+1 || lp.Tokens[cmpl.pos+1].Type != tkIdent {
+		return cmpl.ErrorPos(cmpl.pos+1, ErrName)
+	}
+	token := getToken(lp, cmpl.pos+1)
+	lp.Tokens[cmpl.pos+1].Type = tkStr
+	lp.Strings = append(lp.Strings, `#`+token+`#`)
+	lp.Tokens[cmpl.pos+1].Index = int32(len(lp.Strings) - 1)
+	return appendExpBuf(cmpl, int(lp.Tokens[cmpl.pos].Type)|tkUnary)
 }
 
 func appendExpBuf(cmpl *compiler, operation int) error {

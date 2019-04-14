@@ -66,6 +66,9 @@ const (
 	tkDot                      // .
 	tkRange                    // ..
 	tkVariadic                 // ...
+	tkCtx                      // #
+	tkDoubleCtx                // ##
+	tkCtxEq                    // #=
 )
 
 // Keywords
@@ -153,5 +156,8 @@ var (
 		`.`:   tkDot,
 		`..`:  tkRange,
 		`...`: tkVariadic,
+		`#`:   tkCtx,
+		`##`:  tkDoubleCtx,
+		`#=`:  tkCtxEq,
 	}
 )

@@ -6,7 +6,7 @@ run str {
 }
 ===== [5:12] c key refers to itself
 run str {
-  return CtxSetInt(`This is a string very long string very very long string key 
+  return CtxSet(`This is a string very long string very very long string key 
   This is a string very long string very very long string key `, 10)
 }
 ===== [2:10] key length is longer than 64 characters

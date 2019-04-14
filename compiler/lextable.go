@@ -116,6 +116,7 @@ var (
 			{[]string{`&&`, `&=`, `&`}, 0, newOper},
 			{[]string{`%=`, `%`}, 0, newOper},
 			{[]string{`^=`, `^`}, 0, newOper},
+			{[]string{`#=`, `##`, `#`}, 0, newOper},
 			{':', 0, newOper},
 			{'$', lexCmd, nil},
 			{'}', 0, endExp},

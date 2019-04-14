@@ -1,3 +1,22 @@
+func my(int i) str : return str(i)
+run str {
+  return #my(20)
+}
+===== [3:13] unexpected token, expecting operator
+run str {
+  return #10
+}
+===== [2:11] unexpected token, expecting the name of the identifier
+run {
+  int b
+  return ##b
+}
+===== [3:10] function Ctx(int) has not been found
+run {
+  str b
+  return 1 + ##b
+}
+===== [3:12] function Add(int, str) has not been found
 run {
   go 10
 }

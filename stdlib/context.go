@@ -33,14 +33,14 @@ var (
 // InitContext appends stdlib context functions to the virtual machine
 func InitContext(vm *core.VirtualMachine) {
 	for _, item := range []embedInfo{
-		{CtxSetºStrStr, `str,str`, `str`},          // CtxSet( str, str )
-		{CtxSetBoolºStrBool, `str,bool`, `str`},    // CtxSetBool( str, bool )
-		{CtxSetFloatºStrFloat, `str,float`, `str`}, // CtxSetFloat( str, float )
-		{CtxSetIntºStrInt, `str,int`, `str`},       // CtxSetInt( str, int )
-		{CtxValueºStr, `str`, `str`},               // CtxValue( str )
-		{CtxIsºStr, `str`, `bool`},                 // CtxIs( str )
-		{CtxºStr, `str`, `str`},                    // Ctx( str )
-		{CtxGetºStr, `str`, `str`},                 // CtxGet( str )
+		{CtxSetºStrStr, `str,str`, `str`},     // CtxSet( str, str )
+		{CtxSetºStrBool, `str,bool`, `str`},   // CtxSet( str, bool )
+		{CtxSetºStrFloat, `str,float`, `str`}, // CtxSet( str, float )
+		{CtxSetºStrInt, `str,int`, `str`},     // CtxSet( str, int )
+		{CtxValueºStr, `str`, `str`},          // CtxValue( str )
+		{CtxIsºStr, `str`, `bool`},            // CtxIs( str )
+		{CtxºStr, `str`, `str`},               // Ctx( str )
+		{CtxGetºStr, `str`, `str`},            // CtxGet( str )
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -69,18 +69,18 @@ func CtxSetºStrStr(rt *core.RunTime, key, value string) (string, error) {
 	return value, nil
 }
 
-// CtxSetFloatºStrFloat assign a float to a context key
-func CtxSetFloatºStrFloat(rt *core.RunTime, key string, value float64) (string, error) {
+// CtxSetºStrFloat assign a float to a context key
+func CtxSetºStrFloat(rt *core.RunTime, key string, value float64) (string, error) {
 	return CtxSetºStrStr(rt, key, strºFloat(value))
 }
 
-// CtxSetBoolºStrBool assign a bool to a context key
-func CtxSetBoolºStrBool(rt *core.RunTime, key string, value bool) (string, error) {
+// CtxSetºStrBool assign a bool to a context key
+func CtxSetºStrBool(rt *core.RunTime, key string, value bool) (string, error) {
 	return CtxSetºStrStr(rt, key, strºBool(value))
 }
 
-// CtxSetIntºStrInt assign an integer to a context key
-func CtxSetIntºStrInt(rt *core.RunTime, key string, value int64) (string, error) {
+// CtxSetºStrInt assign an integer to a context key
+func CtxSetºStrInt(rt *core.RunTime, key string, value int64) (string, error) {
 	return CtxSetºStrStr(rt, key, strºInt(value))
 }
 

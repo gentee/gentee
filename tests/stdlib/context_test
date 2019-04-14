@@ -1,4 +1,10 @@
 run str {
+    CtxSet(`test`, `?value`)
+    CtxSet(`param`, `#test# ==`)
+    return CtxValue(`param`) + CtxValue(`nop`) + CtxGet(`param`)
+}
+===== #test# ==?value == 
+run str {
     CtxSet(`a 1`, `end`)
     CtxSet(`a 2`, `=#a 1#=`)
     CtxSet(`a 3`, `+#a 2#+#a 1#`)
@@ -11,22 +17,22 @@ run str {
 }
 ===== значение #
 run str {
-    CtxSetBool(`qq`, true)
-    CtxSetFloat(`ff`, 3.1415)
+    CtxSet(`qq`, true)
+    CtxSet(`ff`, 3.1415)
     CtxSet(`out`, "it is #qq# that PI equals #ff#")
     return Ctx("##out#. #out22# #out")
 }
 ===== #it is true that PI equals 3.1415. #out22# #out
 run str {
     str out
-    CtxSetBool(`qq`, true)
-    CtxSetFloat(`ff`, 3.1415)
+    CtxSet(`qq`, true)
+    CtxSet(`ff`, 3.1415)
     out = CtxValue(`qq`) + CtxValue(`ff`)
     return out
 }
 ===== true3.1415
 func sub(int i) {
-    CtxSetInt(`i%{i}`, i)
+    CtxSet(`i%{i}`, i)
 }
 run int {
     int sum

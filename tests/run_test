@@ -17,6 +17,34 @@ run {
   $ echo "STOP  %{MYCONST} %{TEST}"
 }
 ===== <nil>
+run str {
+  AºB #= `ººº`
+  CD #= #AºB + `=`
+  тест #= 10
+  b#= (10==10)
+  return #CD + #AºB + #тест + (f #= 4.56) + #f + #b
+}
+===== ººº=ººº104.564.56true
+run str {
+  CtxSet(`AB`, `Result тест`)
+  CtxSet(`AºB`, `ººº`)
+  CtxSet(`LºM`, `#AB#=#AºB#`)
+  return #LºM
+}
+===== Result тест=ººº
+run str {
+  CtxSet(`abc`, `ABC`)
+  CtxSet(`float`, `#abc# #abc#`)
+  return #float
+}
+===== ABC ABC
+run str {
+  CtxSet(`a`, `ABC`)
+  CtxSet(`0`, `123`)
+  str b = ` = #a#`
+  return ##`#a# -> #0#` + ##b
+}
+===== ABC -> 123 = ABC
 fn ls(str) int
 run int {
   ls ils = &Len.ls
