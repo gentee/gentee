@@ -1,3 +1,13 @@
+run arr.thread {
+  arr.thread ath 
+  ath += go {int k = 0} 
+  thread th = 
+  go { int i = 1 
+  }
+  ath += th
+  return ath
+}
+===== [1 2]
 const {
    MYCONST = 200
    TEST = `Test`
@@ -6,17 +16,32 @@ const {
 run {
   $ echo "START %{MYCONST}"
   go { 
-    $ echo "GOOK  %{MYCONST} %{TEST}"
-    go sub {
+    Println("1")
+    Println(`GOOK  %{MYCONST} %{TEST}`)
+    go {
       $ echo "SUB"
+      go {
+        $ echo "QWERTY"
+      }
     }
-    $ echo "GOOK  END"
+    Println("OOOPS")
+    Println("GOOK  END")
+    go {
+      $ echo "FINISH"
+    }
   }
-  go name { $ echo "NAME"
+  go { $ echo "NAME"
   }
   $ echo "STOP  %{MYCONST} %{TEST}"
 }
 ===== <nil>
+run str {
+  if true {
+  go { int i = 1 
+}}
+  return `go`
+}
+===== go
 run str {
   AºB #= `ººº`
   CD #= #AºB + `=`

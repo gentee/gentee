@@ -33,6 +33,7 @@ func InitTypes(vm *core.VirtualMachine) {
 		{`keyval`, reflect.TypeOf(core.KeyValue{}), ``},
 		{`struct`, typeStruct, ``},
 		{`fn`, reflect.TypeOf(core.Fn{}), ``},
+		{`thread`, reflect.TypeOf(int64(0)), ``},
 		// arr* is for embedded array funcs. It means array of any type
 		{`arr*`, typeArr, ``},
 		{`arr.str`, typeArr, `str`},

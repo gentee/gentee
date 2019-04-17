@@ -74,7 +74,7 @@ func TestCli(t *testing.T) {
 		{``, []string{`-t`, `h.g`}},
 		{``, []string{`-t`, `ok.g`}},
 		{"ok 777\n", []string{`ok.g`}},
-		{"test\nERROR: .../tests/scripts/ok.g [3:1] script ok has already been linked",
+		{"test\nERROR: .../tests/scripts/ok.g [6:1] script ok has already been linked",
 			[]string{`runname.g`, `ok.g`}},
 		{core.Version, []string{`-ver`}},
 		{``, []string{`nothing.g`}},

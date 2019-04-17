@@ -75,7 +75,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	case CtFunc:
 		anyFunc := cmd.(*CmdAnyFunc)
 		if anyFunc.IsThread {
-			rt.Thread(cmd.GetObject().(*FuncObject))
+			rt.Stack = append(rt.Stack, rt.Thread(cmd.GetObject().(*FuncObject)))
 			return
 		}
 		for _, param := range anyFunc.Children {

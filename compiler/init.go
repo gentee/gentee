@@ -81,10 +81,6 @@ func coInitEnd(cmpl *compiler) error {
 }
 
 func coInitNext(cmpl *compiler) error {
-	/*	if cmpl.curType.IndexOf == nil {
-		cmpl.dynamic = &cmState{tkComma, cmExp, nil, nil, cfStay}
-		return nil
-	}*/
 	if len(cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock).Children) == 0 {
 		return cmpl.Error(ErrValue)
 	}

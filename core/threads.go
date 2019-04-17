@@ -6,36 +6,54 @@ package core
 
 import (
 	"sync"
-	//	"reflect"
+)
+
+const (
+	// ThWait means that the thread is waiting to start
+	ThWait = iota
+	// ThWork means that the thread is running
+	ThWork
+	// ThFinish means that the thread is finished
+	ThFinish
 )
 
 // Thread contains information about a thread
 type Thread struct {
-	Owner *RunTime // The runtime of the thread
+	Status byte
+	//	Owner *RunTime // The runtime of the thread
 }
 
 // RootThread is a structure for thread management
 type RootThread struct {
-	ConstMutex sync.RWMutex
-	CtxMutex   sync.RWMutex
-	RootMutex  sync.RWMutex
-	WG         sync.WaitGroup
-	Context    map[string]string
-	//	Owner *RunTime // The runtime of the thread
+	ConstMutex  sync.RWMutex
+	CtxMutex    sync.RWMutex
+	ThreadMutex sync.RWMutex
+	WG          sync.WaitGroup
+	Context     map[string]string
+	Threads     []*Thread
 }
 
 func newRootThread() (ret *RootThread) {
 	ret = &RootThread{
 		Context: make(map[string]string),
+		Threads: make([]*Thread, 0, 32),
 	}
 	return ret
 }
 
-func (rt *RunTime) newThread() {
+func (rt *RunTime) newThread() (int64, *Thread) {
+	root := rt.Root.Threads
+	root.ThreadMutex.Lock()
+	ret := &Thread{
+		Status: ThWait,
+	}
+	root.Threads = append(root.Threads, ret)
+	defer root.ThreadMutex.Unlock()
+	return int64(len(root.Threads)), ret
 }
 
 // Thread executes a new thread
-func (rt *RunTime) Thread(funcObj *FuncObject) {
+func (rt *RunTime) Thread(funcObj *FuncObject) int64 {
 	thread := &RunTime{
 		VM:    rt.VM,
 		Stack: make([]interface{}, 0, 1024),
@@ -44,14 +62,19 @@ func (rt *RunTime) Thread(funcObj *FuncObject) {
 		Cycle: rt.Cycle,
 		Depth: rt.Depth,
 	}
-	thread.newThread()
+	threadID, pThread := thread.newThread()
 	rt.Root.Threads.WG.Add(1)
 	go func() {
-		defer rt.Root.Threads.WG.Done()
+		pThread.Status = ThWork
+		defer func() {
+			pThread.Status = ThFinish
+			rt.Root.Threads.WG.Done()
+		}()
 		if err := thread.runCmd(&funcObj.Block); err != nil {
 			return
 		}
 	}()
+	return threadID
 }
 
 // GetConst returns the value of the constant
@@ -74,7 +97,7 @@ func (rt *RunTime) GetConst(cmd ICmd) (err error) {
 			return err
 		}
 		rt.Root.Threads.ConstMutex.Lock()
-		rt.Consts[name] = rt.Stack[len(rt.Stack)-1]
+		rt.Root.Consts[name] = rt.Stack[len(rt.Stack)-1]
 		rt.Root.Threads.ConstMutex.Unlock()
 	}
 	return nil

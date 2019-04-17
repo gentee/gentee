@@ -33,6 +33,7 @@ type compiler struct {
 	isImport bool // import or include mode
 	next     *cmState
 	dynamic  *cmState
+	goStack  []goStack
 }
 
 // StateStack is used for storing a sequence of states
@@ -198,8 +199,8 @@ main:
 		cmpl.states = &stackState
 		cmpl.dynamic = nil
 		cmpl.newPos = 0
-		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v %v\r\n", i, state, token.Type,
-		//getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next, stackState)
+		//		fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v %v\r\n", i, state, token.Type,
+		//			getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next, stackState)
 		if (state == cmExp || state == cmExpOper) && token.Type == tkLine {
 			if state == cmExp && lp.Tokens[i-1].Type >= tkAdd && lp.Tokens[i-1].Type <= tkComma {
 				continue
@@ -240,7 +241,7 @@ main:
 				prev := stackState[len(stackState)-1]
 				state = prev.State
 				if prev.Origin.Callback != nil {
-					cmpl.pos = prev.Pos
+					//cmpl.pos = prev.Pos
 					if err := prev.Origin.Callback(cmpl); err != nil {
 						return cmplError(err)
 					}

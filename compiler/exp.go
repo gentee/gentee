@@ -135,13 +135,6 @@ func coExpVar(cmpl *compiler) error {
 }
 
 func coExpEnd(cmpl *compiler) error {
-	/*if cmpl.inits > 0 {
-		lp := cmpl.getLex()
-		if lp.Tokens[cmpl.pos].Type == tkLCurly {
-			cmpl.dynamic = &cmState{tkLCurly, cmInit, nil, nil, cfStay}
-			return nil
-		}
-	}*/
 	for len(cmpl.expbuf) > 0 {
 		if err := popBuf(cmpl); err != nil {
 			return err

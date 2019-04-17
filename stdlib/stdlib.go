@@ -34,6 +34,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitRuntime(vm)
 	InitRegExp(vm)
 	InitContext(vm)
+	InitThread(vm)
 
 	stdlib.NewConst(core.ConstDepth, int64(1000), true)
 	stdlib.NewConst(core.ConstCycle, int64(16000000), true)

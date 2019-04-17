@@ -1,3 +1,35 @@
+run {
+  go { return 1
+  }
+}
+===== [2:16] function cannot return any value
+run {
+  go { int i = 1 
+  } Println(`OK`)
+}
+===== [3:5] unexpected token, expecting a new line or }
+run str {
+  go { int i = 1 
+  } return `OK`
+}
+===== [3:5] unexpected token, expecting a new line or }
+run {
+  go { 
+  } + 25
+}
+===== [3:5] unexpected token, expecting a new line or }
+run {
+  float f 
+  f = go { 
+  }
+}
+===== [3:5] function Assign(float, thread) has not been found
+run {
+  str s = go { 
+    Println(10)
+  }
+}
+===== [2:9] function Assign(str, thread) has not been found
 func my(int i) str : return str(i)
 run str {
   return #my(20)
@@ -289,7 +321,7 @@ func var(int i) int {
 run int {
   return
 }
-===== [2:3] function must return a value
+===== [2:9] function must return a value
 func my(int a, int ... ) {
 }
 ===== [1:20] unexpected token, expecting the name of the identifier
@@ -695,7 +727,7 @@ const {
   VERSION = `1.0.1`
 }
 run str { return VERSION} 
-===== [2:3] constant VERSION has already been defined!
+===== [2:13] constant VERSION has already been defined!
 run str {
   $ go build my.go
   return $ echo skip
@@ -756,7 +788,7 @@ run int {
 run int { 
   return "2+3"
 }
-===== [4:3] function returns wrong type
+===== [4:15] function returns wrong type
 run int { 
   return *20
 }
@@ -913,7 +945,7 @@ run { 45 { 57}}
 run { false + 0x7}
 ===== [1:13] function Add(bool, int) has not been found
 run int { return false}
-===== [1:11] function returns wrong type
+===== [1:23] function returns wrong type
 run { /* comment
 line*/
 10 /* comment
@@ -935,19 +967,19 @@ run { 2 + 5 / 0 }
 run {-}
 ===== [1:7] unexpected token, expecting value, identifier or calling func
 run int {10}
-===== [1:1] function must return a value
+===== [1:12] function must return a value
 run bool { return 22 }
-===== [1:12] function returns wrong type
+===== [1:22] function returns wrong type
 run {    
 ===== [1:6] unexpected end of the source
 run }
 ===== [1:5] unexpected token, expecting {
 run {return 10}
-===== [1:6] function cannot return any value
+===== [1:15] function cannot return any value
 run wrong test {}
 ===== [1:11] unexpected token, expecting type
 run int {0x999}
-===== [1:1] function must return a value
+===== [1:15] function must return a value
 run { 0779 }
 ===== [1:10] wrong sequence of characters
 run { b® }

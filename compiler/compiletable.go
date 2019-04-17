@@ -41,7 +41,6 @@ const (
 	cmInclude     // include command
 	cmIncludeFile // include file
 	cmGo          // go command
-	cmGoStart
 
 	cmBack // go to back
 
@@ -98,7 +97,6 @@ var (
 			{tkReturn, cmExp, coReturn, coReturnBack, cfStopBack},
 			{tkBreak, 0, coBreak, nil, 0},
 			{tkContinue, 0, coContinue, nil, 0},
-			{tkGo, cmGo, coGo, coGoBack, cfStopBack},
 		},
 		cmExp: {
 			{tkToken, ErrValue, coError, nil, 0},
@@ -114,6 +112,7 @@ var (
 			{tkIdent, cmExpIdent, nil, nil, cfStopBack},
 			{tkEnv, cmExpOper, coExpEnv, nil, cfStopBack},
 			{tkQuestion, cmExpIdent, nil, nil, cfStopBack},
+			{tkGo, cmGo, coGo, coGoBack, cfStopBack},
 		},
 		cmExpIdent: {
 			{tkToken, cmExpOper, coExpVar, nil, cfStay},
@@ -285,12 +284,6 @@ var (
 			{tkRCurly, cmBack, nil, nil, 0},
 		},
 		cmGo: {
-			{tkToken, ErrLCurly, coError, nil, 0},
-			{tkLCurly, cmLCurly, coFuncStart, nil, cfStay},
-			{tkIdent, cmGoStart, nil, nil, 0},
-			{tkLine, 0, nil, nil, 0},
-		},
-		cmGoStart: {
 			{tkToken, ErrLCurly, coError, nil, 0},
 			{tkLCurly, cmLCurly, coFuncStart, nil, cfStay},
 			{tkLine, 0, nil, nil, 0},
