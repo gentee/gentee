@@ -100,6 +100,14 @@ func TestCli(t *testing.T) {
 			[]string{`err-e.g`}},
 		{"ERROR: .../tests/scripts/err-f.g [6:5] unknown identifier myf",
 			[]string{`err-f.g`}},
+		{"ERROR 254: .../tests/scripts/err_thread.g [2:14] divided by zero\n" +
+			".../tests/scripts/err_thread.g [7:15] thread -> Assign\n" +
+			".../tests/scripts/err_thread.g [7:17] thread -> divZero\n" +
+			".../tests/scripts/err_thread.g [2:14] divZero -> Div",
+			[]string{`thread1.g`}},
+		{"ERROR 1000: .../tests/scripts/err_thread.g [14:9] This is an error message\n" +
+			".../tests/scripts/err_thread.g [14:9] thread -> error",
+			[]string{`thread2.g`}},
 	}
 	for _, item := range testList {
 		for i, v := range item.params {

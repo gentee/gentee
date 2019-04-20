@@ -9,18 +9,21 @@ import (
 )
 
 const (
-	// ThWait means that the thread is waiting to start
-	ThWait = iota
+	// ThQueue means that the thread is in the queue to start
+	ThQueue = iota
 	// ThWork means that the thread is running
 	ThWork
-	// ThFinish means that the thread is finished
+	// ThFinish means that the thread finished
 	ThFinish
+	// ThClosed means that the thread has been closed
+	ThClosed
 )
 
 // Thread contains information about a thread
 type Thread struct {
 	Status byte
-	//	Owner *RunTime // The runtime of the thread
+	//	Chan   chan int
+	Owner *RunTime // The runtime of the thread
 }
 
 // RootThread is a structure for thread management
@@ -28,28 +31,70 @@ type RootThread struct {
 	ConstMutex  sync.RWMutex
 	CtxMutex    sync.RWMutex
 	ThreadMutex sync.RWMutex
-	WG          sync.WaitGroup
 	Context     map[string]string
 	Threads     []*Thread
+	Count       int64 // count of active threads
+	ChCount     chan int64
+	ChError     chan error
 }
 
-func newRootThread() (ret *RootThread) {
-	ret = &RootThread{
+func (rt *RunTime) newRootThread() {
+	rt.Threads = &RootThread{
 		Context: make(map[string]string),
 		Threads: make([]*Thread, 0, 32),
+		ChCount: make(chan int64, 16),
+		ChError: make(chan error, 16),
 	}
-	return ret
+	rt.newThread(ThWork)
+	go func() {
+		x := int64(1)
+		for x != 0 {
+			select {
+			case x = <-rt.Threads.ChCount:
+				if x != 0 {
+					rt.Threads.ThreadMutex.Lock()
+					rt.Threads.Count--
+					rt.Threads.ThreadMutex.Unlock()
+				}
+			}
+		}
+	}()
 }
 
-func (rt *RunTime) newThread() (int64, *Thread) {
+func (rt *RunTime) newThread(status byte) bool {
 	root := rt.Root.Threads
 	root.ThreadMutex.Lock()
+	defer root.ThreadMutex.Unlock()
+	if rt.Root.ToBreak {
+		return false
+	}
 	ret := &Thread{
-		Status: ThWait,
+		Status: status,
+		//		Chan:   make(chan int),
+		Owner: rt,
 	}
 	root.Threads = append(root.Threads, ret)
-	defer root.ThreadMutex.Unlock()
-	return int64(len(root.Threads)), ret
+	rt.ThreadID = int64(len(root.Threads) - 1)
+	if status == ThQueue {
+		root.Count++
+	}
+	return true
+}
+
+func (rt *RunTime) changeStatus(status byte) {
+	root := rt.Root.Threads
+	root.ThreadMutex.Lock()
+	root.Threads[rt.ThreadID].Status = status
+	root.ThreadMutex.Unlock()
+}
+
+func (rt *RunTime) closeAll() {
+	root := rt.Threads
+	root.ThreadMutex.Lock()
+	for i := range rt.Threads.Threads {
+		root.Threads[i].Owner.ToBreak = true
+	}
+	root.ThreadMutex.Unlock()
 }
 
 // Thread executes a new thread
@@ -62,19 +107,21 @@ func (rt *RunTime) Thread(funcObj *FuncObject) int64 {
 		Cycle: rt.Cycle,
 		Depth: rt.Depth,
 	}
-	threadID, pThread := thread.newThread()
-	rt.Root.Threads.WG.Add(1)
+	thread.newThread(ThQueue)
 	go func() {
-		pThread.Status = ThWork
-		defer func() {
-			pThread.Status = ThFinish
-			rt.Root.Threads.WG.Done()
-		}()
+		thread.changeStatus(ThWork)
 		if err := thread.runCmd(&funcObj.Block); err != nil {
-			return
+			if thread.ToBreak {
+				thread.changeStatus(ThClosed)
+			} else {
+				rt.Root.Threads.ChError <- err
+			}
+		} else {
+			thread.changeStatus(ThFinish)
 		}
+		rt.Root.Threads.ChCount <- 1
 	}()
-	return threadID
+	return thread.ThreadID
 }
 
 // GetConst returns the value of the constant

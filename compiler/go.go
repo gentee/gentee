@@ -16,7 +16,7 @@ type goStack struct {
 }
 
 func goExpPush(cmpl *compiler) string {
-	name := randName()
+	name := `*` + randName()
 	cmpl.goStack = append(cmpl.goStack, goStack{
 		Exp:        append(make([]core.ICmd, 0, len(cmpl.exp)), cmpl.exp...),
 		ExpBuf:     append(make([]ExpBuf, 0, len(cmpl.expbuf)), cmpl.expbuf...),

@@ -1,4 +1,24 @@
 run {
+  thread th
+  close(th)
+}
+===== [3:3] invalid thread
+run {
+  go { 
+    error(200, `This is a thread error`)
+  }
+  Sleep(2000)
+}
+===== [3:5] This is a thread error
+run {
+  go { 
+    Sleep(5000)
+  }
+  Sleep(100)
+  error(700, `error in run`)
+}
+===== [6:3] error in run
+run {
   go { return 1
   }
 }

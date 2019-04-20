@@ -1,0 +1,12 @@
+run str {
+  a #= 7
+  thread g = go : 
+  thread th = go {
+      Sleep(100)
+      a #= 1
+  }
+  close(th)
+  close(g)
+  return #a
+}
+===== 7

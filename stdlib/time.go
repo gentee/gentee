@@ -18,11 +18,11 @@ func InitTime(vm *core.VirtualMachine) {
 		`UTC:bool`,
 	})
 
-	for _, item := range []interface{}{
-		SleepºInt, // Sleep( int )
-	} {
-		vm.StdLib().NewEmbed(item)
-	}
+	/*	for _, item := range []interface{}{
+			SleepºInt, // Sleep( int )
+		} {
+			vm.StdLib().NewEmbed(item)
+		}*/
 
 	for _, item := range []embedInfo{
 		{intºTime, `time`, `int`},                          // int( time )
@@ -32,6 +32,7 @@ func InitTime(vm *core.VirtualMachine) {
 		{GreaterºTimeTime, `time,time`, `bool`},            // binary >
 		{LessºTimeTime, `time,time`, `bool`},               // binary <
 		{Now, ``, `time`},                                  // Now()
+		{SleepºInt, `int`, ``},                             // Sleep(int)
 		{UTCºTime, `time`, `time`},                         // UTC()
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
@@ -100,8 +101,28 @@ func Now(rt *core.RunTime) *core.Struct {
 }
 
 // SleepºInt pauses the current script for at least the specified duration in milliseconds.
-func SleepºInt(d int64) {
-	time.Sleep(time.Duration(d) * time.Millisecond)
+func SleepºInt(rt *core.RunTime, d int64) {
+	step := int64(100)
+	var err error
+	for d > 0 {
+		if rt == rt.Root {
+			select {
+			case err = <-rt.Threads.ChError:
+			default:
+			}
+			if err != nil {
+				rt.Threads.ChError <- err
+				break
+			}
+		} else if rt.ToBreak {
+			break
+		}
+		if step > d {
+			step = d
+		}
+		time.Sleep(time.Duration(step) * time.Millisecond)
+		d -= step
+	}
 }
 
 // UTCºTime converts time to UTC time.

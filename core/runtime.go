@@ -24,8 +24,10 @@ type RunTime struct {
 	Command  uint32
 	AllCount int
 	Consts   map[string]interface{}
+	ThreadID int64
 	Root     *RunTime
-	Threads  *RootThread
+	Threads  *RootThread // it is for the main thread only
+	ToBreak  bool
 
 	Cycle int64 // Value of constants
 	Depth int64
@@ -33,13 +35,13 @@ type RunTime struct {
 
 func newRunTime(vm *VirtualMachine) *RunTime {
 	rt := &RunTime{
-		VM:      vm,
-		Stack:   make([]interface{}, 0, 1024),
-		Calls:   make([]ICmd, 0, 64),
-		Consts:  make(map[string]interface{}),
-		Threads: newRootThread(),
+		VM:     vm,
+		Stack:  make([]interface{}, 0, 1024),
+		Calls:  make([]ICmd, 0, 64),
+		Consts: make(map[string]interface{}),
 	}
 	rt.Root = rt
+	rt.newRootThread()
 
 	for _, item := range []string{ConstDepth, ConstCycle} {
 		// TODO: Insert redefinition of constants here
@@ -477,6 +479,15 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 			}
 		}
 		rt.Stack = rt.Stack[:lenStack]
+	}
+	if rt == rt.Root {
+		select {
+		case err = <-rt.Threads.ChError:
+			return err
+		default:
+		}
+	} else if rt.ToBreak {
+		err = runtimeError(rt, cmd, ErrThreadClosed)
 	}
 	if err == nil {
 		rt.Calls = rt.Calls[:len(rt.Calls)-1]

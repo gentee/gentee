@@ -16,7 +16,6 @@ const {
 run {
   $ echo "START %{MYCONST}"
   go { 
-    Println("1")
     Println(`GOOK  %{MYCONST} %{TEST}`)
     go {
       $ echo "SUB"
@@ -42,6 +41,18 @@ run str {
   return `go`
 }
 ===== go
+func ooops() {
+    AB #= `oops`
+}
+run str {
+     AB #= `test`
+     CD #= `#AB# - `
+     E #= #AB
+     ooops()
+     val #= 10
+     return # CD + # E + ## ` #val# == 10`
+}
+===== oops - test 10 == 10
 run str {
   AºB #= `ººº`
   CD #= #AºB + `=`

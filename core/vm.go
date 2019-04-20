@@ -119,16 +119,31 @@ func (vm *VirtualMachine) Run(unitID int) (interface{}, error) {
 		return nil, runtimeError(rt, nil, ErrNotRun)
 	}
 	funcRun := vm.Objects[unit.RunID].(*FuncObject)
-	if err := rt.runCmd(&funcRun.Block); err != nil {
-		return nil, err
-	}
+	errResult := rt.runCmd(&funcRun.Block)
 	var result interface{}
-	if funcRun.Block.Result != nil {
-		if len(rt.Stack) == 0 {
-			return nil, runtimeError(rt, nil, ErrRuntime)
+	if errResult == nil {
+		if funcRun.Block.Result != nil {
+			if len(rt.Stack) == 0 {
+				errResult = runtimeError(rt, nil, ErrRuntime)
+			} else {
+				result = rt.Stack[len(rt.Stack)-1]
+			}
 		}
-		result = rt.Stack[len(rt.Stack)-1]
+	} else {
+		rt.closeAll()
 	}
-	rt.Root.Threads.WG.Wait()
-	return result, nil
+	for rt.Threads.Count > 0 {
+		select {
+		case err := <-rt.Threads.ChError:
+			rt.closeAll()
+			if errResult == nil {
+				errResult = err
+			}
+		default:
+		}
+	}
+	rt.Threads.ChCount <- 0
+	close(rt.Threads.ChCount)
+	close(rt.Threads.ChError)
+	return result, errResult
 }

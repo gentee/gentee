@@ -47,6 +47,10 @@ const (
 	ErrNotRun
 	// ErrFnEmpty is returned in case of calling undefined fn variable
 	ErrFnEmpty
+	// ErrThreadIndex is returned when the index of the thread is out of range
+	ErrThreadIndex
+	// ErrThreadClosed is generated when the thread has been closed
+	ErrThreadClosed
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -97,6 +101,8 @@ var (
 		ErrInvalidParam: `invalid value of parameter(s)`,
 		ErrNotRun:       `there is not run function`,
 		ErrFnEmpty:      `fn variable has not been defined`,
+		ErrThreadIndex:  `invalid thread`,
+		ErrThreadClosed: `thread has been closed`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}
@@ -143,6 +149,9 @@ func GetTrace(rt *RunTime, cmd ICmd) []TraceInfo {
 		if obj.GetType() == ObjFunc || obj.GetType() == ObjEmbedded {
 			if len(entry) == 0 && obj.GetType() == ObjFunc {
 				entry = obj.GetName()
+				if entry[0] == '*' {
+					entry = `thread`
+				}
 				continue
 			}
 			line, column = lex.LineColumn(cmd.GetToken())
