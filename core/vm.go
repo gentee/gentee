@@ -143,6 +143,7 @@ func (vm *VirtualMachine) Run(unitID int) (interface{}, error) {
 		}
 	}
 	rt.Threads.ChCount <- 0
+	close(rt.Thread.Chan)
 	close(rt.Threads.ChCount)
 	close(rt.Threads.ChError)
 	return result, errResult

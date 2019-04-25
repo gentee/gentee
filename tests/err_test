@@ -1,4 +1,12 @@
 run {
+  go :
+  go {
+    sleep(2000)
+  }
+  error(99, `main error`)
+}
+===== [6:3] main error
+run {
   thread th
   close(th)
 }
@@ -7,14 +15,14 @@ run {
   go { 
     error(200, `This is a thread error`)
   }
-  Sleep(2000)
+  sleep(2000)
 }
 ===== [3:5] This is a thread error
 run {
   go { 
-    Sleep(5000)
+    sleep(5000)
   }
-  Sleep(100)
+  sleep(100)
   error(700, `error in run`)
 }
 ===== [6:3] error in run

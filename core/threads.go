@@ -13,17 +13,33 @@ const (
 	ThQueue = iota
 	// ThWork means that the thread is running
 	ThWork
-	// ThFinish means that the thread finished
-	ThFinish
+	// ThPaused means that the thread has been suspended
+	ThPaused
+	// ThWait means that the thread is waiting for the end of another thread
+	ThWait
+	// ThFinished means that the thread finished
+	ThFinished
+	// ThError means that the thread has been closed with an error
+	ThError
 	// ThClosed means that the thread has been closed
 	ThClosed
+)
+
+const (
+	// ThCmdClose closes the thread
+	ThCmdClose = iota
+	// ThCmdResume resumes the thread
+	ThCmdResume
+	// ThCmdContinue continues the thread after waiting
+	ThCmdContinue
 )
 
 // Thread contains information about a thread
 type Thread struct {
 	Status byte
-	//	Chan   chan int
-	Owner *RunTime // The runtime of the thread
+	Sleep  int64
+	Chan   chan int
+	Notify []int64 // who waits the end
 }
 
 // RootThread is a structure for thread management
@@ -65,15 +81,14 @@ func (rt *RunTime) newThread(status byte) bool {
 	root := rt.Root.Threads
 	root.ThreadMutex.Lock()
 	defer root.ThreadMutex.Unlock()
-	if rt.Root.ToBreak {
+	if rt.Root.Thread != nil && rt.Root.Thread.Status >= ThFinished {
 		return false
 	}
-	ret := &Thread{
+	rt.Thread = &Thread{
 		Status: status,
-		//		Chan:   make(chan int),
-		Owner: rt,
+		Chan:   make(chan int, 8),
 	}
-	root.Threads = append(root.Threads, ret)
+	root.Threads = append(root.Threads, rt.Thread)
 	rt.ThreadID = int64(len(root.Threads) - 1)
 	if status == ThQueue {
 		root.Count++
@@ -81,10 +96,10 @@ func (rt *RunTime) newThread(status byte) bool {
 	return true
 }
 
-func (rt *RunTime) changeStatus(status byte) {
+func (rt *RunTime) setStatus(status byte) {
 	root := rt.Root.Threads
 	root.ThreadMutex.Lock()
-	root.Threads[rt.ThreadID].Status = status
+	rt.Thread.Status = status
 	root.ThreadMutex.Unlock()
 }
 
@@ -92,13 +107,15 @@ func (rt *RunTime) closeAll() {
 	root := rt.Threads
 	root.ThreadMutex.Lock()
 	for i := range rt.Threads.Threads {
-		root.Threads[i].Owner.ToBreak = true
+		if root.Threads[i].Status < ThFinished {
+			root.Threads[i].Chan <- ThCmdClose
+		}
 	}
 	root.ThreadMutex.Unlock()
 }
 
-// Thread executes a new thread
-func (rt *RunTime) Thread(funcObj *FuncObject) int64 {
+// GoThread executes a new thread
+func (rt *RunTime) GoThread(funcObj *FuncObject) int64 {
 	thread := &RunTime{
 		VM:    rt.VM,
 		Stack: make([]interface{}, 0, 1024),
@@ -109,16 +126,24 @@ func (rt *RunTime) Thread(funcObj *FuncObject) int64 {
 	}
 	thread.newThread(ThQueue)
 	go func() {
-		thread.changeStatus(ThWork)
-		if err := thread.runCmd(&funcObj.Block); err != nil {
-			if thread.ToBreak {
-				thread.changeStatus(ThClosed)
-			} else {
+		thread.Thread.Status = ThWork
+		err := thread.runCmd(&funcObj.Block)
+		rt.Root.Threads.ThreadMutex.Lock()
+		if err != nil {
+			if thread.Thread.Status != ThClosed {
+				thread.Thread.Status = ThError
 				rt.Root.Threads.ChError <- err
 			}
 		} else {
-			thread.changeStatus(ThFinish)
+			thread.Thread.Status = ThFinished
 		}
+		close(thread.Thread.Chan)
+		for _, nfyid := range thread.Thread.Notify {
+			if rt.Root.Threads.Threads[nfyid].Status == ThWait {
+				rt.Root.Threads.Threads[nfyid].Chan <- ThCmdContinue
+			}
+		}
+		rt.Root.Threads.ThreadMutex.Unlock()
 		rt.Root.Threads.ChCount <- 1
 	}()
 	return thread.ThreadID

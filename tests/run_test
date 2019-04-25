@@ -8,32 +8,6 @@ run arr.thread {
   return ath
 }
 ===== [1 2]
-const {
-   MYCONST = 200
-   TEST = `Test`
-}
-
-run {
-  $ echo "START %{MYCONST}"
-  go { 
-    Println(`GOOK  %{MYCONST} %{TEST}`)
-    go {
-      $ echo "SUB"
-      go {
-        $ echo "QWERTY"
-      }
-    }
-    Println("OOOPS")
-    Println("GOOK  END")
-    go {
-      $ echo "FINISH"
-    }
-  }
-  go { $ echo "NAME"
-  }
-  $ echo "STOP  %{MYCONST} %{TEST}"
-}
-===== <nil>
 run str {
   if true {
   go { int i = 1 

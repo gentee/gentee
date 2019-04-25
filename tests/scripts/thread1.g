@@ -4,6 +4,6 @@ include {
 
 run int {
     go : errThread()
-    Sleep(3000)
+    sleep(3000)
     return 0
 }

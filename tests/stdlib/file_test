@@ -35,7 +35,7 @@ run str {
     finfo fi = FileInfo(fname)
     str out = str(fi.Size == 4)
     time tm = fi.Time
-    Sleep(1500)
+    sleep(1500)
     WriteFile(fname, `TESTА`)
     fi = FileInfo(fname)
     out += str(fi.Size == 6) + str(tm < fi.Time)

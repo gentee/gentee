@@ -6,6 +6,12 @@ package core
 
 import (
 	"reflect"
+	"time"
+)
+
+const (
+	// SleepStep is a tick in sleep
+	SleepStep = int64(100)
 )
 
 // RunTimeBlock is a structure for storing variables
@@ -25,9 +31,9 @@ type RunTime struct {
 	AllCount int
 	Consts   map[string]interface{}
 	ThreadID int64
+	Thread   *Thread
 	Root     *RunTime
 	Threads  *RootThread // it is for the main thread only
-	ToBreak  bool
 
 	Cycle int64 // Value of constants
 	Depth int64
@@ -77,7 +83,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	case CtFunc:
 		anyFunc := cmd.(*CmdAnyFunc)
 		if anyFunc.IsThread {
-			rt.Stack = append(rt.Stack, rt.Thread(cmd.GetObject().(*FuncObject)))
+			rt.Stack = append(rt.Stack, rt.GoThread(cmd.GetObject().(*FuncObject)))
 			return
 		}
 		for _, param := range anyFunc.Children {
@@ -480,14 +486,61 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 		}
 		rt.Stack = rt.Stack[:lenStack]
 	}
-	if rt == rt.Root {
-		select {
-		case err = <-rt.Threads.ChError:
-			return err
-		default:
+	step := SleepStep
+	check := len(rt.Root.Threads.Threads) > 1
+	for check || rt.Thread.Status == ThPaused || rt.Thread.Status == ThWait || rt.Thread.Sleep > 0 {
+		var x int
+		if rt == rt.Root {
+			select {
+			case err = <-rt.Threads.ChError:
+				return err
+			default:
+			}
+		} else {
+			select {
+			case x = <-rt.Thread.Chan:
+				switch x {
+				case ThCmdResume, ThCmdContinue:
+					rt.setStatus(ThWork)
+				case ThCmdClose:
+					rt.setStatus(ThClosed)
+				}
+			default:
+			}
+			if rt.Thread.Status == ThClosed {
+				err = runtimeError(rt, cmd, ErrThreadClosed)
+				break
+			}
 		}
-	} else if rt.ToBreak {
-		err = runtimeError(rt, cmd, ErrThreadClosed)
+		if rt.Thread.Sleep > 0 {
+			if step > rt.Thread.Sleep {
+				step = rt.Thread.Sleep
+			}
+			time.Sleep(time.Duration(step) * time.Millisecond)
+			rt.Thread.Sleep -= step
+		} else if rt.Thread.Status == ThPaused || rt.Thread.Status == ThWait {
+			if rt == rt.Root {
+				select {
+				case err = <-rt.Threads.ChError:
+					return err
+				case x = <-rt.Thread.Chan:
+					if x == ThCmdContinue {
+						rt.setStatus(ThWork)
+					}
+				}
+			} else {
+				select {
+				case x = <-rt.Thread.Chan:
+					switch x {
+					case ThCmdResume, ThCmdContinue:
+						rt.setStatus(ThWork)
+					case ThCmdClose:
+						rt.setStatus(ThClosed)
+					}
+				}
+			}
+		}
+		check = false
 	}
 	if err == nil {
 		rt.Calls = rt.Calls[:len(rt.Calls)-1]

@@ -1,8 +1,27 @@
 run str {
+  out #= 1
+  thread th1 = go { 
+    out #= #out + `2` 
+    sleep(100)
+    out #= #out + `5` 
+  }
+  sleep(50)
+  suspend(th1)
+  thread th2 = go { 
+    out #= #out + `3` 
+  }
+  wait(th2)
+  out #= #out + `4` 
+  resume(th1)
+  wait(th1)
+  return #out
+}
+===== 12345
+run str {
   a #= 7
   thread g = go : 
   thread th = go {
-      Sleep(100)
+      sleep(100)
       a #= 1
   }
   close(th)

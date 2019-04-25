@@ -6,7 +6,7 @@ func errThread {
     go {
         int i = divZero()
     }
-    Sleep(3000)
+    sleep(3000)
 }
 
 func errThread2 {
@@ -14,5 +14,5 @@ func errThread2 {
         error(1000, `This is an error message`)
         int i = divZero()
     }
-    Sleep(3000)
+    sleep(3000)
 }
