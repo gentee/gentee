@@ -8,7 +8,7 @@ run {
 ===== [6:3] main error
 run {
   thread th
-  close(th)
+  terminate(th)
 }
 ===== [3:3] invalid thread
 run {

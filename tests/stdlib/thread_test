@@ -24,8 +24,8 @@ run str {
       sleep(100)
       a #= 1
   }
-  close(th)
-  close(g)
+  terminate(th)
+  terminate(g)
   return #a
 }
 ===== 7

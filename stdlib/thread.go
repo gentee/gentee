@@ -15,7 +15,7 @@ func InitThread(vm *core.VirtualMachine) {
 	for _, item := range []embedInfo{
 		{AssignºThreadThread, `thread,thread`, `thread`},      // thread = thread
 		{AssignAddºArrInt, `arr.thread,thread`, `arr.thread`}, // arr += thread
-		{closeºThread, `thread`, ``},                          // close( thread )
+		{terminateºThread, `thread`, ``},                      // close( thread )
 		{resumeºThread, `thread`, ``},                         // resume( thread )
 		{suspendºThread, `thread`, ``},                        // suspend( thread )
 		{waitºThread, `thread`, ``},                           // wait( thread )
@@ -43,8 +43,8 @@ func changeStatus(rt *core.RunTime, threadID int64, todo threadFunc) error {
 	return nil
 }
 
-// closeºThread closes the thread
-func closeºThread(rt *core.RunTime, threadID int64) error {
+// terminateºThread closes the thread
+func terminateºThread(rt *core.RunTime, threadID int64) error {
 	return changeStatus(rt, threadID, func(root *core.RootThread) {
 		if root.Threads[threadID].Status < core.ThFinished {
 			root.Threads[threadID].Chan <- core.ThCmdClose
