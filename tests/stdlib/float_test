@@ -1,0 +1,14 @@
+run float {
+  float r = 31.54351
+  return Round(r + Round(r, 0) + Round(r, 1) + Round(r, 2) + Round(r, 3), 5)
+}
+===== 158.12751
+run int {
+  int ret = Floor(5.6) + Floor(8.0) + Ceil(5.5111) + Ceil(6.1)
+  return ret + Round(3.01) +  Round(3.5) +  Round(4.99)
+}
+===== 38
+run int {
+  return int(8.78) + int(8.1) + int(8.5)
+}
+===== 24

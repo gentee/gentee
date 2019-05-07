@@ -6,6 +6,7 @@ package stdlib
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/gentee/gentee/core"
@@ -42,6 +43,10 @@ func InitFloat(vm *core.VirtualMachine) {
 		AssignDivºFloatFloat, // float /= float
 		AssignMulºFloatFloat, // float *= float
 		AssignSubºFloatFloat, // float -= float
+		RoundºFloat,          // Round( float ) int
+		FloorºFloat,          // Floor( float ) int
+		CeilºFloat,           // Ceil( float ) int
+		RoundºFloatInt,       // Round( float, int ) float
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -119,7 +124,7 @@ func DivºIntFloat(left int64, right float64) (float64, error) {
 	return float64(left) / right, nil
 }
 
-// ExpStrºFloat adds string and integer in string expression
+// ExpStrºFloat adds string and float in string expression
 func ExpStrºFloat(left string, right float64) string {
 	return left + strºFloat(right)
 }
@@ -202,4 +207,28 @@ func LessºFloatInt(left float64, right int64) bool {
 // boolºFloat converts integer value to boolean 0->false, not 0 -> true
 func boolºFloat(val float64) bool {
 	return val != 0.0
+}
+
+// RoundºFloat returns the nearest integer, rounding half away from zero.
+func RoundºFloat(val float64) int64 {
+	return int64(math.Round(val))
+}
+
+// FloorºFloat returns the greatest integer value less than or equal to val.
+func FloorºFloat(val float64) int64 {
+	return int64(math.Floor(val))
+}
+
+// CeilºFloat returns the greatest integer value less than or equal to val.
+func CeilºFloat(val float64) int64 {
+	return int64(math.Ceil(val))
+}
+
+// RoundºFloatInt returns a number with the specified number of decimal places.
+func RoundºFloatInt(val float64, digits int64) float64 {
+	dec := float64(1)
+	for ; digits > 0; digits-- {
+		dec *= 10
+	}
+	return math.Round(val*dec) / dec
 }
