@@ -94,6 +94,7 @@ var (
 		tkInc | tkUnary | tkPost: {29, false, ``},
 		tkDec | tkUnary | tkPost: {29, false, ``},
 		tkBitXor | tkUnary:       {30, true, `BitNot`},
+		tkBitOr | tkUnary:        {30, true, `PrintShift`},
 		tkSub | tkUnary:          {30, true, `Sign`},
 		tkNot | tkUnary:          {30, true, `Not`},
 		tkMul | tkUnary:          {30, true, `Len`},

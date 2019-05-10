@@ -16,9 +16,10 @@ import (
 // InitConsole appends stdlib console functions to the virtual machine
 func InitConsole(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
-		Print,      // Print()
-		Println,    // Println()
-		ReadString, // ReadString(str) str
+		PrintShiftºStr, // unary bitwise OR
+		Print,          // Print()
+		Println,        // Println()
+		ReadString,     // ReadString(str) str
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -34,6 +35,15 @@ func Print(pars ...interface{}) (int64, error) {
 func Println(pars ...interface{}) (int64, error) {
 	n, err := fmt.Println(pars...)
 	return int64(n), err
+}
+
+// PrintShiftºStr writes to standard output with trim spaces characters in the each line.
+func PrintShiftºStr(par string) (int64, error) {
+	lines := strings.Split(par, "\n")
+	for i, v := range lines {
+		lines[i] = strings.TrimSpace(v)
+	}
+	return Print(strings.Join(lines, "\n"))
 }
 
 // ReadString reads a string from standard input.

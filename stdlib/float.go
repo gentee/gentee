@@ -219,7 +219,7 @@ func FloorºFloat(val float64) int64 {
 	return int64(math.Floor(val))
 }
 
-// CeilºFloat returns the greatest integer value less than or equal to val.
+// CeilºFloat returns the least integer value greater than or equal to val.
 func CeilºFloat(val float64) int64 {
 	return int64(math.Ceil(val))
 }

@@ -1,4 +1,14 @@
 run str {
+  |`ABC
+  DEF`
+  int n = |`ABC
+            d e f
+            фф
+            `
+  return str(n) 
+}
+===== 15
+run str {
   map.float m = {`1`: 1.01, "2": 0.0000567 }
   int ln = Println(1.234, `ok`, 324)
   int n = Print(`str`, 10, `абв`, m)
