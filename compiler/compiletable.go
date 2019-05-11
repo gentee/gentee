@@ -101,7 +101,7 @@ var (
 		cmExp: {
 			{tkToken, ErrValue, coError, nil, 0},
 			{[]int{tkInt, tkFloat, tkFalse, tkTrue, tkStr, tkChar}, cmExpOper, coPush, nil, cfStopBack},
-			{[]int{tkSub, tkMul, tkNot, tkBitXor, tkBitOr, tkInc, tkDec, tkDoubleCtx}, 0,
+			{[]int{tkSub, tkMul, tkNot, tkBitXor, tkOr, tkBitOr, tkInc, tkDec, tkDoubleCtx}, 0,
 				coUnaryOperator, nil, 0},
 			{tkCtx, 0, coCtxOperator, nil, 0},
 			{tkBitAnd, cmExpOper, coFnOperator, nil, cfStopBack},

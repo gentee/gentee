@@ -35,6 +35,7 @@ func InitStr(vm *core.VirtualMachine) {
 		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
 		LowerºStr,         // Lower( str ) str
 		ReplaceºStrStrStr, // Replace( str, str, str )
+		ShiftºStr,         // unary bitwise OR
 		SubstrºStrIntInt,  // Substr( str, int, int ) str
 		TrimSpaceºStr,     // TrimSpace( str )
 		UpperºStr,         // Upper( str ) str
@@ -179,6 +180,15 @@ func SplitºStrStr(in, sep string) *core.Array {
 		out.Data = append(out.Data, item)
 	}
 	return out
+}
+
+// ShiftºStr trims white spaces characters in the each line of the string.
+func ShiftºStr(par string) string {
+	lines := strings.Split(par, "\n")
+	for i, v := range lines {
+		lines[i] = strings.TrimSpace(v)
+	}
+	return strings.Join(lines, "\n")
 }
 
 // SubstrºStrIntInt returns a substring with the specified offset and length

@@ -1,4 +1,14 @@
 run str {
+  str s = |`ABC
+  DEF`
+  int n = *|`ABC
+            d e f
+            фф
+            ` + *s
+  return str(n) 
+}
+===== 20
+run str {
   arr v = Split(`1.0.0+1+metadata`, `+`)
   return v[2]
 }

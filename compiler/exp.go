@@ -318,7 +318,7 @@ func popBuf(cmpl *compiler) error {
 			Children: []core.ICmd{top}}
 		cmpl.exp[len(cmpl.exp)-1] = icmd
 	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitXor | tkUnary, tkCtx | tkUnary,
-		tkDoubleCtx | tkUnary, tkBitOr | tkUnary:
+		tkDoubleCtx | tkUnary, tkBitOr | tkUnary, tkOr | tkUnary:
 		if len(cmpl.exp) == 0 {
 			return cmpl.Error(ErrValue)
 		}

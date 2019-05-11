@@ -1,7 +1,7 @@
 run str {
-  |`ABC
+  ||`ABC
   DEF`
-  int n = |`ABC
+  int n = ||`ABC
             d e f
             фф
             `

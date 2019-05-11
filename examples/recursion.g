@@ -15,10 +15,10 @@ func fibonacci( int pprev prev last) int {
 }
 
 run {
-    |`This program calculates 50th Fibonacci number and the factorial of 15
+    ||`This program calculates 50th Fibonacci number and the factorial of 15
       Fibonacci number (Xn = Xn-1 + Xn-2)
       Factorial of n   (n! = 1*2*3*...*n)
-     `
+    `
     int sum 
     int pprev = 1
     int prev = 1
@@ -27,7 +27,7 @@ run {
         pprev = prev
         prev = sum
     }
-    |`50th Fibonacci number = %{sum} (not recursive)
+    ||`50th Fibonacci number = %{sum} (not recursive)
       50th Fibonacci number = %{fibonacci( 1, 1, 50)} (recursive)
     `
 
