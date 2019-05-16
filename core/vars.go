@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+const (
+	// MaxSet is the maximum size of the set
+	MaxSet = int64(64000000)
+)
+
 // Range is the type for operator ..
 type Range struct {
 	From int64
@@ -30,6 +35,11 @@ type Array struct {
 // Buffer is []byte
 type Buffer struct {
 	Data []byte
+}
+
+// Set is []bool
+type Set struct {
+	Data []uint64
 }
 
 // Map is a map
@@ -117,6 +127,53 @@ func NewBuffer() *Buffer {
 	}
 }
 
+// String interface for Set
+func (set Set) String() string {
+	var ret string
+	for _, v := range set.Data {
+		for pos := uint64(0); pos < 64; pos++ {
+			if v&(1<<pos) == 0 {
+				ret += `0`
+			} else {
+				ret += `1`
+			}
+		}
+	}
+	return strings.TrimRight(ret, `0`)
+}
+
+// IsSet returns the value of set[index]
+func (set *Set) IsSet(index int64) bool {
+	shift := int(index >> 6)
+	pos := uint64(index % 64)
+	if len(set.Data) <= shift || set.Data[shift]&(1<<pos) == 0 {
+		return false
+	}
+	return true
+}
+
+// Set sets the value of set[index]
+func (set *Set) Set(index int64, b bool) bool {
+	shift := int(index >> 6)
+	pos := uint64(index % 64)
+	if len(set.Data) <= shift {
+		set.Data = append(set.Data, make([]uint64, shift-len(set.Data)+1)...)
+	}
+	if b {
+		set.Data[shift] |= 1 << pos
+	} else {
+		set.Data[shift] &= ^(1 << pos)
+	}
+	return b
+}
+
+// NewSet creates a new set object
+func NewSet() *Set {
+	return &Set{
+		Data: make([]uint64, 1),
+	}
+}
+
 // NewStruct creates a new struct object
 func NewStruct(ptype *TypeObject) *Struct {
 	values := make([]interface{}, len(ptype.Custom.Types))
@@ -164,6 +221,8 @@ func initVar(ptype *TypeObject) interface{} {
 	} else {
 		original := ptype.Original
 		switch original {
+		case reflect.TypeOf(Set{}):
+			value = NewSet()
 		case reflect.TypeOf(Buffer{}):
 			value = NewBuffer()
 		case reflect.TypeOf(Array{}):
@@ -226,6 +285,13 @@ func getVar(rt *RunTime, cmdVar *CmdVar) error {
 					if value == nil {
 						return runtimeError(rt, cmdVar, ErrUndefined)
 					}
+				case reflect.TypeOf(Set{}):
+					var set *Set
+					set = value.(*Set)
+					if index < 0 || index >= MaxSet {
+						return runtimeError(rt, ival.Cmd, ErrIndexOut)
+					}
+					value = set.IsSet(index)
 				case reflect.TypeOf(Buffer{}):
 					var buf *Buffer
 					buf = value.(*Buffer)
@@ -280,10 +346,11 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 	ptr = &vars[cmdVar.Index]
 	var (
 		runes                           []rune
-		strIndex                        int64
+		strIndex, setIndex              int64
 		prev                            *interface{}
 		arr                             *Array
 		buf                             *Buffer
+		set                             *Set
 		arrIndex, structIndex, bufIndex int64
 		pmap                            *Map
 		pstruct                         *Struct
@@ -293,7 +360,7 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 	typeValue := cmdVar.Block.Vars[cmdVar.Index]
 	if value == vars[cmdVar.Index] && (typeValue.Original == reflect.TypeOf(Struct{}) ||
 		typeValue.Original == reflect.TypeOf(Array{}) || typeValue.Original == reflect.TypeOf(Buffer{}) ||
-		typeValue.Original == reflect.TypeOf(Map{})) {
+		typeValue.Original == reflect.TypeOf(Set{}) || typeValue.Original == reflect.TypeOf(Map{})) {
 		return runtimeError(rt, cmdStack, ErrAssignment)
 	}
 	if cmdVar.Indexes != nil {
@@ -326,8 +393,26 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 					pmap = nil
 					arr = nil
 					buf = nil
+					set = nil
 					structPtr = pstruct.Values[structIndex]
 					ptr = &structPtr
+				case reflect.TypeOf(Set{}):
+					var (
+						setPtr interface{}
+						vset   bool
+					)
+
+					setIndex = index.(int64)
+					set = (*ptr).(*Set)
+					pmap = nil
+					pstruct = nil
+					arr = nil
+					buf = nil
+					if setIndex < 0 || setIndex >= MaxSet {
+						return runtimeError(rt, ival.Cmd, ErrIndexOut)
+					}
+					setPtr = vset
+					ptr = &setPtr
 				case reflect.TypeOf(Buffer{}):
 					var bufPtr interface{}
 					bufIndex = index.(int64)
@@ -335,6 +420,7 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 					pmap = nil
 					pstruct = nil
 					arr = nil
+					set = nil
 					if bufIndex < 0 || bufIndex >= int64(len(buf.Data)) {
 						return runtimeError(rt, ival.Cmd, ErrIndexOut)
 					}
@@ -347,6 +433,7 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 					pmap = nil
 					pstruct = nil
 					buf = nil
+					set = nil
 					if arrIndex < 0 || arrIndex >= int64(len(arr.Data)) {
 						return runtimeError(rt, ival.Cmd, ErrIndexOut)
 					}
@@ -361,6 +448,7 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 					arr = nil
 					pstruct = nil
 					buf = nil
+					set = nil
 					pmap = (*ptr).(*Map)
 					if mapPtr, ok = pmap.Data[mapIndex]; !ok {
 						pmap.Keys = append(pmap.Keys, mapIndex)
@@ -370,6 +458,8 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 							mapPtr = NewMap()
 						} else if typeValue.IndexOf.Original == reflect.TypeOf(Buffer{}) {
 							mapPtr = NewBuffer()
+						} else if typeValue.IndexOf.Original == reflect.TypeOf(Set{}) {
+							mapPtr = NewSet()
 						}
 						pmap.Data[mapIndex] = mapPtr
 					}
@@ -386,7 +476,8 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 			if value == *ptr && (typeValue.Original == reflect.TypeOf(Struct{}) ||
 				typeValue.Original == reflect.TypeOf(Array{}) ||
 				typeValue.Original == reflect.TypeOf(Map{}) ||
-				typeValue.Original == reflect.TypeOf(Buffer{})) {
+				typeValue.Original == reflect.TypeOf(Buffer{}) ||
+				typeValue.Original == reflect.TypeOf(Set{})) {
 				return runtimeError(rt, cmdStack, ErrAssignment)
 			}
 		}
@@ -401,6 +492,9 @@ func setVar(rt *RunTime, cmdStack *CmdBlock) error {
 		runes[strIndex] = result[0].Interface().(rune)
 		*prev = string(runes)
 		*ptr = *prev
+	}
+	if set != nil {
+		set.Set(setIndex, result[0].Interface().(bool))
 	}
 	if buf != nil {
 		val := result[0].Interface().(int64)
@@ -484,6 +578,16 @@ func CopyVar(ptr *interface{}, value interface{}) {
 			CopyVar(&pstruct.Values[i], v)
 		}
 		*ptr = pstruct
+	case *Set:
+		var pset *Set
+		if ptr == nil || *ptr == nil {
+			pset = NewSet()
+		} else {
+			pset = (*ptr).(*Set)
+		}
+		pset.Data = make([]uint64, len(vItem.Data))
+		copy(pset.Data, vItem.Data)
+		*ptr = pset
 	case *Buffer:
 		var pbuf *Buffer
 		if ptr == nil || *ptr == nil {

@@ -30,6 +30,7 @@ func InitTypes(vm *core.VirtualMachine) {
 		{`str`, reflect.TypeOf(``), `char`},
 		{`range`, reflect.TypeOf(core.Range{}), `int`},
 		{`buf`, reflect.TypeOf(core.Buffer{}), `int`},
+		{`set`, reflect.TypeOf(core.Set{}), `bool`},
 		{`keyval`, reflect.TypeOf(core.KeyValue{}), ``},
 		{`struct`, typeStruct, ``},
 		{`fn`, reflect.TypeOf(core.Fn{}), ``},

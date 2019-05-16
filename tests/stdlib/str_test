@@ -1,4 +1,9 @@
 run str {
+  str s = `ABC myabф8 `
+  return TrimRight(s, ` 8фb`) 
+}
+===== ABC mya
+run str {
   str s = |`ABC
   DEF`
   int n = *|`ABC

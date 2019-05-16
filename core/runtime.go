@@ -246,6 +246,20 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				} else {
 					rt.Stack[lenStack] = parr
 				}
+			case reflect.TypeOf(Set{}):
+				pset := NewSet()
+				for _, icmd := range cmdStack.Children {
+					if err = rt.runCmd(icmd); err != nil {
+						return err
+					}
+					switch v := rt.Stack[len(rt.Stack)-1].(type) {
+					case int64:
+						pset.Set(v, true)
+					default:
+						return runtimeError(rt, icmd, ErrRuntime, `init set`)
+					}
+				}
+				rt.Stack[lenStack] = pset
 			case reflect.TypeOf(Buffer{}):
 				pbuf := NewBuffer()
 				for _, icmd := range cmdStack.Children {
@@ -561,6 +575,8 @@ func getLength(value interface{}) (length int64) {
 		length++
 	case `*core.Buffer`:
 		length = int64(len(value.(*Buffer).Data))
+	case `*core.Set`:
+		length = int64(len(value.(*Set).Data) << 6)
 	case `*core.Array`:
 		length = int64(len(value.(*Array).Data))
 	case `*core.Map`:
@@ -581,6 +597,8 @@ func getIndex(value interface{}, index int64) interface{} {
 		return rangeVal.From - index
 	case `*core.Buffer`:
 		return int64(value.(*Buffer).Data[index])
+	case `*core.Set`:
+		return value.(*Set).IsSet(index)
 	case `*core.Array`:
 		return value.(*Array).Data[index]
 	case `*core.Map`:

@@ -85,6 +85,8 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 		name = `range`
 	case `*core.Buffer`:
 		name = `buf`
+	case `*core.Set`:
+		name = `set`
 	case `*core.Array`:
 		name = `arr`
 	case `*core.Map`:

@@ -18,6 +18,7 @@ func coInitStart(cmpl *compiler) error {
 	cmpl.owners = append(cmpl.owners, &cmd)
 	if (cmpl.curType.Original != reflect.TypeOf(core.Array{}) &&
 		cmpl.curType.Original != reflect.TypeOf(core.Buffer{}) &&
+		cmpl.curType.Original != reflect.TypeOf(core.Set{}) &&
 		cmpl.curType.Original != reflect.TypeOf(core.Map{}) &&
 		cmpl.curType.Original != reflect.TypeOf(core.Struct{})) {
 		return cmpl.Error(ErrWrongType, cmpl.curType.GetName())
@@ -40,17 +41,21 @@ func coInitEnd(cmpl *compiler) error {
 		}
 	}
 	for _, item := range cmpl.curOwner().Children {
-		if ownerType.Original == reflect.TypeOf(core.Array{}) {
+		switch ownerType.Original {
+		case reflect.TypeOf(core.Array{}):
 			if !isEqualTypes(item.GetResult(), cmpl.curType) {
 				return cmpl.ErrorPos(item.GetToken(), ErrWrongType, cmpl.curType.GetName())
 			}
-		} else if ownerType.Original == reflect.TypeOf(core.Buffer{}) {
+		case reflect.TypeOf(core.Set{}):
+			if !isIntResult(item) {
+				return cmpl.ErrorPos(item.GetToken(), ErrWrongType, `int`)
+			}
+		case reflect.TypeOf(core.Buffer{}):
 			v := map[string]bool{`buf`: true, `char`: true, `int`: true, `str`: true}
 			if !v[item.GetResult().GetName()] {
 				return cmpl.ErrorPos(item.GetToken(), ErrWrongType, `int, buf, char, str`)
 			}
-		} else if ownerType.Original == reflect.TypeOf(core.Map{}) ||
-			ownerType.Original == reflect.TypeOf(core.Struct{}) {
+		case reflect.TypeOf(core.Map{}), reflect.TypeOf(core.Struct{}):
 			if item.GetResult().Original != reflect.TypeOf(core.KeyValue{}) {
 				return cmpl.ErrorPos(item.GetToken(), ErrNotKeyValue)
 			}
@@ -97,16 +102,6 @@ func coInitNext(cmpl *compiler) error {
 			break
 		}
 	}
-	/*	for i := cmpl.pos + 1; i < len(lp.Tokens); i++ {
-		token := lp.Tokens[i]
-		if token.Type == tkLine {
-			continue
-		}
-		if token.Type == tkComma {
-			return cmpl.ErrorPos(i, ErrValue)
-		}
-		break
-	}*/
 	if cmpl.curOwner().GetResult().Original == reflect.TypeOf(core.Map{}) {
 		if err := initMapEnd(cmpl); err != nil {
 			return err

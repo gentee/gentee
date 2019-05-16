@@ -1,3 +1,7 @@
+run str {
+  return JoinPath(`/home/usr`, `dir`, 134, "file.txt")
+}
+===== /home/usr/dir/134/file.txt
 run {
   ChDir(`dir7`)
 }

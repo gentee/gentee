@@ -37,7 +37,8 @@ func InitStr(vm *core.VirtualMachine) {
 		ReplaceºStrStrStr, // Replace( str, str, str )
 		ShiftºStr,         // unary bitwise OR
 		SubstrºStrIntInt,  // Substr( str, int, int ) str
-		TrimSpaceºStr,     // TrimSpace( str )
+		TrimSpaceºStr,     // TrimSpace( str ) str
+		TrimRightºStr,     // TrimRight( str, str ) str
 		UpperºStr,         // Upper( str ) str
 	} {
 		vm.StdLib().NewEmbed(item)
@@ -212,6 +213,11 @@ func SubstrºStrIntInt(in string, off, length int64) (string, error) {
 // TrimSpaceºStr trims white space in a string
 func TrimSpaceºStr(in string) string {
 	return strings.TrimSpace(in)
+}
+
+// TrimRightºStr trims white space in a string
+func TrimRightºStr(in string, set string) string {
+	return strings.TrimRight(in, set)
 }
 
 // UpperºStr converts a copy of the string to their upper case and returns it.

@@ -1,3 +1,27 @@
+run {
+  arr.int a1 = {0, 45, -45}
+  set s1 = set(a1)
+}
+===== [3:12] index out of range
+run {
+  set s1
+  UnSet(s1, 100000001)
+}
+===== [3:3] index out of range
+run str {
+  set s &= {7, 5, `8`, 1}
+  return str(s)
+}
+===== [2:19] wrong type, expecting int type
+run {
+  set s1 &= set(`01010ar`)
+}
+===== [2:13] invalid value of parameter(s)
+run {
+  set s1
+  s1[200000000] = true
+}
+===== [3:6] index out of range
 run str {
     CtxSet(`a`, `#b#`)
     CtxSet(`b`, `#c#`)
