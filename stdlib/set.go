@@ -16,7 +16,7 @@ func InitSet(vm *core.VirtualMachine) {
 		{setºStr, `str`, `set`},                 // set( str ) set
 		{strºSet, `set`, `str`},                 // str( set ) str
 		{arrºSet, `set`, `arr.int`},             // arr( set ) arr.int
-		{setºArr, `arr.int`, `set`},             // set( arr ) set
+		{setºArr, `arr.int`, `set`},             // set( arr.int ) set
 		{LenºSet, `set`, `int`},                 // the length of the buffer
 		{SetºSet, `set,int`, `set`},             // Set(set, index)
 		{UnSetºSet, `set,int`, `set`},           // UnSet(set, index)
@@ -24,7 +24,7 @@ func InitSet(vm *core.VirtualMachine) {
 		{AssignBitAndºSetSet, `set,set`, `set`}, // set &= set
 		{AssignAddºSetSet, `set,set`, `set`},    // set += set
 		{BitAndºSetSet, `set,set`, `set`},       // set &= set
-		{BitOrºSetSet, `set,set`, `set`},        // int |= int
+		{BitOrºSetSet, `set,set`, `set`},        // set |= set
 		{BitNotºSet, `set`, `set`},              // ^set  toggle set
 		{ToggleºSetInt, `set,int`, `bool`},      // Toggle(set, int) bool
 	} {

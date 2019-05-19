@@ -32,6 +32,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitTime(vm)
 	InitFile(vm)
 	InitPath(vm)
+	InitProcess(vm)
 	InitConsole(vm)
 	InitRuntime(vm)
 	InitRegExp(vm)

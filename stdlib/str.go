@@ -33,7 +33,9 @@ func InitStr(vm *core.VirtualMachine) {
 		FormatºStr,        // Format( str, ... ) str
 		HasPrefixºStrStr,  // HasPrefix( str, str ) bool
 		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
+		LeftºStrInt,       // Left( str, int ) str
 		LowerºStr,         // Lower( str ) str
+		RepeatºStrInt,     // Repeat( str, int )
 		ReplaceºStrStrStr, // Replace( str, str, str )
 		ShiftºStr,         // unary bitwise OR
 		SubstrºStrIntInt,  // Substr( str, int, int ) str
@@ -163,9 +165,23 @@ func LinesºStr(in string) *core.Array {
 	return out
 }
 
+// LeftºStrInt cuts the string.
+func LeftºStrInt(s string, count int64) string {
+	r := []rune(s)
+	if int(count) > len(r) {
+		count = int64(len(r))
+	}
+	return string(r[:count])
+}
+
 // LowerºStr converts a copy of the string to their lower case and returns it.
 func LowerºStr(s string) string {
 	return strings.ToLower(s)
+}
+
+// RepeatºStrInt returns a new string consisting of count copies of the specified string.
+func RepeatºStrInt(input string, count int64) string {
+	return strings.Repeat(input, int(count))
 }
 
 // ReplaceºStrStrStr replaces strings in a string

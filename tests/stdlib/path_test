@@ -1,0 +1,15 @@
+run str {
+  str s = AbsPath(`myfile.txt`)
+  str ret
+  if *Dir(s) > 0 {
+      ret = Ext(s) + `+` + BaseName(s) 
+  }
+  if MatchPath(`*.txt`, ret) {
+      ret += `OK`
+  }
+  if !MatchPath(`?a.pdf`, s) {
+      ret += `FAIL`
+  }
+  return ret
+}
+===== txt+myfile.txtOKFAIL

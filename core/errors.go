@@ -51,6 +51,8 @@ const (
 	ErrThreadIndex
 	// ErrThreadClosed is generated when the thread has been closed
 	ErrThreadClosed
+	// ErrPlatform is generated when the function is not supported on the current platform
+	ErrPlatform
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -103,6 +105,7 @@ var (
 		ErrFnEmpty:      `fn variable has not been defined`,
 		ErrThreadIndex:  `invalid thread`,
 		ErrThreadClosed: `thread has been closed`,
+		ErrPlatform:     `unsupported platform`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

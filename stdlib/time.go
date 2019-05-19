@@ -21,13 +21,18 @@ func InitTime(vm *core.VirtualMachine) {
 	for _, item := range []embedInfo{
 		{intºTime, `time`, `int`},                          // int( time )
 		{timeºInt, `int`, `time`},                          // time( int, time )
+		{AddHoursºTimeInt, `time,int`, `time`},             // AddHours(time,int) time
+		{DateºInts, `int,int,int`, `time`},                 // Date(day, month, year)
 		{DateTimeºInts, `int,int,int,int,int,int`, `time`}, // DateTime()
+		{DaysºTime, `time`, `int`},                         // Days(time)
 		{EqualºTimeTime, `time,time`, `bool`},              // binary ==
+		{FormatºTimeStr, `str,time`, `str`},                // Format(time,str)
 		{GreaterºTimeTime, `time,time`, `bool`},            // binary >
 		{LessºTimeTime, `time,time`, `bool`},               // binary <
 		{Now, ``, `time`},                                  // Now()
 		{sleepºInt, `int`, ``},                             // sleep(int)
 		{UTCºTime, `time`, `time`},                         // UTC()
+		{WeekdayºTime, `time`, `int`},                      // Weekday(time)
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -68,15 +73,37 @@ func timeºInt(rt *core.RunTime, unix int64) *core.Struct {
 	return fromTime(newTime(rt), time.Unix(unix, 0))
 }
 
+// AddHoursºTimeInt adds/subtract hours
+func AddHoursºTimeInt(rt *core.RunTime, it *core.Struct, hours int64) *core.Struct {
+	return fromTime(newTime(rt), toTime(it).Add(time.Duration(hours)*time.Hour))
+}
+
+// DateºInts returns time
+func DateºInts(rt *core.RunTime, year, month, day int64) *core.Struct {
+	return DateTimeºInts(rt, year, month, day, 0, 0, 0)
+}
+
 // DateTimeºInts returns time
 func DateTimeºInts(rt *core.RunTime, year, month, day, hour, minute, second int64) *core.Struct {
 	return fromTime(newTime(rt), time.Date(int(year), time.Month(month), int(day), int(hour), int(minute),
 		int(second), 0, time.Local))
 }
 
+// DaysºTime returns the days of the month
+func DaysºTime(it *core.Struct) int64 {
+	next := time.Date(int(it.Values[0].(int64)), time.Month(it.Values[1].(int64))+1, 0, 0, 0, 0, 0, time.UTC)
+	next.Add(time.Duration(-24 * time.Hour))
+	return int64(next.Day())
+}
+
 // EqualºTimeTime returns true if time structures are equal
 func EqualºTimeTime(left, right *core.Struct) bool {
 	return toTime(left).Equal(toTime(right))
+}
+
+// FormatºTimeStr formats the time
+func FormatºTimeStr(layout string, t *core.Struct) string {
+	return toTime(t).Format(layout)
 }
 
 // GreaterºTimeTime returns true if left time structures are greater than right
@@ -102,4 +129,9 @@ func sleepºInt(rt *core.RunTime, d int64) {
 // UTCºTime converts time to UTC time.
 func UTCºTime(rt *core.RunTime, local *core.Struct) *core.Struct {
 	return fromTime(newTime(rt), toTime(local).UTC())
+}
+
+// WeekdayºTime returns the day of the week specified by t.
+func WeekdayºTime(rt *core.RunTime, t *core.Struct) int64 {
+	return int64(toTime(t).Weekday())
 }
