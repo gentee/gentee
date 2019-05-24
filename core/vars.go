@@ -530,7 +530,14 @@ func initVars(rt *RunTime, cmdStack *CmdBlock) (count int) {
 			rtBlock.Vars = append(rtBlock.Vars, rt.Stack[len(rt.Stack)-count+i])
 		}
 		for i := cmdStack.ParCount; i < len(cmdStack.Vars); i++ {
-			rtBlock.Vars = append(rtBlock.Vars, initVar(cmdStack.Vars[i]))
+			var v interface{}
+			if rt.Optional != nil && rt.Optional[i] != nil {
+				v = rt.Optional[i]
+				rtBlock.Optional = append(rtBlock.Optional, i)
+			} else {
+				v = initVar(cmdStack.Vars[i])
+			}
+			rtBlock.Vars = append(rtBlock.Vars, v)
 		}
 		if cmdStack.Variadic {
 			aVar := rtBlock.Vars[cmdStack.ParCount].(*Array)
@@ -546,6 +553,7 @@ func initVars(rt *RunTime, cmdStack *CmdBlock) (count int) {
 		}
 		rt.Stack = rt.Stack[:len(rt.Stack)-count]
 	}
+	rt.Optional = nil
 	rt.Blocks = append(rt.Blocks, rtBlock)
 	return
 }

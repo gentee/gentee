@@ -22,6 +22,7 @@ const (
 	cmWantRPar // expecting ')'
 	cmWantType
 	cmMustVarType    // define variables
+	cmOptional       // optional var
 	cmVarType        // define variables
 	cmConst          // const block
 	cmConstDef       // const definitions
@@ -89,7 +90,8 @@ var (
 			{tkLine, 0, nil, nil, 0},
 			{tkLCurly, ErrExp, coError, nil, 0},
 			{tkRCurly, cmBack, nil, nil, 0},
-			{tkType, cmMustVarType, coVarType, nil, cfStopBack},
+			//{tkType, cmMustVarType, coVarType, nil, cfStopBack},
+			{tkType, cmOptional, coVarType, coVarExpBack, cfStopBack},
 			{tkIf, cmExp, coIf, coIfBack, cfStopBack},
 			{tkWhile, cmExp, coWhile, coWhileBack, cfStopBack},
 			{tkFor, cmExp, coFor, coForBack, cfStopBack},
@@ -184,6 +186,10 @@ var (
 		cmMustVarType: {
 			{tkToken, ErrName, coError, nil, 0},
 			{tkIdent, cmVarType, coVarExp, nil, 0},
+		},
+		cmOptional: {
+			{tkToken, cmMustVarType, nil, nil, cfStay},
+			{tkQuestion, cmMustVarType, coOptional, nil, 0},
 		},
 		cmVarType: {
 			{tkToken, ErrName, coError, nil, 0},

@@ -439,7 +439,20 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 					prevToken := cmpl.expbuf[len(cmpl.expbuf)-1]
 					if prevToken.Oper == tkCallFunc {
 						nameFunc := getToken(cmpl.getLex(), prevToken.Pos-1)
-						numParams := len(cmpl.exp) - prevToken.LenExp
+						var (
+							curOpt   *optInfo
+							optCount int
+							opts     []int
+						)
+						if len(cmpl.optionals) > 0 {
+							curOpt = cmpl.optionals[len(cmpl.optionals)-1]
+							cmpl.optionals = cmpl.optionals[:len(cmpl.optionals)-1]
+							optCount = len(curOpt.Names)
+							if optCount > 0 && curOpt.Shift+optCount != len(cmpl.exp) {
+								return cmpl.Error(ErrEndOptional)
+							}
+						}
+						numParams := len(cmpl.exp) - prevToken.LenExp - optCount
 						params := make([]*core.TypeObject, 0)
 						for i := 0; i < numParams; i++ {
 							params = append(params, cmpl.exp[prevToken.LenExp+i].GetResult())
@@ -504,12 +517,32 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 								result = obj.Result()
 								pobj = obj
 							}
+							if optCount > 0 {
+								opts = make([]int, optCount)
+								if pobj == nil {
+									return cmpl.Error(ErrFnOptional)
+								}
+								if pobj.GetType() != core.ObjFunc {
+									return cmpl.Error(ErrFuncOptional, curOpt.Names[0])
+								}
+								for i, name := range curOpt.Names {
+									if ind, ok := pobj.(*core.FuncObject).Block.Optional[name]; ok {
+										if cmpl.exp[len(cmpl.exp)-optCount+i].GetResult() !=
+											pobj.(*core.FuncObject).Block.Vars[ind] {
+											return cmpl.Error(ErrTypeOptional, name)
+										}
+										opts[i] = ind
+									} else {
+										return cmpl.Error(ErrFuncOptional, name)
+									}
+								}
+							}
 							icmd := &core.CmdAnyFunc{CmdCommon: core.CmdCommon{TokenID: uint32(prevToken.Pos - 1)},
-								Object: pobj, Result: result, FnVar: fnVar}
+								Object: pobj, Result: result, FnVar: fnVar, Optional: opts}
 							for i := prevToken.LenExp; i < len(cmpl.exp); i++ {
 								icmd.Children = append(icmd.Children, cmpl.exp[i])
 							}
-							cmpl.exp = cmpl.exp[:len(cmpl.exp)-numParams]
+							cmpl.exp = cmpl.exp[:len(cmpl.exp)-numParams-optCount]
 							cmpl.exp = append(cmpl.exp, icmd)
 						}
 						cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
@@ -588,7 +621,36 @@ func coRPar(cmpl *compiler) error {
 }
 
 func coCallFunc(cmpl *compiler) error {
+	cmpl.optionals = append(cmpl.optionals, &optInfo{})
 	return appendExpBuf(cmpl, tkCallFunc)
+}
+
+func coOptionalFunc(cmpl *compiler) (bool, error) {
+	tokens := cmpl.getLex().Tokens
+	if len(tokens) == cmpl.pos+1 {
+		return false, nil
+	}
+	if tokens[cmpl.pos+1].Type == tkColon {
+		if len(cmpl.expbuf) >= 2 && (cmpl.expbuf[len(cmpl.expbuf)-1].Oper == tkLPar &&
+			cmpl.expbuf[len(cmpl.expbuf)-2].Oper == tkCallFunc) {
+
+			lp := cmpl.getLex()
+			token := getToken(lp, cmpl.pos)
+			cmpl.newPos = cmpl.pos + 1
+			curOpt := cmpl.optionals[len(cmpl.optionals)-1]
+			if len(curOpt.Names) == 0 {
+				curOpt.Shift = len(cmpl.exp)
+			}
+			for _, name := range curOpt.Names {
+				if name == token {
+					return false, cmpl.Error(ErrTwiceOptional, name)
+				}
+			}
+			curOpt.Names = append(curOpt.Names, token)
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func coComma(cmpl *compiler) error {

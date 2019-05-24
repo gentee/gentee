@@ -13,27 +13,34 @@ import (
 
 // Compiler contains information of the compilation process
 type compiler struct {
-	vm       *core.VirtualMachine
-	unit     *core.Unit
-	owners   []core.ICmd
-	exp      []core.ICmd
-	expbuf   []ExpBuf
-	lexems   []int // stack of lexeme
-	runID    int
-	pos      int // current position
-	newPos   int // new position
-	states   *[]StateStack
-	curType  *core.TypeObject // the current type of parameters or variables
-	curConst string
-	curFunc  int       // index of the latest func
-	expConst core.ICmd // expression for constants
-	curIota  int64     // current iota
-	inits    int       // initilization level mode
-	endColon int
-	isImport bool // import or include mode
-	next     *cmState
-	dynamic  *cmState
-	goStack  []goStack
+	vm          *core.VirtualMachine
+	unit        *core.Unit
+	owners      []core.ICmd
+	exp         []core.ICmd
+	expbuf      []ExpBuf
+	lexems      []int // stack of lexeme
+	runID       int
+	pos         int // current position
+	newPos      int // new position
+	states      *[]StateStack
+	curType     *core.TypeObject // the current type of parameters or variables
+	curOptional bool             // true if the current variable is optional
+	optionals   []*optInfo       // optional parameters
+	curConst    string
+	curFunc     int       // index of the latest func
+	expConst    core.ICmd // expression for constants
+	curIota     int64     // current iota
+	inits       int       // initilization level mode
+	endColon    int
+	isImport    bool // import or include mode
+	next        *cmState
+	dynamic     *cmState
+	goStack     []goStack
+}
+
+type optInfo struct {
+	Names []string
+	Shift int
 }
 
 // StateStack is used for storing a sequence of states
@@ -201,8 +208,8 @@ main:
 		cmpl.states = &stackState
 		cmpl.dynamic = nil
 		cmpl.newPos = 0
-		//		fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v %v\r\n", i, state, token.Type,
-		//			getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next, stackState)
+		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v %v\r\n", i, state, token.Type,
+		//getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next, stackState)
 		if (state == cmExp || state == cmExpOper) && token.Type == tkLine {
 			if state == cmExp && lp.Tokens[i-1].Type >= tkAdd && lp.Tokens[i-1].Type <= tkComma {
 				continue
@@ -211,6 +218,16 @@ main:
 				if expBuf.Oper == tkLPar || expBuf.Oper == tkLSBracket {
 					continue main
 				}
+			}
+		}
+		if state == cmExp && token.Type == tkIdent {
+			isOpt, err := coOptionalFunc(cmpl)
+			if err != nil {
+				return cmplError(err)
+			}
+			if isOpt {
+				i = cmpl.newPos
+				continue
 			}
 		}
 		if cmpl.next.Func != nil {
@@ -458,6 +475,12 @@ func coVarToken(cmpl *compiler, token string) error {
 		block.VarNames = make(map[string]int)
 	}
 	block.VarNames[token] = len(block.Vars)
+	if cmpl.curOptional {
+		if block.Optional == nil {
+			block.Optional = make(map[string]int)
+		}
+		block.Optional[token] = len(block.Vars)
+	}
 	block.Vars = append(block.Vars, cmpl.curType)
 	return nil
 }
@@ -478,11 +501,29 @@ func coVariadic(cmpl *compiler) error {
 }
 
 func coVarType(cmpl *compiler) error {
+	cmpl.curOptional = false
 	obj, err := getType(cmpl)
 	if err != nil {
 		return err
 	}
 	cmpl.curType = obj.(*core.TypeObject)
+	return nil
+}
+
+func coOptional(cmpl *compiler) error {
+	curFunc := cmpl.latestFunc()
+	if curFunc.Name == `run` || len(cmpl.owners) > 1 {
+		return cmpl.Error(ErrOptional)
+	}
+	cmpl.curOptional = true
+	return nil
+}
+
+func coVarExpBack(cmpl *compiler) error {
+	if cmpl.curOptional {
+		cmpl.curOptional = false
+		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+	}
 	return nil
 }
 
@@ -495,6 +536,13 @@ func coVarExp(cmpl *compiler) error {
 		return nil
 	}
 	if tokens[cmpl.pos+1].Type == tkAssign || tokens[cmpl.pos+1].Type == tkBitAndEq {
+		block := cmpl.curOwner()
+		if cmpl.curOptional {
+			cmd := core.CmdBlock{ID: core.StackOptional, CmdCommon: core.CmdCommon{
+				TokenID: uint32(cmpl.pos)}, ParCount: len(block.Vars) - 1}
+			appendCmd(cmpl, &cmd)
+			cmpl.owners = append(cmpl.owners, &cmd)
+		}
 		if len(tokens) > cmpl.pos+2 {
 			if tokens[cmpl.pos+2].Type == tkColon {
 				if err := colonToLine(cmpl, cmpl.pos+2); err != nil {
@@ -502,7 +550,7 @@ func coVarExp(cmpl *compiler) error {
 				}
 			}
 			if tokens[cmpl.pos+2].Type == tkLCurly {
-				block := cmpl.curOwner()
+				//				block := cmpl.curOwner()
 				cmd := core.CmdBlock{ID: core.StackInit, CmdCommon: core.CmdCommon{
 					TokenID: uint32(cmpl.pos + 1)}}
 				appendCmd(cmpl, &cmd)
@@ -522,7 +570,10 @@ func coVarExp(cmpl *compiler) error {
 		coExpStart(cmpl)
 		cmpl.dynamic = &cmState{tkIdent, cmExp, nil, nil, cfStay}
 		//cmpl.newState = cmExp | cfStay
+	} else {
+		cmpl.curOptional = false
 	}
+
 	return nil
 }
 

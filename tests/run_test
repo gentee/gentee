@@ -1,3 +1,62 @@
+func vara(int q...) int {
+  arr.int ? ai &= {1,2,3}
+  bool ?b
+  int sum
+  for i in q : sum += i
+  for i in ai : sum += i
+  ai[0] = 0
+  if b : ai[1] = 1
+  return sum
+}
+run int {
+  arr.int mya = {7,3,1}
+  int ret = vara(4, 5, 6) + vara() + vara(2,8, b: true, ai: mya)
+  for i in mya : ret += i
+  return ret
+} 
+===== 50
+func vari(str a, str q...) str {
+  str a1 = `w`
+  str ? a2 
+  str ? a3 = `z`
+  for s in q : a1 += s
+  return a1 + a + a2 + a3
+}
+run str {
+  return vari(`0`) + vari(`1`, `2`, `3`) + vari(`4`, `5`, a2: `7`) + vari(`8`, a3: `9`) 
+} 
+===== w0zw231zw547zw89
+func my(str s) str {
+  str s1 = `a`
+  str ? s3 = `b`
+  return s3 + s1 + s
+}
+run str {
+  return my(`0`) + my(`1`, s3: `9`) +my(`2`, s3: `8`)
+} 
+===== ba09a18a2
+func my str {
+  str ? s1 = `a`
+  str ? s2 = `b`
+  return s1 + s2
+}
+run str {
+  str tmp = my( s2: my( s1: `ok`))
+  return my() + my(s2: `c`) + my(s2: `e`, s1 :`d`) + tmp
+} 
+===== abacdeaokb
+func my int {
+  int k = 200
+  k += 232332
+  int ? s
+  int ?i = 10
+  int j = 20
+  arr.int ? ai = {10, 20, 30}
+  s += 8
+  return k + i + j + s + ai[2]
+}
+run int : return my()
+===== 232600
 run arr.thread {
   arr.thread ath 
   ath += go {int k = 0} 

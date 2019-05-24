@@ -68,6 +68,8 @@ const (
 	StackInit
 	// StackNew creates a new array or map
 	StackNew
+	// StackOptional is used for initialization of optional variables
+	StackOptional
 )
 
 // Token is a lexical token.
@@ -144,6 +146,7 @@ type CmdBlock struct {
 	ParCount int // the count of parameters
 	Variadic bool
 	VarNames map[string]int
+	Optional map[string]int
 	Result   *TypeObject
 	Children []ICmd
 }
@@ -172,6 +175,7 @@ type CmdAnyFunc struct {
 	Result   *TypeObject
 	Children []ICmd
 	FnVar    ICmd
+	Optional []int // indexes of optional variables
 	IsThread bool
 }
 

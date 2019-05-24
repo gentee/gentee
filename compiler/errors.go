@@ -145,12 +145,24 @@ const (
 	ErrNewLine
 	// ErrAddrFunc means wrong definition of function address
 	ErrAddrFunc
-	// ErrNoFuncType is return when the type is not a fn type
+	// ErrNoFuncType is returned when the type is not a fn type
 	ErrNoFuncType
 	// ErrFnReturn is returned when function and fn type return different types
 	ErrFnReturn
-	// ErrFnCall is return when fn var is called with wrong parameters
+	// ErrFnCall is returned when fn var is called with wrong parameters
 	ErrFnCall
+	// ErrOptional means that the optional variable is defined in the wrong place
+	ErrOptional
+	// ErrFuncOptional is returned when it doesn't have such optional variable
+	ErrFuncOptional
+	// ErrFnOptional is returned when fn variable use optional variables
+	ErrFnOptional
+	// ErrTypeOptional is returned when the optional variable has wrong type
+	ErrTypeOptional
+	// ErrTwiceOptional is returned when the optional variable is defined more than one time
+	ErrTwiceOptional
+	// ErrEndOptional is returned when optional parameters are not at the end`,
+	ErrEndOptional
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -239,6 +251,12 @@ var (
 		ErrNoFuncType:     `type %s is not a fn type`,
 		ErrFnReturn:       `function %s and %s fn type return different types`,
 		ErrFnCall:         `fn type %s is different from %s`,
+		ErrOptional:       `optional variable cannot be inside 'run' or nested block`,
+		ErrFuncOptional:   `function doesn't have optional variable %s`,
+		ErrFnOptional:     `fn variables can't use optional variables`,
+		ErrTypeOptional:   `%s optional variable has different type`,
+		ErrTwiceOptional:  `%s optional variable is defined more than one time`,
+		ErrEndOptional:    `optional parameters must be at the end`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

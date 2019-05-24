@@ -1,3 +1,54 @@
+func my(int a) int {
+  int ? i = 10
+  return a + i*2
+}
+run int : return my( i: 9, 11)
+===== [5:30] optional parameters must be at the end
+func my(int a) int {
+  int ? i = 10
+  str ? s = `ok`
+  return a + i
+}
+run : my( 8, i: 2, s: `2`, i: 7)
+===== [6:28] i optional variable is defined more than one time
+func my(int a) int {
+  int ? i = 10
+  return a + i
+}
+run : my( 10, i: `ok`)
+===== [5:22] i optional variable has different type
+func my(int a) {
+  int ? i = 10
+}
+run : my( 20, k: 20)
+===== [4:20] function doesn't have optional variable k
+func my {
+  int i = 10
+}
+run : my( j: 20)
+===== [4:16] function doesn't have optional variable j
+fn my(str) int
+run {
+  my f
+  f(`1`, B: `ok`)
+} 
+===== [4:17] fn variables can't use optional variables
+run {
+   Print(`ok`, A: `ok`)
+} 
+===== [2:23] function doesn't have optional variable A
+func my {
+  if true {
+    int ?i = 10
+  }
+}
+run : my()
+===== [3:9] optional variable cannot be inside 'run' or nested block
+run int {
+  int ? i
+  return i
+}
+===== [2:7] optional variable cannot be inside 'run' or nested block
 run {
   go :
   go {

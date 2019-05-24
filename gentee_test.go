@@ -27,7 +27,6 @@ func getWant(v interface{}, want string) error {
 }
 
 func TestGentee(t *testing.T) {
-
 	workspace := New()
 
 	testFile := func(filename string) error {

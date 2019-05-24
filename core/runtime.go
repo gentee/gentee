@@ -16,8 +16,9 @@ const (
 
 // RunTimeBlock is a structure for storing variables
 type RunTimeBlock struct {
-	Vars  []interface{}
-	Block *CmdBlock
+	Vars     []interface{}
+	Optional []int
+	Block    *CmdBlock
 }
 
 // RunTime is the structure for running compiled functions
@@ -26,7 +27,8 @@ type RunTime struct {
 	Stack    []interface{} // the stack of values
 	Calls    []ICmd        // the stack of calling functions
 	Blocks   []RunTimeBlock
-	Result   interface{} // result value
+	Result   interface{}   // result value
+	Optional []interface{} // optional values
 	Command  uint32
 	AllCount int
 	Consts   map[string]interface{}
@@ -81,6 +83,7 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	lenStack := len(rt.Stack)
 	switch cmd.GetType() {
 	case CtFunc:
+		var optCount int
 		anyFunc := cmd.(*CmdAnyFunc)
 		if anyFunc.IsThread {
 			rt.Stack = append(rt.Stack, rt.GoThread(cmd.GetObject().(*FuncObject)))
@@ -91,7 +94,14 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 				return
 			}
 		}
-		rt.AllCount = len(anyFunc.Children)
+		if optCount = len(anyFunc.Optional); optCount > 0 {
+			rt.Optional = make([]interface{}, len(anyFunc.GetObject().(*FuncObject).Block.Vars))
+			for i, num := range anyFunc.Optional {
+				rt.Optional[num] = rt.Stack[len(rt.Stack)-optCount+i]
+			}
+			rt.Stack = rt.Stack[:len(rt.Stack)-optCount]
+		}
+		rt.AllCount = len(anyFunc.Children) - optCount
 		if anyFunc.Object == nil {
 			// We have calling Fn variable
 			if err = rt.runCmd(anyFunc.FnVar); err != nil {
@@ -496,6 +506,20 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				rt.Result = rt.Stack[len(rt.Stack)-1]
 			} else { // return from the function without result value
 				rt.Result = true
+			}
+		case StackOptional: // assigns value if the variable has not yet been assigned as optional
+			block := rt.Blocks[len(rt.Blocks)-1]
+			var defined bool
+			for _, v := range block.Optional {
+				if cmdStack.ParCount == v {
+					defined = true
+					break
+				}
+			}
+			if !defined {
+				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+					return err
+				}
 			}
 		}
 		rt.Stack = rt.Stack[:lenStack]
