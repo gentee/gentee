@@ -1,3 +1,20 @@
+func vars(str a) str {
+  str ? a1 a2 
+  str a4
+
+  return a4
+}
+run str {
+  return vars(`A`, a4: `23`)
+} 
+===== [8:28] function doesn't have optional variable a4
+func vars(str a) str {
+  str ? a1 ?a2 a3
+}
+run str {
+  return vars(`A`)
+} 
+===== [2:12] unexpected token, expecting the name of the identifier
 func my(int a) int {
   int ? i = 10
   return a + i*2

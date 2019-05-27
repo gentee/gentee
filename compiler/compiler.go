@@ -522,7 +522,14 @@ func coOptional(cmpl *compiler) error {
 func coVarExpBack(cmpl *compiler) error {
 	if cmpl.curOptional {
 		cmpl.curOptional = false
-		cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+
+		if len(cmpl.owners) > 1 {
+			owner := cmpl.owners[len(cmpl.owners)-2].(*core.CmdBlock)
+			last := owner.Children[len(owner.Children)-1]
+			if last.GetType() == core.CtStack && last.(*core.CmdBlock).ID == core.StackOptional {
+				cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+			}
+		}
 	}
 	return nil
 }
@@ -571,7 +578,7 @@ func coVarExp(cmpl *compiler) error {
 		cmpl.dynamic = &cmState{tkIdent, cmExp, nil, nil, cfStay}
 		//cmpl.newState = cmExp | cfStay
 	} else {
-		cmpl.curOptional = false
+		//	cmpl.curOptional = false
 	}
 
 	return nil

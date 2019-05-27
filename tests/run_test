@@ -1,3 +1,11 @@
+func vars(str a) str {
+  str ? a1 a2 a3
+  return a + a1  + a2 + a3
+}
+run str {
+  return vars(`A`) + vars(`B`, a1: `C`) + vars(`D`, a3: `F`, a2: `E`)
+} 
+===== ABCDEF
 func vara(int q...) int {
   arr.int ? ai &= {1,2,3}
   bool ?b
