@@ -1,3 +1,8 @@
+run str {
+  time t &= ParseTime(`MMM D, YYYY`, `2019/05/28`)
+  return Format(`YY/MM/DD HH:mm:ss zz`, UTC(t))
+}
+===== [2:13] parsing time "2019/05/28" as "Jan 2, 2006": cannot parse "2019/05/28" as "Jan"
 run {
   arr.int a1 = {0, 45, -45}
   set s1 = set(a1)

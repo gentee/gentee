@@ -1,3 +1,23 @@
+run int {
+  time t &= Date(2019, 5, 29)
+  return YearDay(t) + YearDay(Date(2019, 1, 10))
+}
+===== 159
+run str {
+  time t &= ParseTime(`MMM D, YYYY at h:mmpm (zz)`, `Jun 7, 2019 at 6:05am (+0300)`)
+  time t1 &= ParseTime(`YY/MM/DD HH:mm:s`, `19/05/29 03:21:3`)
+  return Format(`YY/MM/DD HH:mm:ss zz`, UTC(t)) + Format(` YY/MM/DD HH:mm:ss`, UTC(t1))
+}
+===== 19/06/07 03:05:00 +0000 19/05/29 03:21:03
+run str {
+  time t &= DateTime(2019, 2, 14, 9, 10, 3)
+  t.UTC = true
+  str out = Format(`YYYY-MM-DD HH:mm:ss tz zz ddd MMMM`, UTC(t))
+  t &= DateTime(1903, 7, 5, 16, 11, 5)
+  t.UTC = true
+  return out + Format(`MDYY h:m:s pm z dddd MMM`, t)
+}
+===== 2019-02-14 09:10:03 UTC +0000 Thu February7503 4:11:5 pm +00:00 Sunday Jul
 run arr.time {
   arr.time at = {Now(), Now()}
   time t 

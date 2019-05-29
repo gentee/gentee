@@ -5,6 +5,7 @@
 package stdlib
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gentee/gentee/core"
@@ -27,12 +28,14 @@ func InitTime(vm *core.VirtualMachine) {
 		{DaysºTime, `time`, `int`},                         // Days(time)
 		{EqualºTimeTime, `time,time`, `bool`},              // binary ==
 		{FormatºTimeStr, `str,time`, `str`},                // Format(time,str)
+		{ParseTimeºStrStr, `str,str`, `time`},              // ParseTime(str,str) time
 		{GreaterºTimeTime, `time,time`, `bool`},            // binary >
 		{LessºTimeTime, `time,time`, `bool`},               // binary <
 		{Now, ``, `time`},                                  // Now()
 		{sleepºInt, `int`, ``},                             // sleep(int)
 		{UTCºTime, `time`, `time`},                         // UTC()
 		{WeekdayºTime, `time`, `int`},                      // Weekday(time)
+		{YearDayºTime, `time`, `int`},                      // YearDay(time) int
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -101,9 +104,19 @@ func EqualºTimeTime(left, right *core.Struct) bool {
 	return toTime(left).Equal(toTime(right))
 }
 
+func layout2go(layout string) string {
+	return replaceArr(layout, []string{
+		`YYYY`, `YY`, `MMMM`, `MMM`, `MM`, `M`, `DD`, `D`, `dddd`, `ddd`,
+		`HH`, `hh`, `h`, `PM`, `pm`, `mm`, `m`, `ss`, `s`, `tz`, `zz`, `z`,
+	}, []string{
+		`2006`, `06`, `January`, `Jan`, `01`, `1`, `02`, `2`, `Monday`, `Mon`,
+		`15`, `03`, `3`, `PM`, `pm`, `04`, `4`, `05`, `5`, `MST`, `-0700`, `-07:00`,
+	})
+}
+
 // FormatºTimeStr formats the time
 func FormatºTimeStr(layout string, t *core.Struct) string {
-	return toTime(t).Format(layout)
+	return toTime(t).Format(layout2go(layout))
 }
 
 // GreaterºTimeTime returns true if left time structures are greater than right
@@ -121,6 +134,17 @@ func Now(rt *core.RunTime) *core.Struct {
 	return fromTime(newTime(rt), time.Now())
 }
 
+// ParseTimeºStrStr parses a formatted string and returns the time value it represents
+func ParseTimeºStrStr(rt *core.RunTime, layout, value string) (*core.Struct, error) {
+	ret := newTime(rt)
+	t, err := time.Parse(layout2go(layout), value)
+	if err != nil {
+		return ret, err
+	}
+	fmt.Println(`T`, t.Location(), time.UTC, t)
+	return fromTime(ret, t.Local()), nil
+}
+
 // sleepºInt pauses the current script for at least the specified duration in milliseconds.
 func sleepºInt(rt *core.RunTime, d int64) {
 	rt.Thread.Sleep = d
@@ -134,4 +158,9 @@ func UTCºTime(rt *core.RunTime, local *core.Struct) *core.Struct {
 // WeekdayºTime returns the day of the week specified by t.
 func WeekdayºTime(rt *core.RunTime, t *core.Struct) int64 {
 	return int64(toTime(t).Weekday())
+}
+
+// YearDayºTime returns the day of the year specified by t.
+func YearDayºTime(t *core.Struct) int64 {
+	return int64(toTime(t).YearDay())
 }

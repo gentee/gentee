@@ -189,6 +189,30 @@ func ReplaceºStrStrStr(in, old, new string) string {
 	return strings.Replace(in, old, new, -1)
 }
 
+func replaceArr(in string, old, new []string) string {
+	input := []rune(in)
+	out := make([]rune, 0, len(input))
+	lin := len(input)
+	for i := 0; i < lin; i++ {
+		eq := -1
+		maxLen := lin - i
+		for k, item := range old {
+			litem := len([]rune(item))
+			if maxLen >= litem && string(input[i:i+litem]) == item {
+				eq = k
+				break
+			}
+		}
+		if eq >= 0 {
+			out = append(out, []rune(new[eq])...)
+			i += len([]rune(old[eq])) - 1
+		} else {
+			out = append(out, input[i])
+		}
+	}
+	return string(out)
+}
+
 // SplitºStrStr splits a string to a array of strings
 func SplitºStrStr(in, sep string) *core.Array {
 	out := core.NewArray()

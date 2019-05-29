@@ -26,7 +26,7 @@ func  calendar( int year ) str {
     str nline = "  \r\n"
 
     for i in 0..6 {
-        dayname += Format( `Mon`, AddHours(stime, (i-dayofweek)*24))
+        dayname += Format( `ddd`, AddHours(stime, (i-dayofweek)*24))
     }
 
     for i in 0..3 {
@@ -34,7 +34,7 @@ func  calendar( int year ) str {
         for j in 1..3 {
             int month = i * 3 + j
             time first = Date(year, month, 1)
-            ret += "<td>\{Format( `January`, first )}<pre>"
+            ret += "<td>\{Format( `MMMM`, first )}<pre>"
             for k in 0..6 {
                ret += " " + dayname[(k+firstday) % 7]
             }
