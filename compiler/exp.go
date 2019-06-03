@@ -511,7 +511,20 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 									}
 								}
 								if !isMatch {
-									return cmpl.ErrorFunction(ErrFunction, prevToken.Pos-1, nameFunc, params)
+									var local core.ICmd
+									if local = getLocal(cmpl, nameFunc, params); local == nil {
+										return cmpl.ErrorFunction(ErrFunction, prevToken.Pos-1, nameFunc, params)
+									}
+									icmd := &core.CmdBlock{ID: uint32(core.StackCallLocal),
+										Result: local.GetResult(), Children: []core.ICmd{local},
+										CmdCommon: core.CmdCommon{TokenID: uint32(prevToken.Pos - 1)}}
+									for i := prevToken.LenExp; i < len(cmpl.exp); i++ {
+										icmd.Children = append(icmd.Children, cmpl.exp[i])
+									}
+									cmpl.exp = cmpl.exp[:len(cmpl.exp)-numParams]
+									cmpl.exp = append(cmpl.exp, icmd)
+									cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
+									return nil
 								}
 							} else {
 								result = obj.Result()

@@ -42,6 +42,8 @@ const (
 	cmInclude     // include command
 	cmIncludeFile // include file
 	cmGo          // go command
+	cmLocal       // local command
+	cmLocalParams
 
 	cmBack // go to back
 
@@ -90,15 +92,16 @@ var (
 			{tkLine, 0, nil, nil, 0},
 			{tkLCurly, ErrExp, coError, nil, 0},
 			{tkRCurly, cmBack, nil, nil, 0},
-			//{tkType, cmMustVarType, coVarType, nil, cfStopBack},
 			{tkType, cmOptional, coVarType, coVarExpBack, cfStopBack},
 			{tkIf, cmExp, coIf, coIfBack, cfStopBack},
 			{tkWhile, cmExp, coWhile, coWhileBack, cfStopBack},
 			{tkFor, cmExp, coFor, coForBack, cfStopBack},
 			{tkSwitch, cmExp, coSwitch, coSwitchBack, cfStopBack},
 			{tkReturn, cmExp, coReturn, coReturnBack, cfStopBack},
+			{tkLocret, cmExp, coLocret, coLocretBack, cfStopBack},
 			{tkBreak, 0, coBreak, nil, 0},
 			{tkContinue, 0, coContinue, nil, 0},
+			{tkLocal, cmLocal, nil, coLocalBack, cfStopBack},
 		},
 		cmExp: {
 			{tkToken, ErrValue, coError, nil, 0},
@@ -293,6 +296,18 @@ var (
 		cmGo: {
 			{tkToken, ErrLCurly, coError, nil, 0},
 			{tkLCurly, cmLCurly, coFuncStart, nil, cfStay},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmLocal: {
+			{tkToken, ErrName, coError, nil, 0},
+			{tkIdent, cmLocalParams, coLocalName, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+		},
+		cmLocalParams: {
+			{tkToken, ErrLCurly, coError, nil, 0},
+			{tkIdent, cmLCurly, coLocalRetType, nil, 0},
+			{tkLPar, cmParam, nil, nil, cfStopBack},
+			{tkLCurly, cmLCurly, coLocalStart, nil, cfStay},
 			{tkLine, 0, nil, nil, 0},
 		},
 	}

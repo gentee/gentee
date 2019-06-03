@@ -35,6 +35,8 @@ const (
 	RcBreak = 1 + iota
 	// RcContinue means continue command
 	RcContinue
+	// RcLocal means that a local function returns a value
+	RcLocal
 )
 
 const (
@@ -70,6 +72,12 @@ const (
 	StackNew
 	// StackOptional is used for initialization of optional variables
 	StackOptional
+	// StackLocal means local function
+	StackLocal
+	// StackCallLocal means calling local function
+	StackCallLocal
+	// StackLocret returns value from local function
+	StackLocret
 )
 
 // Token is a lexical token.
@@ -139,16 +147,18 @@ type CmdConst struct {
 // CmdBlock calls a stack command
 type CmdBlock struct {
 	CmdCommon
-	Parent   *CmdBlock
-	Object   IObject
-	ID       uint32 // cmdType
-	Vars     []*TypeObject
-	ParCount int // the count of parameters
-	Variadic bool
-	VarNames map[string]int
-	Optional map[string]int
-	Result   *TypeObject
-	Children []ICmd
+	Parent     *CmdBlock
+	Object     IObject
+	ID         uint32 // cmdType
+	Vars       []*TypeObject
+	ParCount   int // the count of parameters
+	Variadic   bool
+	VarNames   map[string]int
+	Optional   map[string]int
+	Result     *TypeObject
+	Locals     []ICmd
+	LocalNames map[string]int
+	Children   []ICmd
 }
 
 // CmdUnary calls an unary function

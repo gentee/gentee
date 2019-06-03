@@ -161,8 +161,14 @@ const (
 	ErrTypeOptional
 	// ErrTwiceOptional is returned when the optional variable is defined more than one time
 	ErrTwiceOptional
-	// ErrEndOptional is returned when optional parameters are not at the end`,
+	// ErrEndOptional is returned when optional parameters are not at the end`
 	ErrEndOptional
+	// ErrLocalName is returned when such local name has already existed
+	ErrLocalName
+	// ErrLocalVariadic is returned when there is a variadic parameter in local function
+	ErrLocalVariadic
+	// ErrLocalRet is returned if locret is not inside a local function
+	ErrLocalRet
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -257,6 +263,9 @@ var (
 		ErrTypeOptional:   `%s optional variable has different type`,
 		ErrTwiceOptional:  `%s optional variable is defined more than one time`,
 		ErrEndOptional:    `optional parameters must be at the end`,
+		ErrLocalName:      `%s local function has already been defined`,
+		ErrLocalVariadic:  `local function cannot have a variadic parameter`,
+		ErrLocalRet:       `locret must be inside a local function`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

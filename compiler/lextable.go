@@ -90,6 +90,8 @@ var (
 		`pub`:      tkPub,
 		`fn`:       tkFn,
 		`go`:       tkGo,
+		`local`:    tkLocal,
+		`locret`:   tkLocret,
 		`default`:  tkDefault,
 	}
 

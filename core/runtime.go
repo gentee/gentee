@@ -128,6 +128,9 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 			return
 		}
 	}
+	if rt.Result != nil {
+		return nil
+	}
 	switch cmd.GetObject().GetType() {
 	case ObjEmbedded:
 		obj := cmd.GetObject().(*EmbedObject)
@@ -161,6 +164,9 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 	var vars []interface{}
 
+	if rt.Result != nil {
+		return nil
+	}
 	rt.Calls = append(rt.Calls, cmd)
 	switch cmd.GetType() {
 	case CtCommand:
@@ -485,7 +491,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					return err
 				}
 				if rt.Result != nil {
-					if cmdStack.Result != nil {
+					if cmdStack.Result != nil && cmdStack.Parent == nil {
 						rt.Stack = rt.Stack[:lenStack]
 						rt.Stack = append(rt.Stack, rt.Result)
 						lenStack++
@@ -503,7 +509,9 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
 					return err
 				}
-				rt.Result = rt.Stack[len(rt.Stack)-1]
+				if rt.Result == nil {
+					rt.Result = rt.Stack[len(rt.Stack)-1]
+				}
 			} else { // return from the function without result value
 				rt.Result = true
 			}
@@ -521,6 +529,33 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					return err
 				}
 			}
+		case StackLocal:
+		case StackCallLocal:
+			for i := 1; i < len(cmdStack.Children); i++ {
+				if err = rt.runCmd(cmdStack.Children[i]); err != nil {
+					return err
+				}
+			}
+			if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+				return err
+			}
+			if rt.Command == RcLocal {
+				rt.Stack = rt.Stack[:lenStack]
+				rt.Stack = append(rt.Stack, rt.Result)
+				lenStack++
+				rt.Result = nil
+				rt.Command = 0
+			}
+		case StackLocret:
+			if cmdStack.Children != nil {
+				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+					return err
+				}
+				rt.Result = rt.Stack[len(rt.Stack)-1]
+			} else { // return from the function without result value
+				rt.Result = true
+			}
+			rt.Command = RcLocal
 		}
 		rt.Stack = rt.Stack[:lenStack]
 	}
