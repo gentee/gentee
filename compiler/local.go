@@ -104,36 +104,3 @@ func getLocal(cmpl *compiler, name string, params []*core.TypeObject) (cmd core.
 	}
 	return nil
 }
-
-func coLocret(cmpl *compiler) error {
-	coExpStart(cmpl)
-	cmd := core.CmdBlock{ID: core.StackLocret, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
-	appendCmd(cmpl, &cmd)
-	cmpl.owners = append(cmpl.owners, &cmd)
-	return nil
-}
-
-func coLocretBack(cmpl *compiler) error {
-	owner := cmpl.curOwner()
-	local := getLocalBlock(cmpl)
-	if local == nil {
-		return cmpl.Error(ErrLocalRet)
-	}
-	switch len(owner.Children) {
-	case 0:
-		if local.Result != nil {
-			return cmpl.Error(ErrMustReturn)
-		}
-	case 1:
-		if local.Result == nil {
-			return cmpl.Error(ErrReturn)
-		}
-		if !isEqualTypes(local.Result, owner.Children[0].GetResult()) {
-			return cmpl.Error(ErrReturnType)
-		}
-	default:
-		return cmpl.Error(ErrCompiler, `coLocalReturn 1`)
-	}
-	cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
-	return nil
-}

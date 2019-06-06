@@ -1,4 +1,10 @@
 run float {
+  float r1 = 31.54
+  float r2 = 31.543
+  return -Min(r1, r2) + Max(r2,r1) + Max(int(r1), 101) - Min(8, int(r2))
+}
+===== 93.003
+run float {
   float r = 31.54351
   return Round(r + Round(r, 0) + Round(r, 1) + Round(r, 2) + Round(r, 3), 5)
 }

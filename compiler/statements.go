@@ -10,7 +10,11 @@ import (
 
 func coReturn(cmpl *compiler) error {
 	coExpStart(cmpl)
-	cmd := core.CmdBlock{ID: core.StackReturn, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
+	id := uint32(core.StackReturn)
+	if local := getLocalBlock(cmpl); local != nil {
+		id = core.StackLocret
+	}
+	cmd := core.CmdBlock{ID: id, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
 	appendCmd(cmpl, &cmd)
 	cmpl.owners = append(cmpl.owners, &cmd)
 	return nil
@@ -18,17 +22,21 @@ func coReturn(cmpl *compiler) error {
 
 func coReturnBack(cmpl *compiler) error {
 	owner := cmpl.curOwner()
-	funcObj := cmpl.latestFunc()
+	block := getLocalBlock(cmpl)
+	if block == nil {
+		block = &cmpl.latestFunc().Block
+	}
+
 	switch len(owner.Children) {
 	case 0:
-		if funcObj.Block.Result != nil {
+		if block.Result != nil {
 			return cmpl.Error(ErrMustReturn)
 		}
 	case 1:
-		if funcObj.Block.Result == nil {
+		if block.Result == nil {
 			return cmpl.Error(ErrReturn)
 		}
-		if !isEqualTypes(funcObj.Block.Result, owner.Children[0].GetResult()) {
+		if !isEqualTypes(block.Result, owner.Children[0].GetResult()) {
 			return cmpl.Error(ErrReturnType)
 		}
 	default:

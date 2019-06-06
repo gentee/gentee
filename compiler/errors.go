@@ -167,8 +167,6 @@ const (
 	ErrLocalName
 	// ErrLocalVariadic is returned when there is a variadic parameter in local function
 	ErrLocalVariadic
-	// ErrLocalRet is returned if locret is not inside a local function
-	ErrLocalRet
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -265,7 +263,6 @@ var (
 		ErrEndOptional:    `optional parameters must be at the end`,
 		ErrLocalName:      `%s local function has already been defined`,
 		ErrLocalVariadic:  `local function cannot have a variadic parameter`,
-		ErrLocalRet:       `locret must be inside a local function`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

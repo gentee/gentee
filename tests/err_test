@@ -1,18 +1,22 @@
 run int {
-  locret 2
+  local loc(int i) int {
+      local loc2 int : return 2
+      return i + loc2()
+  }
+  return loc2()
 } 
-===== [2:11] locret must be inside a local function
+===== [6:10] function loc2() has not been found
 run int {
   local loc(int i) int : 1 + 2
 } 
 ===== [2:31] function must return a value
 run int {
-  local loc(int i) int : locret 3
+  local loc(int i) int : return 3
   return loc(2.34)
 } 
 ===== [3:10] function loc(float) has not been found
 run int {
-  local loc int : locret `2`
+  local loc int : return `2`
   return loc()
 } 
 ===== [2:29] function returns wrong type
@@ -21,13 +25,13 @@ run str {
     for v in iarr {
       s += str(v)
     }
-    locret s 
+    return s 
   }
   return locvar(`1`, 2,3,4) + locvar(`0`)+ locvar(`5`, 6, 7)
 } 
 ===== [2:36] local function cannot have a variadic parameter
 run str {
-  local loc int : locret 2
+  local loc int : return 2
   return loc()
 } 
 ===== [3:15] function returns wrong type

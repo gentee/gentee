@@ -45,6 +45,8 @@ func InitInt(vm *core.VirtualMachine) {
 		AssignSubºIntInt,    // int -= int
 		AssignLShiftºIntInt, // int <<= int
 		AssignRShiftºIntInt, // int >>= int
+		MaxºIntInt,          // Max(int, int)
+		MinºIntInt,          // Min(int, int)
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -197,6 +199,22 @@ func LShiftºIntInt(left, right int64) (int64, error) {
 		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
 	}
 	return left << uint64(right), nil
+}
+
+// MaxºIntInt returns the maximum of two integers
+func MaxºIntInt(left, right int64) int64 {
+	if left < right {
+		return right
+	}
+	return left
+}
+
+// MinºIntInt returns the minimum of two integers
+func MinºIntInt(left, right int64) int64 {
+	if left > right {
+		return right
+	}
+	return left
 }
 
 // ModºIntInt returns the remainder after division of one number by another

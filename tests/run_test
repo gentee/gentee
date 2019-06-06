@@ -1,9 +1,17 @@
 run int {
+  local loc(int i) int {
+      local loc2 int : return 2 + i
+      return i * loc2()
+  }
+  return loc(3)+loc(4)
+} 
+===== 39
+run int {
   local iloc(int j) int {
     if j > 10 {
-       locret 77+j
+       return 77+j
     } 
-    locret j
+    return j
   }
   return iloc(11) + iloc(5)
 } 
@@ -24,23 +32,30 @@ run str {
   int i 
   local loc_Name(str s) str {
     int k = ++i + 1
-    locret s + `=` + str(k)
+    return s + `=` + str(k)
   }
   return loc_Name(`1`) + ` ` + loc_Name(`2`)
 } 
 ===== 1=2 2=3
 run int {
   int i
-  local loc int : locret (i += 2)+1
+  local loc(int step) int {
+    return (i += 2)+step
+  }
+  return loc(1) + loc(2)*loc(3)
+} 
+===== 57
+run int {
+  int i
+  local loc int : return (i += 2)+1
   return loc() + loc()*loc()
 } 
 ===== 38
 run int {
-  int i
   local loc int : return 10
   return loc() + 20
 } 
-===== 10
+===== 30
 func mylocal(str a) str {
   str out
   local loc1 {

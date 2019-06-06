@@ -98,7 +98,6 @@ var (
 			{tkFor, cmExp, coFor, coForBack, cfStopBack},
 			{tkSwitch, cmExp, coSwitch, coSwitchBack, cfStopBack},
 			{tkReturn, cmExp, coReturn, coReturnBack, cfStopBack},
-			{tkLocret, cmExp, coLocret, coLocretBack, cfStopBack},
 			{tkBreak, 0, coBreak, nil, 0},
 			{tkContinue, 0, coContinue, nil, 0},
 			{tkLocal, cmLocal, nil, coLocalBack, cfStopBack},

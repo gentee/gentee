@@ -47,6 +47,8 @@ func InitFloat(vm *core.VirtualMachine) {
 		FloorºFloat,          // Floor( float ) int
 		CeilºFloat,           // Ceil( float ) int
 		RoundºFloatInt,       // Round( float, int ) float
+		MinºFloatFloat,       // Min(float, float)
+		MaxºFloatFloat,       // Max(float, float)
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -132,6 +134,22 @@ func ExpStrºFloat(left string, right float64) string {
 // intºFloat converts float value to int
 func intºFloat(val float64) int64 {
 	return int64(val)
+}
+
+// MaxºFloatFloat returns the maximum of two float numbers
+func MaxºFloatFloat(left, right float64) float64 {
+	if left < right {
+		return right
+	}
+	return left
+}
+
+// MinºFloatFloat returns the minimum of two float numbers
+func MinºFloatFloat(left, right float64) float64 {
+	if left > right {
+		return right
+	}
+	return left
 }
 
 // MulºFloatFloat multiplies two float values

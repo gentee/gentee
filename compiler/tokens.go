@@ -96,7 +96,6 @@ const (
 	tkFn
 	tkGo
 	tkLocal
-	tkLocret
 	tkDefault
 	tkToken // is used for preCompileTable
 )
