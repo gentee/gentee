@@ -1,4 +1,17 @@
 run int {
+  thread th0 = go { int j = 1 }
+  go { int j = 1 }
+  thread th1
+  th1 = go ( a: 10) { th1 #= a }
+  go () {int k = 0} 
+  thread th2 = go ( a: Max(1,23), 
+       b: Min(100,87)) {int k = a+b; th2 #= k} 
+  wait(th2)
+  wait(th1)
+  return int(#th2) + int(#th1)
+}
+===== 120
+run int {
   local loc(int i) int {
       local loc2 int : return 2 + i
       return i * loc2()

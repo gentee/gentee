@@ -13,6 +13,7 @@ type goStack struct {
 	ExpBuf     []ExpBuf
 	LatestFunc int
 	Name       string
+	Params     []core.ICmd
 }
 
 func goExpPush(cmpl *compiler) string {
@@ -23,6 +24,8 @@ func goExpPush(cmpl *compiler) string {
 		LatestFunc: cmpl.curFunc,
 		Name:       name,
 	})
+	cmpl.exp = cmpl.exp[:0]
+	cmpl.expbuf = cmpl.expbuf[:0]
 	return name
 }
 
@@ -40,12 +43,9 @@ func coGo(cmpl *compiler) error {
 }
 
 func coGoBack(cmpl *compiler) error {
-	/*	if len(cmpl.goStack) == 0 || cmpl.latestFunc().GetName() !=
-		cmpl.goStack[len(cmpl.goStack)-1].Name {
-		return nil
-	}*/
 	cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
 	threadFunc := cmpl.latestFunc()
+	params := cmpl.goStack[len(cmpl.goStack)-1].Params
 	goExpPop(cmpl)
 	cmpl.dynamic = &cmState{tkToken, cmExp, nil, nil, 0}
 	*cmpl.states = (*cmpl.states)[:len(*cmpl.states)-1]
@@ -57,6 +57,13 @@ func coGoBack(cmpl *compiler) error {
 	}
 
 	appendExp(cmpl, &core.CmdAnyFunc{CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
-		Object: threadFunc, IsThread: true, Result: cmpl.unit.FindType(`thread`).(*core.TypeObject)})
+		Children: params,
+		Object:   threadFunc, IsThread: true, Result: cmpl.unit.FindType(`thread`).(*core.TypeObject)})
 	return coExpEnd(cmpl)
+}
+
+func coGoParams(cmpl *compiler) error {
+	cmpl.owners = append(cmpl.owners, cmpl.owners[len(cmpl.owners)-2])
+	cmpl.optionals = append(cmpl.optionals, &optInfo{})
+	return appendExpBuf(cmpl, tkCallFunc)
 }

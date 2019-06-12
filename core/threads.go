@@ -124,6 +124,11 @@ func (rt *RunTime) GoThread(funcObj *FuncObject) int64 {
 		Cycle: rt.Cycle,
 		Depth: rt.Depth,
 	}
+	for i := 0; i < funcObj.Block.ParCount; i++ {
+		var par interface{}
+		CopyVar(&par, rt.Stack[len(rt.Stack)-funcObj.Block.ParCount+i])
+		thread.Stack = append(thread.Stack, par)
+	}
 	thread.newThread(ThQueue)
 	go func() {
 		thread.Thread.Status = ThWork

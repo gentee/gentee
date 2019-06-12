@@ -1,3 +1,15 @@
+run {
+  go (100, a: 20) {int k = 0} 
+}
+===== [2:3] there is an unnamed parameter in go statement
+run int {
+  return go()
+} 
+===== [3:1] unexpected token, expecting {
+func go int {
+  return 1
+} 
+===== [1:6] unexpected token, expecting the name of the identifier
 run int {
   local loc(int i) int {
       local loc2 int : return 2

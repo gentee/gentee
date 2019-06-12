@@ -295,6 +295,7 @@ var (
 		cmGo: {
 			{tkToken, ErrLCurly, coError, nil, 0},
 			{tkLCurly, cmLCurly, coFuncStart, nil, cfStay},
+			{tkLPar, cmExp, coGoParams, nil, cfStopBack | cfStay},
 			{tkLine, 0, nil, nil, 0},
 		},
 		cmLocal: {

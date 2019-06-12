@@ -1,4 +1,23 @@
 run str {
+  arr astr = {`0`, `a`, `X`}
+  thread th = go( mya: astr) {
+      mya += `OK`
+      mya[1] = `A`
+      fromth #= Join(mya, `-`)
+  }
+  wait(th)
+  return Join(astr, `+`) +`!=` + #fromth
+}
+===== 0+a+X!=0-A-X-OK
+run int {
+  int ai = 98
+  int ab = 3
+  thread th1 = go( inp: ai, ina: ab+7) { th1 #= ina + inp/2  + 1  }
+  wait(th1)
+  return int(#th1)
+}
+===== 60
+run str {
   out #= 1
   thread th1 = go { 
     out #= #out + `2` 

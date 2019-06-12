@@ -85,14 +85,14 @@ func (rt *RunTime) callFunc(cmd ICmd) (err error) {
 	case CtFunc:
 		var optCount int
 		anyFunc := cmd.(*CmdAnyFunc)
-		if anyFunc.IsThread {
-			rt.Stack = append(rt.Stack, rt.GoThread(cmd.GetObject().(*FuncObject)))
-			return
-		}
 		for _, param := range anyFunc.Children {
 			if err = rt.runCmd(param); err != nil {
 				return
 			}
+		}
+		if anyFunc.IsThread {
+			rt.Stack = append(rt.Stack, rt.GoThread(cmd.GetObject().(*FuncObject)))
+			return
 		}
 		if optCount = len(anyFunc.Optional); optCount > 0 {
 			rt.Optional = make([]interface{}, len(anyFunc.GetObject().(*FuncObject).Block.Vars))

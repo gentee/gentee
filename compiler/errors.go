@@ -167,6 +167,8 @@ const (
 	ErrLocalName
 	// ErrLocalVariadic is returned when there is a variadic parameter in local function
 	ErrLocalVariadic
+	// ErrGoParam is returned whene there is an unnamed parameter in go statement
+	ErrGoParam
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -263,6 +265,7 @@ var (
 		ErrEndOptional:    `optional parameters must be at the end`,
 		ErrLocalName:      `%s local function has already been defined`,
 		ErrLocalVariadic:  `local function cannot have a variadic parameter`,
+		ErrGoParam:        `there is an unnamed parameter in go statement`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

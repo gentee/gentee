@@ -479,6 +479,26 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 							}
 							cmpl.exp = cmpl.exp[:len(cmpl.exp)-numParams]
 							cmpl.exp = append(cmpl.exp, icmd)
+						} else if nameFunc == `go` {
+							if numParams > 0 {
+								return cmpl.ErrorPos(prevToken.Pos-1, ErrGoParam)
+							}
+							cmpl.owners = cmpl.owners[:len(cmpl.owners)-1]
+							goBlock := cmpl.curOwner()
+							goBlock.ParCount = optCount
+							if optCount > 0 {
+								goBlock.VarNames = make(map[string]int)
+								for i, name := range curOpt.Names {
+									goBlock.VarNames[name] = len(goBlock.Vars)
+									goBlock.Vars = append(goBlock.Vars,
+										cmpl.exp[len(cmpl.exp)-optCount+i].GetResult())
+								}
+								for i := prevToken.LenExp; i < len(cmpl.exp); i++ {
+									cmpl.goStack[len(cmpl.goStack)-1].Params =
+										append(cmpl.goStack[len(cmpl.goStack)-1].Params, cmpl.exp[i])
+								}
+								cmpl.exp = cmpl.exp[:len(cmpl.exp)-optCount]
+							}
 						} else {
 							var (
 								result *core.TypeObject
