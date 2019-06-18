@@ -111,7 +111,7 @@ func (vm *VirtualMachine) Unit(name string) *Unit {
 }
 
 // Run executes run block
-func (vm *VirtualMachine) Run(unitID int) (interface{}, error) {
+func (vm *VirtualMachine) Run(unitID int, cmdLine []string) (interface{}, error) {
 	rt := newRunTime(vm)
 	if unitID < 0 || unitID >= len(vm.Units) {
 		return nil, runtimeError(rt, nil, ErrRunIndex)
@@ -120,6 +120,7 @@ func (vm *VirtualMachine) Run(unitID int) (interface{}, error) {
 	if unit.RunID == Undefined {
 		return nil, runtimeError(rt, nil, ErrNotRun)
 	}
+	rt.CmdLine = cmdLine
 	funcRun := vm.Objects[unit.RunID].(*FuncObject)
 	errResult := rt.runCmd(&funcRun.Block)
 	var result interface{}

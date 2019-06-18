@@ -67,30 +67,30 @@ func main() {
 			os.Exit(code)
 		}
 	}
-	for _, script := range files {
-		var (
-			result interface{}
-			unitID int
-		)
-		unitID, err = workspace.CompileFile(script)
-		isError(errCompile)
-		result, err = workspace.Run(unitID)
-		isError(errRun)
-		resultStr := fmt.Sprint(result)
-		if testMode {
-			for _, line := range strings.Split(workspace.Unit(unitID).Lexeme[0].Header, "\n") {
-				ret := regexp.MustCompile(`\s*result\s*=\s*(.*)$`).FindStringSubmatch(strings.TrimSpace(line))
-				if len(ret) == 2 {
-					if ret[1] == strings.TrimSpace(resultStr) {
-						return
-					}
+	script := files[0]
+	var (
+		result interface{}
+		unitID int
+	)
+	unitID, err = workspace.CompileFile(script)
+	isError(errCompile)
+	workspace.CmdLine(files[1:]...)
+	result, err = workspace.Run(unitID)
+	isError(errRun)
+	resultStr := fmt.Sprint(result)
+	if testMode {
+		for _, line := range strings.Split(workspace.Unit(unitID).Lexeme[0].Header, "\n") {
+			ret := regexp.MustCompile(`\s*result\s*=\s*(.*)$`).FindStringSubmatch(strings.TrimSpace(line))
+			if len(ret) == 2 {
+				if ret[1] == strings.TrimSpace(resultStr) {
+					return
 				}
 			}
-			err = fmt.Errorf(`different test result %s`, resultStr)
-			isError(errResult)
 		}
-		if result != nil {
-			fmt.Println(resultStr)
-		}
+		err = fmt.Errorf(`different test result %s`, resultStr)
+		isError(errResult)
+	}
+	if result != nil {
+		fmt.Println(resultStr)
 	}
 }

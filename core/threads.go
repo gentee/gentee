@@ -117,12 +117,13 @@ func (rt *RunTime) closeAll() {
 // GoThread executes a new thread
 func (rt *RunTime) GoThread(funcObj *FuncObject) int64 {
 	thread := &RunTime{
-		VM:    rt.VM,
-		Stack: make([]interface{}, 0, 1024),
-		Calls: make([]ICmd, 0, 64),
-		Root:  rt.Root,
-		Cycle: rt.Cycle,
-		Depth: rt.Depth,
+		VM:      rt.VM,
+		Stack:   make([]interface{}, 0, 1024),
+		Calls:   make([]ICmd, 0, 64),
+		Root:    rt.Root,
+		CmdLine: rt.CmdLine,
+		Cycle:   rt.Cycle,
+		Depth:   rt.Depth,
 	}
 	for i := 0; i < funcObj.Block.ParCount; i++ {
 		var par interface{}

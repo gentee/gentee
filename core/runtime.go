@@ -36,6 +36,7 @@ type RunTime struct {
 	Thread   *Thread
 	Root     *RunTime
 	Threads  *RootThread // it is for the main thread only
+	CmdLine  []string    // command-line parameters
 
 	Cycle int64 // Value of constants
 	Depth int64
