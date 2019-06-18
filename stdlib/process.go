@@ -23,14 +23,14 @@ func InitProcess(vm *core.VirtualMachine) {
 		vm.StdLib().NewEmbed(item)
 	}
 	for _, item := range []embedInfo{
-		{Args, ``, `arr.str`},             // Args() arr.str
-		{ArgCount, ``, `int`},             // ArgCount() int
-		{ArgºStr, `str`, `str`},           // Arg(str) str
-		{ArgºStrStr, `str,str`, `str`},    // Arg(str, str) str
-		{ArgIntºStrInt, `str,int`, `int`}, // ArgInt(str, int) int
-		{ArgListºStr, `str`, `arr.str`},   // ArgList(str) arr.str
-		{ArgTail, ``, `arr.str`},          // ArgTail() arr.str
-		{IsArgºStr, `str`, `bool`},        // IsArg(str) bool
+		{ArgCount, ``, `int`},          // ArgCount() int
+		{ArgºStr, `str`, `str`},        // Arg(str) str
+		{ArgºStrStr, `str,str`, `str`}, // Arg(str, str) str
+		{ArgºStrInt, `str,int`, `int`}, // Arg(str, int) int
+		{Args, ``, `arr.str`},          // Args() arr.str
+		{ArgsºStr, `str`, `arr.str`},   // Args(str) arr.str
+		{ArgsTail, ``, `arr.str`},      // ArgsTail() arr.str
+		{IsArgºStr, `str`, `bool`},     // IsArg(str) bool
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -60,10 +60,13 @@ func args(cmdLine []string, flag string) (bool, []string) {
 	lenf := len(flag)
 	lenCmd := len(cmdLine)
 	if lenf == 0 || len(strings.Trim(flag, `-`)) == 0 {
-		tail := lenCmd
-		for ; tail > 0; tail-- {
-			if cmdLine[tail-1][0] == '-' {
-				break
+		var tail int
+		for i := 0; i < lenCmd; i++ {
+			if strings.HasPrefix(cmdLine[i], `-`) {
+				tail = i + 1
+				if len(strings.Trim(cmdLine[i], `-`)) == 0 {
+					break
+				}
 			}
 		}
 		if tail < lenCmd {
@@ -76,6 +79,9 @@ func args(cmdLine []string, flag string) (bool, []string) {
 		lenf++
 	}
 	for i, arg := range cmdLine {
+		if arg == `-` {
+			break
+		}
 		if strings.HasPrefix(arg, flag) {
 			if len(arg) == lenf {
 				for k := i + 1; k < lenCmd && cmdLine[k][0] != '-'; k++ {
@@ -110,13 +116,13 @@ func ArgºStrStr(rt *core.RunTime, flag, def string) string {
 	return list[0]
 }
 
-// ArgIntºStrInt returns the number value of the command-line option or the default value
-func ArgIntºStrInt(rt *core.RunTime, flag string, def int64) (int64, error) {
+// ArgºStrInt returns the number value of the command-line option or the default value
+func ArgºStrInt(rt *core.RunTime, flag string, def int64) (int64, error) {
 	return strconv.ParseInt(ArgºStrStr(rt, flag, strconv.FormatInt(def, 10)), 10, 64)
 }
 
-// ArgListºStr returns the value list of command-line option
-func ArgListºStr(rt *core.RunTime, flag string) *core.Array {
+// ArgsºStr returns the value list of command-line option
+func ArgsºStr(rt *core.RunTime, flag string) *core.Array {
 	out := core.NewArray()
 	_, list := args(rt.CmdLine, flag)
 	for _, item := range list {
@@ -125,9 +131,9 @@ func ArgListºStr(rt *core.RunTime, flag string) *core.Array {
 	return out
 }
 
-// ArgTail returns the list of command-line parameters
-func ArgTail(rt *core.RunTime) *core.Array {
-	return ArgListºStr(rt, ``)
+// ArgsTail returns the list of command-line parameters
+func ArgsTail(rt *core.RunTime) *core.Array {
+	return ArgsºStr(rt, ``)
 }
 
 // OpenºStr runs corresponding application with the specified file.

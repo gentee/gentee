@@ -1,6 +1,6 @@
 
 run int {
     arr args = Args()
-    return ArgCount() + *args + ?(IsArg(`-ok`), 2, 1) + ArgInt(`my`, 99)
+    return ArgCount() + *args + ?(IsArg(`-ok`), 2, 1) + Arg(`my`, 99)
 }
 ===== 100
