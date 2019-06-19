@@ -38,13 +38,13 @@ Wndows: gentee.exe myscript.g
 
 ### Gentee compiler/interpreter
 
-```gentee [-ver] [-t] <scriptname> (<scriptname>)```
+```gentee [-ver] [-t] <scriptname> [command-line parameters for script]```
 
 By default, the program prints the output of the script to the console and returns 0 if successful.
 
 #### Command line parameters
 
-* **scriptname** - full or relative path to the script file. If several scripts are specified, then they will be executed sequentially.
+* **scriptname** - full or relative path to the script file. You can specify the command line parameters for the script after the script file name.
 * **-ver** - show the current version of Gentee language.
 * **-t** - test the script. When using this parameter, the script must have the **result** parameter in the header with the expected value ([example](https://github.com/gentee/gentee/blob/master/test/scripts/ok.g)). In this mode, the program does not output the result of 
 the script execution to the console. If the result does not match, an error message is displayed and an error code 4 is returned.
