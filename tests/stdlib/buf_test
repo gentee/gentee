@@ -1,4 +1,9 @@
 run str {
+  buf b1 = buf(`xyz ŋ`)
+  return str(b1 + buf(`a017`))
+}
+===== xyz ŋa017
+run str {
   buf b1 = buf(`Original ŋ`)
   buf b2
   b2 &= b1

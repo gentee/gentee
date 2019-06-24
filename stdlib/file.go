@@ -20,21 +20,22 @@ func InitFile(vm *core.VirtualMachine) {
 	})
 
 	for _, item := range []interface{}{
-		AppendFileºStrBuf, // AppendFile( str, buf )
-		AppendFileºStrStr, // AppendFile( str, str )
-		ChDirºStr,         // ChDir( str )
-		CopyFileºStrStr,   // CopyFile( str, str )
-		CreateDirºStr,     // CreateDir( str )
-		GetCurDir,         // GetCurDir( ) str
-		ReadFileºStr,      // ReadFile( str ) str
-		ReadFileºStrBuf,   // ReadFile( str, buf ) buf
-		RemoveºStr,        // Remove( str )
-		RemoveDirºStr,     // RemoveDir( str )
-		RenameºStrStr,     // Rename( str, str )
-		TempDir,           // TempDir()
-		TempDirºStrStr,    // TempDir(str, str)
-		WriteFileºStrBuf,  // WriteFile( str, buf )
-		WriteFileºStrStr,  // WriteFile( str, str )
+		AppendFileºStrBuf,  // AppendFile( str, buf )
+		AppendFileºStrStr,  // AppendFile( str, str )
+		ChDirºStr,          // ChDir( str )
+		CopyFileºStrStr,    // CopyFile( str, str )
+		CreateDirºStr,      // CreateDir( str )
+		GetCurDir,          // GetCurDir( ) str
+		ReadFileºStr,       // ReadFile( str ) str
+		ReadFileºStrBuf,    // ReadFile( str, buf ) buf
+		ReadFileºStrIntInt, // ReadFile( str, int, int ) buf
+		RemoveºStr,         // Remove( str )
+		RemoveDirºStr,      // RemoveDir( str )
+		RenameºStrStr,      // Rename( str, str )
+		TempDir,            // TempDir()
+		TempDirºStrStr,     // TempDir(str, str)
+		WriteFileºStrBuf,   // WriteFile( str, buf )
+		WriteFileºStrStr,   // WriteFile( str, str )
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -151,6 +152,39 @@ func ReadFileºStrBuf(filename string, buf *core.Buffer) (*core.Buffer, error) {
 	}
 	buf.Data = out
 	return buf, nil
+}
+
+// ReadFileºStrIntInt reads a part of the file to the buffer
+func ReadFileºStrIntInt(filename string, off int64, length int64) (buf *core.Buffer, err error) {
+	var (
+		fhandle *os.File
+		n       int
+	)
+	buf = core.NewBuffer()
+	if fhandle, err = os.Open(filename); err != nil {
+		return
+	}
+	defer fhandle.Close()
+	fi, err := fhandle.Stat()
+	fsize := fi.Size()
+	if off < 0 {
+		off = fsize + off
+	}
+	if off < 0 {
+		off = 0
+	} else if off > fsize-1 {
+		return
+	}
+	if off+length > fsize {
+		length = fsize - off
+	}
+	buf.Data = make([]byte, length)
+	n, err = fhandle.ReadAt(buf.Data, off)
+	if err != nil && err == io.EOF {
+		err = nil
+	}
+	buf.Data = buf.Data[:n]
+	return
 }
 
 // RenameºStrStr renames a file or a directory

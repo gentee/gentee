@@ -17,6 +17,7 @@ func InitBuffer(vm *core.VirtualMachine) {
 		{bufºStr, `str`, `buf`},                  // buf( str ) buf
 		{strºBuf, `buf`, `str`},                  // str( buf ) str
 		{LenºBuf, `buf`, `int`},                  // the length of the buffer
+		{AddºBufBuf, `buf,buf`, `buf`},           // buf + buf
 		{AssignºBufBuf, `buf,buf`, `buf`},        // buf = buf
 		{AssignAddºBufInt, `buf,int`, `buf`},     // buf += int
 		{AssignAddºBufStr, `buf,str`, `buf`},     // buf += str
@@ -30,6 +31,14 @@ func InitBuffer(vm *core.VirtualMachine) {
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
+}
+
+// AddºBufBuf adds two buffers
+func AddºBufBuf(left *core.Buffer, right *core.Buffer) (out *core.Buffer) {
+	out = core.NewBuffer()
+	out.Data = left.Data
+	out.Data = append(out.Data, right.Data...)
+	return out
 }
 
 // AssignºBufBuf copies one buf to another one
