@@ -37,6 +37,10 @@ const (
 	RcContinue
 	// RcLocal means that a local function returns a value
 	RcLocal
+	// RcRecover means recover command
+	RcRecover
+	// RcRetry means retry command
+	RcRetry
 )
 
 const (
@@ -78,6 +82,8 @@ const (
 	StackCallLocal
 	// StackLocret returns value from local function
 	StackLocret
+	// StackTry is the try statement
+	StackTry
 )
 
 // Token is a lexical token.

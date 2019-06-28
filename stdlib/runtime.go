@@ -17,6 +17,9 @@ func InitRuntime(vm *core.VirtualMachine) {
 	})
 	for _, item := range []embedInfo{
 		{errorºIntStr, `int,str`, ``},           // error( int, str )
+		{ErrID, `error`, `int`},                 // ErrID( error ) int
+		{ErrText, `error`, `str`},               // ErrText( error ) str
+		{ErrTrace, `error`, `arr.trace`},        // ErrTrace( error ) arr.trace
 		{TraceºTrace, `arr.trace`, `arr.trace`}, // Trace( trace )
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
@@ -34,9 +37,18 @@ func errorºIntStr(code int64, text string, pars ...interface{}) error {
 	}
 }
 
-// TraceºTrace gets trace information
-func TraceºTrace(rt *core.RunTime, it *core.Array) *core.Array {
-	for _, item := range core.GetTrace(rt, nil) {
+// ErrID returns the id of the error
+func ErrID(err *core.RuntimeError) int64 {
+	return int64(err.ID)
+}
+
+// ErrText returns the text of the error
+func ErrText(err *core.RuntimeError) string {
+	return err.Message
+}
+
+func getTrace(rt *core.RunTime, list []core.TraceInfo, it *core.Array) *core.Array {
+	for _, item := range list {
 		trace := core.NewStruct(rt.VM.StdLib().FindType(`trace`).(*core.TypeObject))
 		trace.Values[0] = item.Path
 		trace.Values[1] = item.Entry
@@ -46,4 +58,14 @@ func TraceºTrace(rt *core.RunTime, it *core.Array) *core.Array {
 		it.Data = append(it.Data, trace)
 	}
 	return it
+}
+
+// ErrTrace returns the trace of the error
+func ErrTrace(rt *core.RunTime, err *core.RuntimeError) *core.Array {
+	return getTrace(rt, err.Trace, core.NewArray())
+}
+
+// TraceºTrace gets trace information
+func TraceºTrace(rt *core.RunTime, it *core.Array) *core.Array {
+	return getTrace(rt, core.GetTrace(rt, nil), it)
 }

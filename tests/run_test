@@ -1,3 +1,78 @@
+run str {
+  str ret 
+  try {
+    error(101, `oooops`)
+  }
+  catch err {
+    for i in 1..100 {
+       for j in i..(i+50) {
+          if i + j == ErrID(err) {
+              ret = `%{i} + %{j}`
+              recover
+              ret += `x`
+          }
+          ret += `y`
+       }
+      ret += `z`
+    }
+    ret += `a`
+  }
+  return ret
+} 
+===== 26 + 75
+run int {
+  int i
+  try {
+    i = 10/i + 7
+  }
+  catch err {
+    i = 5
+    retry
+    i += 10
+  }
+  return i
+} 
+===== 9
+run int {
+  int i
+  while i < 3 {
+    try {
+      i = 10/i
+    }
+    catch err {
+      i = 2
+      recover
+      i *= 3
+    }
+  }
+  return i
+} 
+===== 5
+run str {
+  int i
+  str s = `ok`
+  try {
+    10/i
+  }
+  catch err {
+    s = Format("#%d %s", ErrID(err), ErrText(err))
+    recover
+  }
+  return s
+} 
+===== #254 divided by zero
+run int {
+  int i
+  try {} catch err {}
+  try {
+    i += 100
+  }
+  catch err {
+    i -= 7
+  }
+  return i
+} 
+===== 100
 run int {
   thread th0 = go { int j = 1 }
   go { int j = 1 }

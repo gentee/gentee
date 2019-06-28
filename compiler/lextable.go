@@ -91,6 +91,10 @@ var (
 		`fn`:       tkFn,
 		`go`:       tkGo,
 		`local`:    tkLocal,
+		`try`:      tkTry,
+		`catch`:    tkCatch,
+		`recover`:  tkRecover,
+		`retry`:    tkRetry,
 		`default`:  tkDefault,
 	}
 

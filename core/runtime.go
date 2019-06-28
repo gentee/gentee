@@ -37,6 +37,7 @@ type RunTime struct {
 	Root     *RunTime
 	Threads  *RootThread // it is for the main thread only
 	CmdLine  []string    // command-line parameters
+	Catch    uint32
 
 	Cycle int64 // Value of constants
 	Depth int64
@@ -171,7 +172,14 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 	rt.Calls = append(rt.Calls, cmd)
 	switch cmd.GetType() {
 	case CtCommand:
-		rt.Command = cmd.(*CmdCommand).ID
+		v := cmd.(*CmdCommand).ID
+		switch v {
+		case RcRecover, RcRetry:
+			rt.Catch = v
+			rt.Command = RcBreak
+		default:
+			rt.Command = v
+		}
 	case CtFunc, CtBinary, CtUnary:
 		err = rt.callFunc(cmd)
 	case CtValue:
@@ -228,7 +236,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 							return err
 						}
 						done = true
-						if rt.Command == RcBreak {
+						if rt.Command == RcBreak && rt.Catch == 0 {
 							rt.Command = 0
 						}
 						break
@@ -242,7 +250,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				if err = rt.runCmd(def); err != nil {
 					return err
 				}
-				if rt.Command == RcBreak {
+				if rt.Command == RcBreak && rt.Catch == 0 {
 					rt.Command = 0
 				}
 			}
@@ -435,7 +443,9 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 						return err
 					}
 					if rt.Command == RcBreak {
-						rt.Command = 0
+						if rt.Catch == 0 {
+							rt.Command = 0
+						}
 						break
 					}
 					if rt.Command == RcContinue {
@@ -472,7 +482,9 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 					break
 				}
 				if rt.Command == RcBreak {
-					rt.Command = 0
+					if rt.Catch == 0 {
+						rt.Command = 0
+					}
 					break
 				}
 				if rt.Command == RcContinue {
@@ -557,6 +569,28 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				rt.Result = true
 			}
 			rt.Command = RcLocal
+		case StackTry:
+			for {
+				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+					if _, ok := err.(*RuntimeError); !ok {
+						err = runtimeError(rt, cmdStack.Children[0], err)
+					}
+					rt.Stack = append(rt.Stack, err)
+					if errCatch := rt.runCmd(cmdStack.Children[1]); errCatch != nil {
+						err = errCatch
+					}
+					if rt.Catch == RcRecover || rt.Catch == RcRetry {
+						rt.Command = 0
+						err = nil
+						if rt.Catch == RcRetry {
+							rt.Catch = 0
+							continue
+						}
+						rt.Catch = 0
+					}
+				}
+				break
+			}
 		}
 		rt.Stack = rt.Stack[:lenStack]
 	}

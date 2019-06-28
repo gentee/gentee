@@ -1,3 +1,70 @@
+run str {
+  try {
+    error(101, `oooops`)
+  }
+  catch err {
+    if ErrID(err) == 250 {
+      recover
+    }
+    if ErrID(err) < 100 {
+      retry
+    }
+  }
+  return `ok`
+} 
+===== [3:5] oooops
+run {
+  while true { retry }
+} 
+===== [2:16] 'retry' can only be inside catch
+run {
+  try { recover }
+} 
+===== [2:9] 'recover' can only be inside catch
+run {
+  try { 10/0 }
+  catch err {
+     error(100, Format("#%d %s %v", ErrID(err), ErrText(err), ErrTrace(err)))
+  }
+} 
+===== [4:6] #254 divided by zero [trace[Path: Entry:run Func:Div Line:2 Pos:11]]
+run {
+  try { 10/0 }
+  catch err {
+     ReadFile(`qwert`)
+  }
+} 
+===== [4:6] open qwert: no such file or directory
+run str {
+  try { 10/0 }
+  catch err {
+     error(190, "something is wrong")
+  }
+  return `ok`
+} 
+===== [4:6] something is wrong
+run int {
+  int err
+  try {}
+  catch err {
+  }
+  return 1
+} 
+===== [4:9] "err" has already been used as the name of the function, type or variable
+run {
+  try { }
+  catch { }
+}
+===== [3:9] unexpected token, expecting the name of the identifier
+run {
+  try { }
+  if true :
+}
+===== [3:3] unexpected token, expecting 'catch'
+run {
+  try 10 :
+}
+===== [2:7] unexpected token, expecting {
 run {
   go (100, a: 20) {int k = 0} 
 }

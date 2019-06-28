@@ -167,8 +167,14 @@ const (
 	ErrLocalName
 	// ErrLocalVariadic is returned when there is a variadic parameter in local function
 	ErrLocalVariadic
-	// ErrGoParam is returned whene there is an unnamed parameter in go statement
+	// ErrGoParam is returned when there is an unnamed parameter in go statement
 	ErrGoParam
+	// ErrCatch is returned if catch missing after try
+	ErrCatch
+	// ErrRecover returns when recover is placed outside of catch
+	ErrRecover
+	// ErrRetry returns when recover is placed outside of catch
+	ErrRetry
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -266,6 +272,9 @@ var (
 		ErrLocalName:      `%s local function has already been defined`,
 		ErrLocalVariadic:  `local function cannot have a variadic parameter`,
 		ErrGoParam:        `there is an unnamed parameter in go statement`,
+		ErrCatch:          `unexpected token, expecting 'catch'`,
+		ErrRecover:        `'recover' can only be inside catch`,
+		ErrRetry:          `'retry' can only be inside catch`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

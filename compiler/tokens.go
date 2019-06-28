@@ -96,6 +96,10 @@ const (
 	tkFn
 	tkGo
 	tkLocal
+	tkTry
+	tkCatch
+	tkRecover
+	tkRetry
 	tkDefault
 	tkToken // is used for preCompileTable
 )

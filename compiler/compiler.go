@@ -452,13 +452,7 @@ func coType(cmpl *compiler) error {
 	return nil
 }
 
-func coVarToken(cmpl *compiler, token string) error {
-	if isCapital(token) {
-		return cmpl.Error(ErrCapitalLetters)
-	}
-	if strings.IndexRune(token, '.') >= 0 {
-		return cmpl.Error(ErrIdent)
-	}
+func checkUsedName(cmpl *compiler, token string) error {
 	if cmpl.unit.FindType(token) != nil {
 		return cmpl.Error(ErrUsedName, token)
 	}
@@ -469,8 +463,31 @@ func coVarToken(cmpl *compiler, token string) error {
 		}
 		block = block.Parent
 	}
+	return nil
+}
 
-	block = cmpl.curOwner()
+func coVarToken(cmpl *compiler, token string) error {
+	if isCapital(token) {
+		return cmpl.Error(ErrCapitalLetters)
+	}
+	if strings.IndexRune(token, '.') >= 0 {
+		return cmpl.Error(ErrIdent)
+	}
+	if err := checkUsedName(cmpl, token); err != nil {
+		return err
+	}
+	/*	if cmpl.unit.FindType(token) != nil {
+			return cmpl.Error(ErrUsedName, token)
+		}
+		block := cmpl.curOwner()
+		for block != nil {
+			if _, ok := block.VarNames[token]; ok {
+				return cmpl.Error(ErrUsedName, token)
+			}
+			block = block.Parent
+		}*/
+
+	block := cmpl.curOwner()
 	if block.VarNames == nil {
 		block.VarNames = make(map[string]int)
 	}

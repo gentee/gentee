@@ -44,6 +44,8 @@ const (
 	cmGo          // go command
 	cmLocal       // local command
 	cmLocalParams
+	cmCatch // catch command
+	cmCatchIdent
 
 	cmBack // go to back
 
@@ -100,7 +102,10 @@ var (
 			{tkReturn, cmExp, coReturn, coReturnBack, cfStopBack},
 			{tkBreak, 0, coBreak, nil, 0},
 			{tkContinue, 0, coContinue, nil, 0},
+			{tkRecover, 0, coRecover, nil, 0},
+			{tkRetry, 0, coRetry, nil, 0},
 			{tkLocal, cmLocal, nil, coLocalBack, cfStopBack},
+			{tkTry, cmLCurly, coTry, coTryBack, cfStopBack},
 		},
 		cmExp: {
 			{tkToken, ErrValue, coError, nil, 0},
@@ -309,6 +314,15 @@ var (
 			{tkLPar, cmParam, nil, nil, cfStopBack},
 			{tkLCurly, cmLCurly, coLocalStart, nil, cfStay},
 			{tkLine, 0, nil, nil, 0},
+		},
+		cmCatch: {
+			{tkToken, ErrCatch, coError, nil, 0},
+			{tkLine, 0, nil, nil, 0},
+			{tkCatch, cmCatchIdent, nil, coCatchBack, 0},
+		},
+		cmCatchIdent: {
+			{tkToken, ErrName, coError, nil, 0},
+			{tkIdent, cmLCurly, coCatch, nil, 0},
 		},
 	}
 	compileTable [][tkToken]*cmState
