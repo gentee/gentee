@@ -51,7 +51,7 @@ func main() {
 		if err != nil {
 			fmt.Print(`ERROR`)
 			if errTrace, ok := err.(*core.RuntimeError); ok {
-				fmt.Printf(" %d: %s\n", errTrace.ID, err.Error())
+				fmt.Printf(" #%d: %s\n", errTrace.ID, err.Error())
 				for _, trace := range errTrace.Trace {
 					path := trace.Path
 					dirs := strings.Split(filepath.ToSlash(path), `/`)

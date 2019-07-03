@@ -87,10 +87,10 @@ func TestCli(t *testing.T) {
 		{core.Version, []string{`-ver`}},
 		{``, []string{`nothing.g`}},
 		{core.Version, []string{`const.g`}},
-		{"ERROR 254: .../tests/scripts/traceerror.g [2:13] divided by zero\n" +
+		{"ERROR #254: .../tests/scripts/traceerror.g [2:13] divided by zero\n" +
 			".../tests/scripts/traceerror.g [5:5] run -> myfunc\n" +
 			".../tests/scripts/traceerror.g [2:13] myfunc -> Div", []string{`traceerror.g`}},
-		{"ERROR 300: .../tests/scripts/customerror.g [3:24] Σ custom error №5\n" +
+		{"ERROR #300: .../tests/scripts/customerror.g [3:24] Σ custom error №5\n" +
 			".../tests/scripts/customerror.g [9:12] run -> myerr\n" +
 			".../tests/scripts/customerror.g [3:24] myerr -> error", []string{`customerror.g`}},
 		{"ERROR: .../tests/scripts/err-a.g [6:5] duplicate of c_func has been found after include/import",
@@ -108,12 +108,12 @@ func TestCli(t *testing.T) {
 			[]string{`err-e.g`}},
 		{"ERROR: .../tests/scripts/err-f.g [6:5] unknown identifier myf",
 			[]string{`err-f.g`}},
-		{"ERROR 254: .../tests/scripts/err_thread.g [2:14] divided by zero\n" +
+		{"ERROR #254: .../tests/scripts/err_thread.g [2:14] divided by zero\n" +
 			".../tests/scripts/err_thread.g [7:15] thread -> Assign\n" +
 			".../tests/scripts/err_thread.g [7:17] thread -> divZero\n" +
 			".../tests/scripts/err_thread.g [2:14] divZero -> Div",
 			[]string{`thread1.g`}},
-		{"ERROR 1000: .../tests/scripts/err_thread.g [14:9] This is an error message\n" +
+		{"ERROR #1000: .../tests/scripts/err_thread.g [14:9] This is an error message\n" +
 			".../tests/scripts/err_thread.g [14:9] thread -> error",
 			[]string{`thread2.g`}},
 	}
