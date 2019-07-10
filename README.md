@@ -8,9 +8,10 @@ Gentee is a free open source script programming language. The Gentee programming
 
 ## Documentation
 
-All documentation is available on [GitHub pages](https://github.com/gentee/gentee.github.io). It describes features that have already been realized.
-- [Gentee programming language (English)](https://gentee.github.io/)
-- [Язык программирования Gentee (Русский)](https://gentee.github.io/ru/)
+- [Gentee programming language (English)](https://docs.gentee.org/)
+- [Язык программирования Gentee (Russian)](https://ru.gentee.org/)
+
+All documentation is available on [GitHub pages](https://github.com/gentee/gentee.github.io). 
 
 ## Download
 
