@@ -5,6 +5,7 @@
 package stdlib
 
 import (
+	"github.com/gentee/gentee/compiler"
 	"github.com/gentee/gentee/core"
 )
 
@@ -38,9 +39,29 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitRegExp(vm)
 	InitContext(vm)
 	InitThread(vm)
+	InitCrypto(vm)
 
 	stdlib.NewConst(core.ConstDepth, int64(1000), true)
 	stdlib.NewConst(core.ConstCycle, int64(16000000), true)
 	stdlib.NewConst(core.ConstIota, int64(0), false)
 	stdlib.NewConst(core.ConstVersion, core.Version, false)
+
+	src := `
+	pub	func Run(str cmd, str args...) {
+		buf ? stdin &= sysBufNil()
+		buf ? stdout &= sysBufNil()
+		buf ? stderr &= sysBufNil()
+		sysRun(cmd, false, stdin, stdout, stderr, args)
+	  }
+	  
+	pub func Start(str cmd, str args...) {
+		buf ? stdin &= sysBufNil()
+		buf stdout &= sysBufNil()
+		buf stderr &= sysBufNil()
+		sysRun(cmd, true, stdin, stdout, stderr, args)
+	  }
+	`
+	unitID, _ := compiler.Compile(vm, src, ``)
+	vm.Units[0].NameSpace[`?Run`] = vm.Units[unitID].NameSpace[`?Run`]
+	vm.Units[0].NameSpace[`?Start`] = vm.Units[unitID].NameSpace[`?Start`]
 }

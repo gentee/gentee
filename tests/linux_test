@@ -1,4 +1,27 @@
 run str {
+    str ret
+    Start("bash", stdin: buf("echo start"))
+    Run("bash", "-c", `echo "result ok"`)
+    Run("echo", "OK")
+    buf dirout
+    Run("dir", stdout: dirout)
+    ret = str( *dirout != 0 )
+    
+    Run("bash", stdin: buf(
+      |`echo "dirs"
+        #comment    
+        echo "%{str(dirout)}"`
+    ))
+    try {
+      Run("bash", stdin: buf(`qyg34`), stderr: dirout )
+    } catch err {
+      ret += str( Find(str(dirout), `qyg34`) != -1 )
+      recover
+    }
+    return ret
+}
+===== truetrue
+run str {
   return JoinPath(`/home/usr`, `dir`, 134, "file.txt")
 }
 ===== /home/usr/dir/134/file.txt

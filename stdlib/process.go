@@ -5,7 +5,9 @@
 package stdlib
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -19,6 +21,7 @@ func InitProcess(vm *core.VirtualMachine) {
 	for _, item := range []interface{}{
 		OpenºStr,     // Open( str )
 		OpenWithºStr, // OpenWith( str, str )
+		sysRun,       // sysRun
 	} {
 		vm.StdLib().NewEmbed(item)
 	}
@@ -174,4 +177,47 @@ func OpenWithºStr(app, fname string) error {
 func IsArgºStr(rt *core.RunTime, flag string) bool {
 	found, _ := args(rt.CmdLine, flag)
 	return found
+}
+
+// sysRun executes the process.
+func sysRun(cmd string, start bool, stdin *core.Buffer, stdout *core.Buffer, stderr *core.Buffer,
+	args *core.Array) error {
+	var (
+		pars                  []string
+		bufOut, bufIn, bufErr bytes.Buffer
+	)
+	for _, arg := range args.Data {
+		pars = append(pars, fmt.Sprint(arg))
+	}
+	command := exec.Command(cmd, pars...)
+	if stdin.Data == nil {
+		command.Stdin = os.Stdin
+	} else {
+		bufIn = bytes.Buffer{}
+		bufIn.Write(stdin.Data)
+		command.Stdin = &bufIn
+	}
+	if stdout.Data == nil {
+		command.Stdout = os.Stdout
+	} else {
+		bufOut = bytes.Buffer{}
+		command.Stdout = &bufOut
+	}
+	if stderr.Data == nil {
+		command.Stderr = os.Stderr
+	} else {
+		bufErr = bytes.Buffer{}
+		command.Stderr = &bufErr
+	}
+	if start {
+		return command.Start()
+	}
+	err := command.Run()
+	if stdout.Data != nil {
+		stdout.Data = bufOut.Bytes()
+	}
+	if stderr.Data != nil {
+		stderr.Data = bufErr.Bytes()
+	}
+	return err
 }

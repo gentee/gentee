@@ -1,3 +1,15 @@
+func optparam(str s, int iargs...) str {
+  int ?mul = 1
+  int sum = 1
+  for i in iargs {
+      sum += i
+  }
+  return s + str(sum*mul)
+}
+run str {
+  return optparam(`&`, 1,2,3,4) + optparam(`+`, mul: 3) +  optparam(`*`, 10,mul: 2)
+} 
+===== &11+3*22
 run str {
   str ret 
   try {

@@ -1,4 +1,13 @@
 run str {
+    str ftemp = TempDir() + `/tmphash.txt`
+    WriteFile( ftemp, `This is a test ººº 01234`)
+    WriteFile( ftemp, Sha256File(ftemp))
+    str ret = Md5File(ftemp)
+    Remove(ftemp)
+    return ret
+}
+===== 409d4951180b8121ada2d12e8adf5f23
+run str {
     str ftemp = TempDir() + `/tmpx.txt`
     WriteFile( ftemp, `TEST абс 01234` + "\r\n")
     str ret = str(ReadFile(ftemp, -10, 5) + ReadFile(ftemp, 3, 6))

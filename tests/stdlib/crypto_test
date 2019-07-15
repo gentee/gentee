@@ -1,0 +1,8 @@
+run str {
+    return Hex(Sha256(Md5(UnHex(`01020351672423a0b0f0`))))
+}
+===== cf7b619f15c2dc5f2e0d58420039cd9811aa1f7f80c566eb8b65a67b0623a631
+run str {
+    return Hex(Md5(Sha256(`01 02 03 º This is a test абвº`)))
+}
+===== d09c2f19a3d0249f7b12eb5fca15b894

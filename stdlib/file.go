@@ -5,6 +5,9 @@
 package stdlib
 
 import (
+	"crypto/md5"
+	"crypto/sha256"
+	"encoding/hex"
 	"io"
 	"io/ioutil"
 	"os"
@@ -26,12 +29,14 @@ func InitFile(vm *core.VirtualMachine) {
 		CopyFileºStrStr,    // CopyFile( str, str )
 		CreateDirºStr,      // CreateDir( str )
 		GetCurDir,          // GetCurDir( ) str
+		Md5FileºStr,        // Md5File( str ) str
 		ReadFileºStr,       // ReadFile( str ) str
 		ReadFileºStrBuf,    // ReadFile( str, buf ) buf
 		ReadFileºStrIntInt, // ReadFile( str, int, int ) buf
 		RemoveºStr,         // Remove( str )
 		RemoveDirºStr,      // RemoveDir( str )
 		RenameºStrStr,      // Rename( str, str )
+		Sha256FileºStr,     // Sha256File( str ) str
 		TempDir,            // TempDir()
 		TempDirºStrStr,     // TempDir(str, str)
 		WriteFileºStrBuf,   // WriteFile( str, buf )
@@ -122,6 +127,20 @@ func FileInfoºStr(rt *core.RunTime, name string) (*core.Struct, error) {
 	return fromFileInfo(fileInfo, finfo), nil
 }
 
+// Md5FileºStr returns md5 hash of the file as a hex string
+func Md5FileºStr(filename string) (string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return ``, err
+	}
+	defer file.Close()
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return ``, err
+	}
+	return hex.EncodeToString(hash.Sum(nil)[:]), nil
+}
+
 // ReadDirºStr reads a directory
 func ReadDirºStr(rt *core.RunTime, dirname string) (*core.Array, error) {
 	ret := core.NewArray()
@@ -206,6 +225,20 @@ func RemoveDirºStr(dirname string) error {
 func SetFileTimeºStrTime(name string, ftime *core.Struct) error {
 	mtime := toTime(ftime)
 	return os.Chtimes(name, mtime, mtime)
+}
+
+// Sha256FileºStr returns sha256 hash of the file as a hex string
+func Sha256FileºStr(filename string) (string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return ``, err
+	}
+	defer file.Close()
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return ``, err
+	}
+	return hex.EncodeToString(hash.Sum(nil)[:]), nil
 }
 
 // TempDir returns the temporary directory

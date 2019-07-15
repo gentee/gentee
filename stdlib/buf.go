@@ -28,6 +28,7 @@ func InitBuffer(vm *core.VirtualMachine) {
 		{HexºBuf, `buf`, `str`},                  // Hex( buf ) str
 		{InsertºBufIntBuf, `buf,int,buf`, `buf`}, // Insert( buf, int, buf ) buf
 		{UnHexºStr, `str`, `buf`},                // UnHex( str ) buf
+		{sysBufNil, ``, `buf`},                   // sysBufNil() buf
 	} {
 		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -145,4 +146,11 @@ func UnHexºStr(value string) (*core.Buffer, error) {
 	buf := core.NewBuffer()
 	buf.Data, err = hex.DecodeString(value)
 	return buf, err
+}
+
+// sysBufNil return nil buffer
+func sysBufNil() *core.Buffer {
+	b := core.NewBuffer()
+	b.Data = nil
+	return b
 }
