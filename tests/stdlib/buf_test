@@ -1,4 +1,12 @@
 run str {
+  return str(UnBase64(Base64(buf(`абв010203 test ŋ`))))
+}
+===== абв010203 test ŋ
+run str {
+  return Base64(UnHex(`010203`) + buf(`test ŋ 7`))
+}
+===== AQIDdGVzdCDFiyA3
+run str {
   buf b1 = buf(`xyz ŋ`)
   return str(b1 + buf(`a017`))
 }

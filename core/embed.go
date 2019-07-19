@@ -110,6 +110,10 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 		unit.NameSpace[originalName] = uint32(ind) | NSPub
 		return
 	}
+	if strings.HasSuffix(originalName, `Auto`) {
+		unit.NameSpace[`?`+name] = uint32(ind) | NSPub
+		return
+	}
 	unit.AddFunc(ind, obj, true)
 }
 

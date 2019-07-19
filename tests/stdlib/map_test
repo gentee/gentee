@@ -1,3 +1,17 @@
+run map {
+  map m = {`first`: `01`, `º`: `03`, ``: `04`, `last`: `02`}
+  return Del(Del(m, `first`), `last`)
+}
+===== map[º:03 :04]
+run map {
+  map m = {`abc`: `01`, `º`: `03`, ``: `04`, `-1`: `02`}
+  m[`0`] = str(IsKey(m, `º`) && IsKey(m, ``))
+  Del(m, `º`)
+  Del(m, ``)
+  m[`1`] = str(IsKey(m, `º`) || IsKey(m, ``))
+  return m
+}
+===== map[abc:01 -1:02 0:true 1:false]
 run map.map.int {
   map.map.int mb = {`0`: {`A`:1,`B`:2,`C`:3}, `-1`: {`D`:4,`E`:5}}
   map.int mc = {`F`:6, `G`:7}

@@ -8,3 +8,8 @@ run {
     str name = ReadString(`Enter your name: `)
     Println(`Hello, %{ ?(*name>0, name, `world`) }!` )
 }
+
+/* Shorter versions
+run : ||"Hello, world!\r\n"
+run : $ echo "Hello, world!"
+*/

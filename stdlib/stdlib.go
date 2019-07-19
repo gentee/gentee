@@ -40,6 +40,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 	InitContext(vm)
 	InitThread(vm)
 	InitCrypto(vm)
+	InitNetwork(vm)
 
 	stdlib.NewConst(core.ConstDepth, int64(1000), true)
 	stdlib.NewConst(core.ConstCycle, int64(16000000), true)

@@ -1,4 +1,9 @@
 run {
+  arr ai
+  IsKey(ai, `100`)
+}
+===== [3:3] function IsKey(arr.str, str) has not been found
+run {
   go(i:100) { str s = i + `OK`}
 }
 ===== [2:25] function Add(int, str) has not been found

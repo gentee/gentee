@@ -5,6 +5,7 @@
 package stdlib
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 
@@ -24,9 +25,11 @@ func InitBuffer(vm *core.VirtualMachine) {
 		{AssignAddºBufChar, `buf,char`, `buf`},   // buf += char
 		{AssignAddºBufBuf, `buf,buf`, `buf`},     // buf += buf
 		{AssignBitAndºBufBuf, `buf,buf`, `buf`},  // buf &= buf
+		{Base64ºBuf, `buf`, `str`},               // Base64( buf ) str
 		{DelºBufIntInt, `buf,int,int`, `buf`},    // Del( buf, int, int ) buf
 		{HexºBuf, `buf`, `str`},                  // Hex( buf ) str
 		{InsertºBufIntBuf, `buf,int,buf`, `buf`}, // Insert( buf, int, buf ) buf
+		{UnBase64ºStr, `str`, `buf`},             // UnBase64( str ) buf
 		{UnHexºStr, `str`, `buf`},                // UnHex( str ) buf
 		{sysBufNil, ``, `buf`},                   // sysBufNil() buf
 	} {
@@ -93,6 +96,11 @@ func strºBuf(buf *core.Buffer) string {
 	return string(buf.Data)
 }
 
+// Base64ºBuf encodes buf to base64 string
+func Base64ºBuf(buf *core.Buffer) string {
+	return base64.StdEncoding.EncodeToString(buf.Data)
+}
+
 // HexºBuf encodes buf to hex string
 func HexºBuf(buf *core.Buffer) string {
 	return hex.EncodeToString(buf.Data)
@@ -133,11 +141,11 @@ func LenºBuf(buf *core.Buffer) int64 {
 	return int64(len(buf.Data))
 }
 
-// UnHexºBufStr decodes hex string to the buffer
-func UnHexºBufStr(buf *core.Buffer, value string) (*core.Buffer, error) {
-	var err error
-	buf.Data, err = hex.DecodeString(value)
-	return buf, err
+// UnBase64ºStr decodes base64 string to buf
+func UnBase64ºStr(value string) (buf *core.Buffer, err error) {
+	buf = core.NewBuffer()
+	buf.Data, err = base64.StdEncoding.DecodeString(value)
+	return
 }
 
 // UnHexºStr decodes hex string to the buffer
