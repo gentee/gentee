@@ -13,6 +13,13 @@ import (
 	"testing"
 )
 
+// Source contains source code and result value
+type Source struct {
+	Src  string
+	Want string
+	Line int
+}
+
 func getWant(v interface{}, want string) error {
 	get := fmt.Sprint(v)
 	if runtime.GOOS == `windows` {
@@ -26,41 +33,56 @@ func getWant(v interface{}, want string) error {
 	return nil
 }
 
+func loadTest(filename string) (src []Source, err error) {
+	var input []byte
+	src = make([]Source, 0, 64)
+	input, err = ioutil.ReadFile(filepath.Join(`tests`, filename))
+	if err != nil {
+		return
+	}
+	list := strings.Split(string(input), "\n")
+	source := make([]string, 0, 32)
+	on := true
+	for i, line := range list {
+		if on && strings.HasPrefix(line, `OFF`) {
+			on = false
+			continue
+		}
+		if !on {
+			if strings.HasPrefix(line, `ON`) {
+				on = true
+			}
+			continue
+		}
+
+		if !strings.HasPrefix(line, `=====`) {
+			source = append(source, line)
+			continue
+		}
+		src = append(src, Source{
+			Src:  strings.Join(source, "\n"),
+			Want: strings.TrimSpace(strings.TrimLeft(line, `=`)),
+			Line: i,
+		})
+		source = source[:0]
+	}
+	return
+}
+
 func TestGentee(t *testing.T) {
 	workspace := New()
 
 	testFile := func(filename string) error {
-		input, err := ioutil.ReadFile(filepath.Join(`tests`, filename))
+		src, err := loadTest(filename)
 		if err != nil {
 			return err
 		}
-		list := strings.Split(string(input), "\n")
-		source := make([]string, 0, 32)
-		on := true
-		for i, line := range list {
-			if on && strings.HasPrefix(line, `OFF`) {
-				on = false
-				continue
-			}
-			if !on {
-				if strings.HasPrefix(line, `ON`) {
-					on = true
-				}
-				continue
-			}
-
-			if !strings.HasPrefix(line, `=====`) {
-				source = append(source, line)
-				continue
-			}
+		for i := len(src) - 1; i >= 0; i-- {
 			testErr := func(err error) error {
-				return fmt.Errorf(`[%d] of %s  %v`, i, filename, err)
+				return fmt.Errorf(`[%d] of %s  %v`, src[i].Line, filename, err)
 			}
-
-			want := strings.TrimSpace(strings.TrimLeft(line, `=`))
-			unitID, err := workspace.Compile(strings.Join(source, "\n"), ``)
-			source = source[:0]
-			if err != nil && err.Error() != strings.TrimSpace(want) {
+			unitID, err := workspace.Compile(src[i].Src, ``)
+			if err != nil && err.Error() != src[i].Want {
 				return testErr(err)
 			}
 			if err != nil {
@@ -68,10 +90,10 @@ func TestGentee(t *testing.T) {
 			}
 			result, err := workspace.Run(unitID)
 			if err == nil {
-				if err = getWant(result, want); err != nil {
+				if err = getWant(result, src[i].Want); err != nil {
 					return testErr(err)
 				}
-			} else if err.Error() != strings.TrimSpace(want) {
+			} else if err.Error() != src[i].Want {
 				return testErr(err)
 			}
 		}
