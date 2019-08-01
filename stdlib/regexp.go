@@ -11,17 +11,17 @@ import (
 )
 
 // InitRegExp appends stdlib regexp functions to the virtual machine
-func InitRegExp(vm *core.VirtualMachine) {
+func InitRegExp(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		MatchºStrStr,         // Match( str, str ) bool
 		ReplaceRegExpºStrStr, // ReplaceRegExp( str, str ) str
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 	for _, item := range []embedInfo{
 		{FindRegExpºStrStr, `str,str`, `arr.arr.str`}, // FindRegExp( str, str ) arr.arr.str
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

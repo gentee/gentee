@@ -16,8 +16,8 @@ import (
 )
 
 // InitFile appends stdlib int functions to the virtual machine
-func InitFile(vm *core.VirtualMachine) {
-	NewStructType(vm, `finfo`, []string{
+func InitFile(ws *core.Workspace) {
+	NewStructType(ws, `finfo`, []string{
 		`Name:str`, `Size:int`, `Mode:int`,
 		`Time:time`, `IsDir:bool`,
 	})
@@ -42,14 +42,14 @@ func InitFile(vm *core.VirtualMachine) {
 		WriteFileºStrBuf,   // WriteFile( str, buf )
 		WriteFileºStrStr,   // WriteFile( str, str )
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 	for _, item := range []embedInfo{
 		{FileInfoºStr, `str`, `finfo`},        // FileInfo( str ) finfo
 		{ReadDirºStr, `str`, `arr.finfo`},     // ReadDir( str ) arr.finfo
 		{SetFileTimeºStrTime, `str,time`, ``}, // SetFileTime( str, time )
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

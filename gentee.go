@@ -12,29 +12,29 @@ import (
 
 // Gentee is a common structure for compiling and executing Gentee source code
 type Gentee struct {
-	*core.VirtualMachine
+	*core.Workspace
 	cmdLine []string
 }
 
 // New creates a new Gentee workspace
 func New() *Gentee {
 	g := Gentee{
-		VirtualMachine: core.NewVM(),
+		Workspace: core.NewVM(),
 	}
-	stdlib.InitStdlib(g.VirtualMachine)
+	stdlib.InitStdlib(g.Workspace)
 	return &g
 }
 
 // Compile compiles the Gentee source code.
 // The function returns id of the compiled unit and error code.
 func (g *Gentee) Compile(input, path string) (int, error) {
-	return compiler.Compile(g.VirtualMachine, input, path)
+	return compiler.Compile(g.Workspace, input, path)
 }
 
 // CompileFile compiles the specified Gentee source file.
 // The function returns id of the compiled unit and error code.
 func (g *Gentee) CompileFile(filename string) (int, error) {
-	return compiler.CompileFile(g.VirtualMachine, filename)
+	return compiler.CompileFile(g.Workspace, filename)
 }
 
 // Unit returns the unit structure by its index.
@@ -52,7 +52,7 @@ func (g *Gentee) CmdLine(args ...string) {
 
 // Run executes the unit by its identifier.
 func (g *Gentee) Run(unitID int) (interface{}, error) {
-	return g.VirtualMachine.Run(unitID, g.cmdLine)
+	return g.Workspace.Run(unitID, g.cmdLine)
 }
 
 // Version returns the current version of the Gentee compiler.

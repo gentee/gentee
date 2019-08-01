@@ -12,7 +12,7 @@ import (
 )
 
 // InitInt appends stdlib int functions to the virtual machine
-func InitInt(vm *core.VirtualMachine) {
+func InitInt(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		AddºIntInt,          // binary +
 		DivºIntInt,          // binary /
@@ -48,7 +48,7 @@ func InitInt(vm *core.VirtualMachine) {
 		MaxºIntInt,          // Max(int, int)
 		MinºIntInt,          // Min(int, int)
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

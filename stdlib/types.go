@@ -18,7 +18,7 @@ type initType struct {
 }
 
 // InitTypes appends stdlib types to the virtual machine
-func InitTypes(vm *core.VirtualMachine) {
+func InitTypes(ws *core.Workspace) {
 	typeArr := reflect.TypeOf(core.Array{})
 	typeMap := reflect.TypeOf(core.Map{})
 	typeStruct := reflect.TypeOf(core.Struct{})
@@ -49,25 +49,25 @@ func InitTypes(vm *core.VirtualMachine) {
 	} {
 		var indexOf core.IObject
 		if len(item.index) > 0 {
-			indexOf = vm.StdLib().FindType(item.index)
+			indexOf = ws.StdLib().FindType(item.index)
 		}
-		vm.StdLib().NewType(item.name, item.original, indexOf)
+		ws.StdLib().NewType(item.name, item.original, indexOf)
 	}
 	// Define aliases
-	vm.StdLib().NameSpace[`@arr`] = vm.StdLib().NameSpace[`@arr.str`]
-	vm.StdLib().NameSpace[`@map`] = vm.StdLib().NameSpace[`@map.str`]
+	ws.StdLib().NameSpace[`@arr`] = ws.StdLib().NameSpace[`@arr.str`]
+	ws.StdLib().NameSpace[`@map`] = ws.StdLib().NameSpace[`@map.str`]
 }
 
 // NewStructType adds a new struct type to Unit
-func NewStructType(vm *core.VirtualMachine, name string, fields []string) *core.TypeObject {
+func NewStructType(ws *core.Workspace, name string, fields []string) *core.TypeObject {
 	names := make(map[string]int64)
 	types := make([]*core.TypeObject, len(fields))
 	for i, item := range fields {
 		itype := strings.SplitN(item, `:`, 2)
 		names[itype[0]] = int64(i)
-		types[i] = vm.StdLib().FindType(itype[1]).(*core.TypeObject)
+		types[i] = ws.StdLib().FindType(itype[1]).(*core.TypeObject)
 	}
-	pType := vm.StdLib().NewType(name, reflect.TypeOf(core.Struct{}), nil).(*core.TypeObject)
+	pType := ws.StdLib().NewType(name, reflect.TypeOf(core.Struct{}), nil).(*core.TypeObject)
 	pType.Custom = &core.StructType{
 		Fields: names,
 		Types:  types,

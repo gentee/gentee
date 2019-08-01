@@ -198,8 +198,8 @@ func popBuf(cmpl *compiler) error {
 		left := cmpl.exp[len(cmpl.exp)-2]
 
 		if expBuf.Oper == tkAssign && left.GetType() == core.CtUnary {
-			if left.GetObject() == cmpl.vm.StdLib().FindObj(core.DefGetEnv) {
-				setEnv := cmpl.vm.StdLib().FindObj(core.DefSetEnv)
+			if left.GetObject() == cmpl.ws.StdLib().FindObj(core.DefGetEnv) {
+				setEnv := cmpl.ws.StdLib().FindObj(core.DefSetEnv)
 				icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 					Object: setEnv,
 					Result: setEnv.Result(), Left: left.(*core.CmdUnary).Operand, Right: right}
@@ -220,13 +220,13 @@ func popBuf(cmpl *compiler) error {
 						return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
 							left.GetResult().GetName())
 					}
-					obj = cmpl.vm.StdLib().FindObj(core.DefAssignStructStruct)
+					obj = cmpl.ws.StdLib().FindObj(core.DefAssignStructStruct)
 				} else if left.GetResult().Func != nil {
 					if !isEqualTypes(left.GetResult(), right.GetResult()) {
 						return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
 							left.GetResult().GetName())
 					}
-					obj = cmpl.vm.StdLib().FindObj(core.DefAssignFnFn)
+					obj = cmpl.ws.StdLib().FindObj(core.DefAssignFnFn)
 				} else if left.GetResult() == right.GetResult() {
 					if left.GetResult().Original == reflect.TypeOf(core.Array{}) {
 						obj = cmpl.unit.FindObj(core.DefAssignArr)
@@ -240,7 +240,7 @@ func popBuf(cmpl *compiler) error {
 						return cmpl.ErrorPos(expBuf.Pos, ErrStructAssign, right.GetResult().GetName(),
 							left.GetResult().GetName())
 					}
-					obj = cmpl.vm.StdLib().FindObj(core.DefAssignBitAndStructStruct)
+					obj = cmpl.ws.StdLib().FindObj(core.DefAssignBitAndStructStruct)
 				} else if left.GetResult() == right.GetResult() {
 					if left.GetResult().Original == reflect.TypeOf(core.Array{}) {
 						obj = cmpl.unit.FindObj(core.DefAssignBitAndArrArr)

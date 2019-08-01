@@ -11,8 +11,8 @@ import (
 )
 
 // InitRuntime appends stdlib runtime functions to the virtual machine
-func InitRuntime(vm *core.VirtualMachine) {
-	NewStructType(vm, `trace`, []string{
+func InitRuntime(ws *core.Workspace) {
+	NewStructType(ws, `trace`, []string{
 		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
 	})
 	for _, item := range []embedInfo{
@@ -22,7 +22,7 @@ func InitRuntime(vm *core.VirtualMachine) {
 		{ErrTrace, `error`, `arr.trace`}, // ErrTrace( error ) arr.trace
 		{Trace, ``, `arr.trace`},         // Trace() arr.trace
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

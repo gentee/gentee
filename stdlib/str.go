@@ -14,7 +14,7 @@ import (
 )
 
 // InitStr appends stdlib string functions to the virtual machine
-func InitStr(vm *core.VirtualMachine) {
+func InitStr(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		AddºStrStr,        // binary +
 		EqualºStrStr,      // binary ==
@@ -43,14 +43,14 @@ func InitStr(vm *core.VirtualMachine) {
 		TrimRightºStr,     // TrimRight( str, str ) str
 		UpperºStr,         // Upper( str ) str
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 
 	for _, item := range []embedInfo{
 		{LinesºStr, `str`, `arr.str`},        // Lines( str ) arr
 		{SplitºStrStr, `str,str`, `arr.str`}, // Split( str, str ) arr
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

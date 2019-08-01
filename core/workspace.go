@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// VirtualMachine contains information of compiled source code
-type VirtualMachine struct {
+// Workspace contains information of compiled source code
+type Workspace struct {
 	Units     []*Unit
 	UnitNames map[string]int
 	Objects   []IObject
@@ -30,7 +30,7 @@ const (
 
 // Unit is a common structure for source code
 type Unit struct {
-	VM        *VirtualMachine
+	VM        *Workspace
 	Index     uint32            // Index of the Unit
 	NameSpace map[string]uint32 // name space of the unit
 	Included  map[uint32]bool   // false - included or true - imported units
@@ -45,20 +45,20 @@ func init() {
 }
 
 // NewVM returns a new virtual machine
-func NewVM() *VirtualMachine {
-	vm := VirtualMachine{
+func NewVM() *Workspace {
+	ws := Workspace{
 		UnitNames: make(map[string]int),
 		Units:     make([]*Unit, 0, 32),
 		Objects:   make([]IObject, 0, 500),
 		Linked:    make(map[string]int),
 	}
-	return &vm
+	return &ws
 }
 
 // InitUnit initialize a unit structure
-func (vm *VirtualMachine) InitUnit() *Unit {
+func (ws *Workspace) InitUnit() *Unit {
 	return &Unit{
-		VM:        vm,
+		VM:        ws,
 		RunID:     Undefined,
 		NameSpace: make(map[string]uint32),
 		Included:  make(map[uint32]bool),
@@ -101,27 +101,27 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 }
 
 // StdLib returns the pointer to Standard Library Unit
-func (vm *VirtualMachine) StdLib() *Unit {
-	return vm.Unit(DefName)
+func (ws *Workspace) StdLib() *Unit {
+	return ws.Unit(DefName)
 }
 
 // Unit returns the pointer to Unit by its name
-func (vm *VirtualMachine) Unit(name string) *Unit {
-	return vm.Units[vm.UnitNames[name]]
+func (ws *Workspace) Unit(name string) *Unit {
+	return ws.Units[ws.UnitNames[name]]
 }
 
 // Run executes run block
-func (vm *VirtualMachine) Run(unitID int, cmdLine []string) (interface{}, error) {
-	rt := newRunTime(vm)
-	if unitID < 0 || unitID >= len(vm.Units) {
+func (ws *Workspace) Run(unitID int, cmdLine []string) (interface{}, error) {
+	rt := newRunTime(ws)
+	if unitID < 0 || unitID >= len(ws.Units) {
 		return nil, runtimeError(rt, nil, ErrRunIndex)
 	}
-	unit := vm.Units[unitID]
+	unit := ws.Units[unitID]
 	if unit.RunID == Undefined {
 		return nil, runtimeError(rt, nil, ErrNotRun)
 	}
 	rt.CmdLine = cmdLine
-	funcRun := vm.Objects[unit.RunID].(*FuncObject)
+	funcRun := ws.Objects[unit.RunID].(*FuncObject)
 	errResult := rt.runCmd(&funcRun.Block)
 	var result interface{}
 	if errResult == nil {

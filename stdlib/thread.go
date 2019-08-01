@@ -11,7 +11,7 @@ import (
 )
 
 // InitThread appends stdlib thread functions to the virtual machine
-func InitThread(vm *core.VirtualMachine) {
+func InitThread(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{AssignºThreadThread, `thread,thread`, `thread`},      // thread = thread
 		{AssignAddºArrInt, `arr.thread,thread`, `arr.thread`}, // arr += thread
@@ -20,7 +20,7 @@ func InitThread(vm *core.VirtualMachine) {
 		{suspendºThread, `thread`, ``},                        // suspend( thread )
 		{waitºThread, `thread`, ``},                           // wait( thread )
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 // InitChar appends stdlib int functions to the virtual machine
-func InitChar(vm *core.VirtualMachine) {
+func InitChar(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		AddºCharChar,      // binary +
 		AddºStrChar,       // binary str + char
@@ -23,7 +23,7 @@ func InitChar(vm *core.VirtualMachine) {
 		intºChar,          // int( char )
 		strºChar,          // str( char )
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

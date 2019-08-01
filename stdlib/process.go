@@ -17,13 +17,13 @@ import (
 )
 
 // InitProcess appends stdlib process functions to the virtual machine
-func InitProcess(vm *core.VirtualMachine) {
+func InitProcess(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		OpenºStr,     // Open( str )
 		OpenWithºStr, // OpenWith( str, str )
 		sysRun,       // sysRun
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 	for _, item := range []embedInfo{
 		{ArgCount, ``, `int`},          // ArgCount() int
@@ -35,7 +35,7 @@ func InitProcess(vm *core.VirtualMachine) {
 		{ArgsTail, ``, `arr.str`},      // ArgsTail() arr.str
 		{IsArgºStr, `str`, `bool`},     // IsArg(str) bool
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

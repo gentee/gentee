@@ -23,7 +23,7 @@ type RunTimeBlock struct {
 
 // RunTime is the structure for running compiled functions
 type RunTime struct {
-	VM       *VirtualMachine
+	VM       *Workspace
 	Stack    []interface{} // the stack of values
 	Calls    []ICmd        // the stack of calling functions
 	Blocks   []RunTimeBlock
@@ -43,9 +43,9 @@ type RunTime struct {
 	Depth int64
 }
 
-func newRunTime(vm *VirtualMachine) *RunTime {
+func newRunTime(ws *Workspace) *RunTime {
 	rt := &RunTime{
-		VM:     vm,
+		VM:     ws,
 		Stack:  make([]interface{}, 0, 1024),
 		Calls:  make([]ICmd, 0, 64),
 		Consts: make(map[string]interface{}),
@@ -55,7 +55,7 @@ func newRunTime(vm *VirtualMachine) *RunTime {
 
 	for _, item := range []string{ConstDepth, ConstCycle} {
 		// TODO: Insert redefinition of constants here
-		rt.runCmd(vm.StdLib().FindConst(item).(*ConstObject).Exp)
+		rt.runCmd(ws.StdLib().FindConst(item).(*ConstObject).Exp)
 		rt.Consts[item] = rt.Stack[len(rt.Stack)-1]
 	}
 	rt.Cycle = rt.Consts[ConstCycle].(int64)

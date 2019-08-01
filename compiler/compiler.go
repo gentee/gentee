@@ -13,7 +13,7 @@ import (
 
 // Compiler contains information of the compilation process
 type compiler struct {
-	vm          *core.VirtualMachine
+	ws          *core.Workspace
 	unit        *core.Unit
 	owners      []core.ICmd
 	exp         []core.ICmd
@@ -131,7 +131,7 @@ func (cmpl *compiler) curOwner() *core.CmdBlock {
 func (cmpl *compiler) appendObj(obj core.IObject) (ret int) {
 	//	cmpl.unit.NewObject(obj)
 	cmpl.unit.VM.Objects = append(cmpl.unit.VM.Objects, obj)
-	ret = len(cmpl.vm.Objects) - 1
+	ret = len(cmpl.ws.Objects) - 1
 	if obj.GetType() == core.ObjFunc {
 		cmpl.curFunc = ret
 	}
@@ -139,20 +139,20 @@ func (cmpl *compiler) appendObj(obj core.IObject) (ret int) {
 }
 
 func (cmpl *compiler) latestFunc() *core.FuncObject {
-	return cmpl.vm.Objects[cmpl.curFunc].(*core.FuncObject)
+	return cmpl.ws.Objects[cmpl.curFunc].(*core.FuncObject)
 }
 
 // Compile compiles the source code
-func Compile(vm *core.VirtualMachine, input, path string) (int, error) {
+func Compile(ws *core.Workspace, input, path string) (int, error) {
 
-	countObjects := len(vm.Objects)
-	countUnits := len(vm.Units)
+	countObjects := len(ws.Objects)
+	countUnits := len(ws.Units)
 
 	lp, errID := LexParsing([]rune(input))
 	lp.Path = path
 	cmpl := &compiler{
-		vm:      vm,
-		unit:    vm.InitUnit(),
+		ws:      ws,
+		unit:    ws.InitUnit(),
 		lexems:  []int{0}, // added lp in Lexeme
 		runID:   core.Undefined,
 		owners:  make([]core.ICmd, 0, 128),
@@ -161,14 +161,14 @@ func Compile(vm *core.VirtualMachine, input, path string) (int, error) {
 		curIota: core.NotIota,
 	}
 	cmpl.unit.Lexeme = []*core.Lex{lp}
-	cmpl.copyNameSpace(vm.StdLib(), true)
+	cmpl.copyNameSpace(ws.StdLib(), true)
 	cmplError := func(err interface{}) (int, error) {
-		// Rollback vm
-		vm.Objects = vm.Objects[:countObjects]
-		vm.Units = vm.Units[:countUnits]
-		for key, unitID := range vm.UnitNames {
+		// Rollback ws
+		ws.Objects = ws.Objects[:countObjects]
+		ws.Units = ws.Units[:countUnits]
+		for key, unitID := range ws.UnitNames {
 			if unitID >= countUnits {
-				delete(vm.UnitNames, key)
+				delete(ws.UnitNames, key)
 			}
 		}
 
@@ -292,19 +292,19 @@ main:
 		if len(cmpl.unit.Name) == 0 {
 			cmpl.unit.Name = path
 		}
-		if unitIndex, ok := vm.UnitNames[cmpl.unit.Name]; ok {
-			if vm.Units[unitIndex].Lexeme[0].Path != path {
+		if unitIndex, ok := ws.UnitNames[cmpl.unit.Name]; ok {
+			if ws.Units[unitIndex].Lexeme[0].Path != path {
 				return cmplError(cmpl.Error(ErrLink, cmpl.unit.Name))
 			}
 		}
-		/*				vm.Units[unitIndex] = cmpl.unit
-						vm.Compiled = unitIndex
+		/*				ws.Units[unitIndex] = cmpl.unit
+						ws.Compiled = unitIndex
 					} else {*/
 	}
-	vm.Units = append(vm.Units, cmpl.unit)
-	unitID := len(vm.Units) - 1
-	vm.UnitNames[cmpl.unit.Name] = unitID
-	vm.Units[unitID].Index = uint32(unitID)
+	ws.Units = append(ws.Units, cmpl.unit)
+	unitID := len(ws.Units) - 1
+	ws.UnitNames[cmpl.unit.Name] = unitID
+	ws.Units[unitID].Index = uint32(unitID)
 
 	return unitID, nil
 }
@@ -603,7 +603,7 @@ func coVarExp(cmpl *compiler) error {
 
 func coExpEnv(cmpl *compiler) error {
 	token := getToken(cmpl.getLex(), cmpl.pos)
-	getEnv := cmpl.vm.StdLib().FindObj(core.DefGetEnv) //Names[`GetEnv`]
+	getEnv := cmpl.ws.StdLib().FindObj(core.DefGetEnv) //Names[`GetEnv`]
 	icmd := &core.CmdValue{Value: token,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
 		Result:    getEnv.Result()}

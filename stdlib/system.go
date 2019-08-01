@@ -15,14 +15,14 @@ import (
 )
 
 // InitSystem appends stdlib system functions to the virtual machine
-func InitSystem(vm *core.VirtualMachine) {
+func InitSystem(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		Command,       // $( str )
 		CommandOutput, // $( str )
 		GetEnv,        // get environment variable
 		SetEnv,        // set environment variable
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

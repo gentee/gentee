@@ -9,11 +9,11 @@ import (
 )
 
 // InitKeyValue appends stdlib range functions to the virtual machine
-func InitKeyValue(vm *core.VirtualMachine) {
+func InitKeyValue(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		NewKeyValue, // binary :
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

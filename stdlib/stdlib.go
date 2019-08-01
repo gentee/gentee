@@ -10,37 +10,37 @@ import (
 )
 
 // InitStdlib appends stdlib types and functions to the virtual machine
-func InitStdlib(vm *core.VirtualMachine) {
-	stdlib := vm.InitUnit()
+func InitStdlib(ws *core.Workspace) {
+	stdlib := ws.InitUnit()
 	stdlib.Pub = core.PubAll
-	vm.Units = append(vm.Units, stdlib)
-	vm.UnitNames[core.DefName] = len(vm.Units) - 1
-	InitTypes(vm)
-	InitInt(vm)
-	InitFloat(vm)
-	InitBool(vm)
-	InitChar(vm)
-	InitStr(vm)
-	InitKeyValue(vm)
-	InitRange(vm)
-	InitArray(vm)
-	InitBuffer(vm)
-	InitSet(vm)
-	InitMap(vm)
-	InitStruct(vm)
-	InitFn(vm)
-	InitSystem(vm)
-	InitTime(vm)
-	InitFile(vm)
-	InitPath(vm)
-	InitProcess(vm)
-	InitConsole(vm)
-	InitRuntime(vm)
-	InitRegExp(vm)
-	InitContext(vm)
-	InitThread(vm)
-	InitCrypto(vm)
-	InitNetwork(vm)
+	ws.Units = append(ws.Units, stdlib)
+	ws.UnitNames[core.DefName] = len(ws.Units) - 1
+	InitTypes(ws)
+	InitInt(ws)
+	InitFloat(ws)
+	InitBool(ws)
+	InitChar(ws)
+	InitStr(ws)
+	InitKeyValue(ws)
+	InitRange(ws)
+	InitArray(ws)
+	InitBuffer(ws)
+	InitSet(ws)
+	InitMap(ws)
+	InitStruct(ws)
+	InitFn(ws)
+	InitSystem(ws)
+	InitTime(ws)
+	InitFile(ws)
+	InitPath(ws)
+	InitProcess(ws)
+	InitConsole(ws)
+	InitRuntime(ws)
+	InitRegExp(ws)
+	InitContext(ws)
+	InitThread(ws)
+	InitCrypto(ws)
+	InitNetwork(ws)
 
 	stdlib.NewConst(core.ConstDepth, int64(1000), true)
 	stdlib.NewConst(core.ConstCycle, int64(16000000), true)
@@ -62,7 +62,7 @@ func InitStdlib(vm *core.VirtualMachine) {
 		sysRun(cmd, true, stdin, stdout, stderr, args)
 	  }
 	`
-	unitID, _ := compiler.Compile(vm, src, ``)
-	vm.Units[0].NameSpace[`?Run`] = vm.Units[unitID].NameSpace[`?Run`]
-	vm.Units[0].NameSpace[`?Start`] = vm.Units[unitID].NameSpace[`?Start`]
+	unitID, _ := compiler.Compile(ws, src, ``)
+	ws.Units[0].NameSpace[`?Run`] = ws.Units[unitID].NameSpace[`?Run`]
+	ws.Units[0].NameSpace[`?Start`] = ws.Units[unitID].NameSpace[`?Start`]
 }

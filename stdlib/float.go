@@ -13,7 +13,7 @@ import (
 )
 
 // InitFloat appends stdlib float functions to the virtual machine
-func InitFloat(vm *core.VirtualMachine) {
+func InitFloat(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		AddºFloatFloat,       // binary +
 		AddºFloatInt,         // binary +
@@ -50,7 +50,7 @@ func InitFloat(vm *core.VirtualMachine) {
 		MinºFloatFloat,       // Min(float, float)
 		MaxºFloatFloat,       // Max(float, float)
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

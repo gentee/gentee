@@ -14,13 +14,13 @@ import (
 )
 
 // InitNetwork appends stdlib network functions to the virtual machine
-func InitNetwork(vm *core.VirtualMachine) {
+func InitNetwork(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		Download, // Download(str, str) int
 		HTTPGet,  // HTTPGet(str) buf
 		HTTPPage, // HTTPPage(str) str
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

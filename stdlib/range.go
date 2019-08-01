@@ -9,11 +9,11 @@ import (
 )
 
 // InitRange appends stdlib range functions to the virtual machine
-func InitRange(vm *core.VirtualMachine) {
+func InitRange(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		NewRange, // binary ..
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

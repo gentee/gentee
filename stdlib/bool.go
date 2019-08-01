@@ -9,7 +9,7 @@ import (
 )
 
 // InitBool appends stdlib bool functions to the virtual machine
-func InitBool(vm *core.VirtualMachine) {
+func InitBool(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		strºBool,        // str( bool )
 		intºBool,        // int( bool )
@@ -17,7 +17,7 @@ func InitBool(vm *core.VirtualMachine) {
 		ExpStrºBool,     // expression in string
 		AssignºBoolBool, // bool = bool
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

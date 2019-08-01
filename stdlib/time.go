@@ -12,8 +12,8 @@ import (
 )
 
 // InitTime appends stdlib time functions to the virtual machine
-func InitTime(vm *core.VirtualMachine) {
-	NewStructType(vm, `time`, []string{
+func InitTime(ws *core.Workspace) {
+	NewStructType(ws, `time`, []string{
 		`Year:int`, `Month:int`, `Day:int`,
 		`Hour:int`, `Minute:int`, `Second:int`,
 		`UTC:bool`,
@@ -37,7 +37,7 @@ func InitTime(vm *core.VirtualMachine) {
 		{WeekdayºTime, `time`, `int`},                      // Weekday(time)
 		{YearDayºTime, `time`, `int`},                      // YearDay(time) int
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

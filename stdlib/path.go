@@ -13,7 +13,7 @@ import (
 )
 
 // InitPath appends stdlib filepath functions to the virtual machine
-func InitPath(vm *core.VirtualMachine) {
+func InitPath(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		AbsPath,   // AbsPath(str) str
 		BaseName,  // BaseName(str) str
@@ -22,7 +22,7 @@ func InitPath(vm *core.VirtualMachine) {
 		JoinPath,  // JoinPath(str pars...) str
 		MatchPath, // MatchPath(str, str) bool
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

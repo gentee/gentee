@@ -31,7 +31,7 @@ var (
 )
 
 // InitContext appends stdlib context functions to the virtual machine
-func InitContext(vm *core.VirtualMachine) {
+func InitContext(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{CtxSetºStrStr, `str,str`, `str`},     // CtxSet( str, str )
 		{CtxSetºStrBool, `str,bool`, `str`},   // CtxSet( str, bool )
@@ -42,7 +42,7 @@ func InitContext(vm *core.VirtualMachine) {
 		{CtxºStr, `str`, `str`},               // Ctx( str )
 		{CtxGetºStr, `str`, `str`},            // CtxGet( str )
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

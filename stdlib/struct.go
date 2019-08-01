@@ -9,12 +9,12 @@ import (
 )
 
 // InitStruct appends stdlib map functions to the virtual machine
-func InitStruct(vm *core.VirtualMachine) {
+func InitStruct(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{AssignºStructStruct, `struct,struct`, `struct`},       // struct = struct
 		{AssignBitAndºStructStruct, `struct,struct`, `struct`}, // struct &= struct
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

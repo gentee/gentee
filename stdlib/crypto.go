@@ -12,14 +12,14 @@ import (
 )
 
 // InitCrypto appends stdlib crypto functions to the virtual machine
-func InitCrypto(vm *core.VirtualMachine) {
+func InitCrypto(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{Md5ºBuf, `buf`, `buf`},    // Md5( buf ) buf
 		{Md5ºStr, `str`, `buf`},    // Md5( str ) buf
 		{Sha256ºBuf, `buf`, `buf`}, // Sha256( buf ) buf
 		{Sha256ºStr, `str`, `buf`}, // Sha256( str ) buf
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

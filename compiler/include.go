@@ -13,7 +13,7 @@ import (
 )
 
 // CompileFile compiles the source file
-func CompileFile(vm *core.VirtualMachine, filename string) (unitID int, err error) {
+func CompileFile(ws *core.Workspace, filename string) (unitID int, err error) {
 	var (
 		absname, curDir string
 		input           []byte
@@ -21,7 +21,7 @@ func CompileFile(vm *core.VirtualMachine, filename string) (unitID int, err erro
 	if absname, err = filepath.Abs(filename); err != nil {
 		return
 	}
-	if unitID = vm.Linked[absname]; unitID != 0 {
+	if unitID = ws.Linked[absname]; unitID != 0 {
 		return
 	}
 	if curDir, err = os.Getwd(); err != nil {
@@ -34,9 +34,9 @@ func CompileFile(vm *core.VirtualMachine, filename string) (unitID int, err erro
 	if input, err = ioutil.ReadFile(absname); err != nil {
 		return
 	}
-	unitID, err = Compile(vm, string(input), absname)
+	unitID, err = Compile(ws, string(input), absname)
 	if err == nil {
-		vm.Linked[absname] = unitID
+		ws.Linked[absname] = unitID
 	}
 	return
 }
@@ -74,13 +74,13 @@ func coIncludeImport(cmpl *compiler) error {
 		}
 	}
 	includeFile := os.ExpandEnv(v.(string))
-	unitID, err = CompileFile(cmpl.vm, includeFile)
+	unitID, err = CompileFile(cmpl.ws, includeFile)
 	if err != nil && unitID == 0 {
 		return cmpl.Error(ErrIncludeFile, includeFile)
 	}
 	if err == nil {
 		if v, ok := cmpl.unit.Included[uint32(unitID)]; !ok || (v && !cmpl.isImport) {
-			err = cmpl.copyNameSpace(cmpl.vm.Units[unitID], cmpl.isImport)
+			err = cmpl.copyNameSpace(cmpl.ws.Units[unitID], cmpl.isImport)
 			cmpl.unit.Included[uint32(unitID)] = cmpl.isImport
 		}
 	}

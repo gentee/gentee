@@ -18,7 +18,7 @@ type embedInfo struct {
 }
 
 // InitArray appends stdlib array functions to the virtual machine
-func InitArray(vm *core.VirtualMachine) {
+func InitArray(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{AssignAddºArrStr, `arr.str,str`, `arr.str`},     // arr += str
 		{LenºArr, `arr*`, `int`},                         // the length of array
@@ -31,7 +31,7 @@ func InitArray(vm *core.VirtualMachine) {
 		{JoinºArrStr, `arr.str,str`, `str`},              // Join( arr.str, str )
 		{SortºArr, `arr.str`, `arr.str`},                 // Sort( arr.str )
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

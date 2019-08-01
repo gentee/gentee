@@ -9,7 +9,7 @@ import (
 )
 
 // InitMap appends stdlib map functions to the virtual machine
-func InitMap(vm *core.VirtualMachine) {
+func InitMap(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{LenºMap, `map*`, `int`},                   // the length of map
 		{AssignºMapMap, `map*,map*`, `map*`},       // map = map
@@ -17,7 +17,7 @@ func InitMap(vm *core.VirtualMachine) {
 		{DelºMapStrAuto, `map*,str`, `map*`},       // Delete(map, str)
 		{IsKeyºMapStrAuto, `map*,str`, `bool`},     // IsKey(map, str)
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

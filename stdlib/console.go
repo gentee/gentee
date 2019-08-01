@@ -14,14 +14,14 @@ import (
 )
 
 // InitConsole appends stdlib console functions to the virtual machine
-func InitConsole(vm *core.VirtualMachine) {
+func InitConsole(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		PrintShiftºStr, // unary bitwise OR
 		Print,          // Print()
 		Println,        // Println()
 		ReadString,     // ReadString(str) str
 	} {
-		vm.StdLib().NewEmbed(item)
+		ws.StdLib().NewEmbed(item)
 	}
 }
 

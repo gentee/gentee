@@ -13,7 +13,7 @@ import (
 )
 
 // InitBuffer appends stdlib buffer functions to the virtual machine
-func InitBuffer(vm *core.VirtualMachine) {
+func InitBuffer(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{bufºStr, `str`, `buf`},                  // buf( str ) buf
 		{strºBuf, `buf`, `str`},                  // str( buf ) str
@@ -33,7 +33,7 @@ func InitBuffer(vm *core.VirtualMachine) {
 		{UnHexºStr, `str`, `buf`},                // UnHex( str ) buf
 		{sysBufNil, ``, `buf`},                   // sysBufNil() buf
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

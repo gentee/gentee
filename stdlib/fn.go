@@ -9,11 +9,11 @@ import (
 )
 
 // InitFn appends stdlib fn functions to the virtual machine
-func InitFn(vm *core.VirtualMachine) {
+func InitFn(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{AssignºFnFn, `fn,fn`, `fn`}, // fn = fn
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 

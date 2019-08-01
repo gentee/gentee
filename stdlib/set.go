@@ -11,7 +11,7 @@ import (
 )
 
 // InitSet appends stdlib buffer functions to the virtual machine
-func InitSet(vm *core.VirtualMachine) {
+func InitSet(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{setºStr, `str`, `set`},                 // set( str ) set
 		{strºSet, `set`, `str`},                 // str( set ) str
@@ -28,7 +28,7 @@ func InitSet(vm *core.VirtualMachine) {
 		{BitNotºSet, `set`, `set`},              // ^set  toggle set
 		{ToggleºSetInt, `set,int`, `bool`},      // Toggle(set, int) bool
 	} {
-		vm.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
+		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
 }
 
