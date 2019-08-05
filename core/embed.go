@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+type Link struct {
+	Func interface{}
+	Code uint16
+}
+
 const (
 	// DefAssignAddArr appends the array to array
 	DefAssignAddArr = `AssignAddºArrArr`
@@ -65,8 +70,15 @@ var (
 
 // NewEmbedTypes adds a new EmbedObject to Unit with types
 func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
-	var variadic, isRuntime bool
+	var (
+		variadic, isRuntime bool
+		code                []uint16
+	)
 
+	if v, ok := Func.(Link); ok {
+		Func = v.Func
+		code = []uint16{v.Code}
+	}
 	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
 	name = name[strings.LastIndexByte(name, '.')+1:]
 	originalName := name
@@ -98,6 +110,9 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 		Object: Object{
 			Name: name,
 			Unit: unit,
+			BCode: Bytecode{
+				Code: code,
+			},
 		},
 		Func:     Func,
 		Return:   outType,

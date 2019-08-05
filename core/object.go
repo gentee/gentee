@@ -31,6 +31,7 @@ type IObject interface {
 	GetType() ObjectType
 	SetPub()
 	GetUnitIndex() uint32
+	GetCode() *Bytecode
 }
 
 // Object contains information about any compiled object of the virtual machine
@@ -38,7 +39,9 @@ type Object struct {
 	Name  string
 	LexID int // the identifier of source code in Lexeme of Unit
 	Unit  *Unit
-	Pub   bool // public object
+	Pub   bool   // public object
+	ObjID uint16 // index in Objects
+	BCode Bytecode
 }
 
 // TypeObject contains information about the type
@@ -121,6 +124,11 @@ func (typeObj *TypeObject) GetUnitIndex() uint32 {
 	return typeObj.Unit.Index
 }
 
+// GetCode returns the Bytecode structure
+func (typeObj *TypeObject) GetCode() *Bytecode {
+	return &typeObj.BCode
+}
+
 // GetName returns the name of the object
 func (funcObj *FuncObject) GetName() string {
 	return funcObj.Name
@@ -154,6 +162,11 @@ func (funcObj *FuncObject) SetPub() {
 // GetUnitIndex returns the index of the unit of this object
 func (funcObj *FuncObject) GetUnitIndex() uint32 {
 	return funcObj.Unit.Index
+}
+
+// GetCode returns the Bytecode structure
+func (funcObj *FuncObject) GetCode() *Bytecode {
+	return &funcObj.BCode
 }
 
 // GetName returns the name of the object
@@ -191,6 +204,11 @@ func (embedObj *EmbedObject) GetUnitIndex() uint32 {
 	return embedObj.Unit.Index
 }
 
+// GetCode returns the Bytecode structure
+func (embedObj *EmbedObject) GetCode() *Bytecode {
+	return &embedObj.BCode
+}
+
 // GetName returns the name of the object
 func (constObj *ConstObject) GetName() string {
 	return constObj.Name
@@ -224,6 +242,11 @@ func (constObj *ConstObject) SetPub() {
 // GetUnitIndex returns the index of the unit of this object
 func (constObj *ConstObject) GetUnitIndex() uint32 {
 	return constObj.Unit.Index
+}
+
+// GetCode returns the Bytecode structure
+func (constObj *ConstObject) GetCode() *Bytecode {
+	return &constObj.BCode
 }
 
 // NewObject adds a new IObject to Unit

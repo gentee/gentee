@@ -175,6 +175,8 @@ const (
 	ErrRecover
 	// ErrRetry returns when recover is placed outside of catch
 	ErrRetry
+	// ErrLinkIndex is returned when linker gets incorrect unit index
+	ErrLinkIndex
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -275,6 +277,7 @@ var (
 		ErrCatch:          `unexpected token, expecting 'catch'`,
 		ErrRecover:        `'recover' can only be inside catch`,
 		ErrRetry:          `'retry' can only be inside catch`,
+		ErrLinkIndex:      `incorrect link index %d`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

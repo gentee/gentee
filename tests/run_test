@@ -1469,6 +1469,11 @@ run int {
   return name(101)*name()
 }
 ===== 515
+func test int : return 8
+run int { 
+  return (test() + test() + 4)/( test()-4 ) 
+}
+===== 5
 run int { 
   if true {
     34
@@ -1477,6 +1482,10 @@ run int {
   return 0
 }
 ===== 4
+run char { 
+  return 'A'
+}
+===== 65
 run bool { 
   return true
 }
@@ -1533,6 +1542,12 @@ run {}
 ===== <nil>
 run {return}
 ===== <nil>
+run int {return -2345780}
+===== -2345780
+run int {return 9134578011789}
+===== 9134578011789
+run int {return 2345780}
+===== 2345780
 run int {return 77}
 ===== 77
 run int {return 0647}

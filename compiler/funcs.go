@@ -26,6 +26,7 @@ func newFunc(cmpl *compiler, name string) int {
 	funcObj.Block.Object = funcObj
 	cmpl.owners = append(cmpl.owners, &funcObj.Block) //[]core.ICmd{&funcObj.Block}
 	ind := cmpl.appendObj(funcObj)
+	funcObj.ObjID = uint16(ind)
 	return ind
 }
 
