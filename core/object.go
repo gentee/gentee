@@ -39,8 +39,8 @@ type Object struct {
 	Name  string
 	LexID int // the identifier of source code in Lexeme of Unit
 	Unit  *Unit
-	Pub   bool   // public object
-	ObjID uint16 // index in Objects
+	Pub   bool  // public object
+	ObjID int32 // index in Objects
 	BCode Bytecode
 }
 

@@ -23,8 +23,10 @@ type VM struct {
 
 // Runtime is the one thread structure
 type Runtime struct {
-	Owner  *VM
-	States []State
+	Owner    *VM
+	ParCount int32
+	Calls    []Call
+	//	Consts
 	// These are stacks for different types
 	SInt   [STACKSIZE]int64       // int, char, bool
 	SFloat [STACKSIZE]float64     // float
@@ -32,37 +34,19 @@ type Runtime struct {
 	SAny   [STACKSIZE]interface{} // all other types
 }
 
-// State stores tops of stacks
-type State struct {
-	topInt   int
-	topFloat int
-	topStr   int
-	topAny   int
-}
-
-func (state *State) Get() (int, int, int, int) {
-	return state.topInt, state.topFloat, state.topStr, state.topAny
-}
-
-func (rt *Runtime) PushState(topInt, topFloat, topStr, topAny int) {
-	rt.States = append(rt.States, State{
-		topInt:   topInt,
-		topFloat: topFloat,
-		topStr:   topStr,
-		topAny:   topAny,
-	})
-}
-
-func (rt *Runtime) PopState() (int, int, int, int) {
-	state := rt.States[len(rt.States)-1]
-	rt.States = rt.States[:len(rt.States)-1]
-	return state.topInt, state.topFloat, state.topStr, state.topAny
+// Call stores stack of blocks
+type Call struct {
+	IsFunc bool
+	Offset int32
+	Int    int32
+	Float  int32
+	Str    int32
+	Any    int32
 }
 
 func (vm *VM) RunThread(offset int64) (interface{}, error) {
 	rt := &Runtime{
-		Owner:  vm,
-		States: []State{State{}},
+		Owner: vm,
 	}
 	vm.Runtimes = append(vm.Runtimes, rt)
 

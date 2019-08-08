@@ -4,30 +4,32 @@
 
 package core
 
+type Bcode int32
+
 // Bytecode contains bytecode information
 type Bytecode struct {
-	Code []uint16
-	Used map[uint16]byte // identifier of used objects
+	Code []Bcode
+	Used map[int32]byte // identifier of used objects
 }
 
 type Exec struct {
-	Code  []uint16
-	Funcs map[uint16]uint32
+	Code  []Bcode
+	Funcs map[int32]int32
 }
 
 const (
-	STACKNO = iota
-	STACKINT
-	STACKBOOL
-	STACKCHAR
-	STACKFLOAT
+	TYPENONE = iota
+	TYPEINT
+	TYPEBOOL
+	TYPECHAR
+
+/*	STACKFLOAT
 	STACKSTR
-	STACKANY
+	STACKANY*/
 )
 
 const (
 	NOP      = iota
-	PUSH16   // + int16
 	PUSH32   // + int32
 	PUSH64   // + int64
 	ADD      // int + int
@@ -36,13 +38,19 @@ const (
 	DIV      // int / int
 	MOD      // int % int
 	SIGN     // -int
-	EQINT    // int == int
-	LTINT    // int < int
-	GTINT    // int > int
+	EQ       // int == int
+	LT       // int < int
+	GT       // int > int
 	NOT      // logical not 1 => 0, 0 => 1
-	JMP      // + int16 jump with clearing stack
-	JZE      // + int16 jump if the top value is zero
-	RET      // return + int16 stack id
+	GETVAR   // & (block shift<<16) + int16 type + int16 index
+	SETVAR   // & (block shift<<16) + int16 type + int16 index
+	DUP      // duplicate top int
+	JMP      // + int32 jump with clearing stack
+	JZE      // + int32 jump if the top value is zero
+	JNZ      // + int32 jump if the top value is not zero
+	INITVARS // initializing variables
+	DELVARS  // delete variables
+	RET      // & (type<<16) return from function
 	END      // end of the function
-	CALLBYID // + uint16 id of the object
+	CALLBYID // & (par count<<16) + int32 id of the object
 )

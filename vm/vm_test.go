@@ -84,7 +84,6 @@ func TestVM(t *testing.T) {
 			testErr := func(err error) error {
 				return fmt.Errorf(`[%d] of %s  %v`, src[i].Line, filename, err)
 			}
-			fmt.Println(`LINE`, src[i].Line)
 			unitID, err := workspace.Compile(src[i].Src, ``)
 			if err != nil && err.Error() != src[i].Want {
 				return testErr(err)
@@ -96,9 +95,11 @@ func TestVM(t *testing.T) {
 			if err != nil {
 				return testErr(err)
 			}
+			fmt.Println(`LINE START`, src[i].Line)
 			result, err := Run(linked, Settings{})
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {
+					fmt.Println(`LINE`, src[i].Line)
 					return testErr(err)
 				}
 			} else if err.Error() != src[i].Want {
@@ -107,6 +108,43 @@ func TestVM(t *testing.T) {
 		}
 		return nil
 	}
+	/*	var top1, top2, top3, top4 int64
+		for i := 0; i < 4000000000; i++ {
+			top1++
+			top2++
+			top3++
+			top4++
+			top1 = top2 + top3
+		}*/
+	/*var top State
+	for i := 0; i < 4000000000; i++ {
+		top.topInt++
+		top.topFloat++
+		top.topStr++
+		top.topAny++
+		top.topInt = top.topFloat + top.topStr
+	}*/
+	//		var top [4]uint16
+	//	top := make([]interface{}, 4)
+	/*	top := make([]int64, 4)
+		top[3] = int64(0)
+		for i := 0; i < 400000000; i++ {
+			top[0] = top[3]              //++
+			top[1] = top[0]              //++
+			top[2] = top[1]              //++
+			top[3] = top[2]              //++
+			top[0] = int64(len(top)) - 1 //top[2]
+		}*/
+	/*	top := make([]int, 0, 8)
+		for i := 0; i < 4000000000; i++ {
+			top = append(top, 1)
+			top = append(top, 2)
+			top = append(top, 3)
+			top = append(top, 4)
+			//		top[0] = len(top) - 1 //top[2]
+			top = top[:0]
+		}*/
+	//	return
 	for _, name := range []string{`run_test`, `err_test`} {
 		if err := testFile(name); err != nil {
 			t.Error(err)

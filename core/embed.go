@@ -12,7 +12,7 @@ import (
 
 type Link struct {
 	Func interface{}
-	Code uint16
+	Code Bcode
 }
 
 const (
@@ -72,12 +72,12 @@ var (
 func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
 	var (
 		variadic, isRuntime bool
-		code                []uint16
+		code                []Bcode
 	)
 
 	if v, ok := Func.(Link); ok {
 		Func = v.Func
-		code = []uint16{v.Code}
+		code = []Bcode{v.Code}
 	}
 	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
 	name = name[strings.LastIndexByte(name, '.')+1:]

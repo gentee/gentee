@@ -11,11 +11,11 @@ import (
 // InitBool appends stdlib bool functions to the virtual machine
 func InitBool(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		strºBool,        // str( bool )
-		intºBool,        // int( bool )
-		Not,             // unary boolean not
-		ExpStrºBool,     // expression in string
-		AssignºBoolBool, // bool = bool
+		strºBool,                 // str( bool )
+		intºBool,                 // int( bool )
+		core.Link{Not, core.NOT}, // unary boolean not
+		ExpStrºBool,              // expression in string
+		AssignºBoolBool,          // bool = bool
 	} {
 		ws.StdLib().NewEmbed(item)
 	}
