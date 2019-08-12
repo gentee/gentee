@@ -8,10 +8,16 @@ import "github.com/gentee/gentee/core"
 
 const (
 	STACKSIZE = 128
+	// CYCLE is the limit of loops
+	CYCLE = uint64(16000000)
+	// DEPTH is the maximum size of blocks stack
+	DEPTH = uint32(1000)
 )
 
 type Settings struct {
 	CmdLine []string
+	Cycle   uint64 // limit of loops
+	Depth   uint32 // limit of blocks stack
 }
 
 // VM is the main structure of the virtual machine
@@ -37,6 +43,7 @@ type Runtime struct {
 // Call stores stack of blocks
 type Call struct {
 	IsFunc bool
+	Cycle  uint64
 	Offset int32
 	Int    int32
 	Float  int32
@@ -57,6 +64,12 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	vm := &VM{
 		Settings: settings,
 		Exec:     exec,
+	}
+	if vm.Settings.Cycle == 0 {
+		vm.Settings.Cycle = CYCLE
+	}
+	if vm.Settings.Depth == 0 {
+		vm.Settings.Depth = DEPTH
 	}
 	return vm.RunThread(0)
 }

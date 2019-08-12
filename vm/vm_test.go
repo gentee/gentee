@@ -103,6 +103,7 @@ func TestVM(t *testing.T) {
 					return testErr(err)
 				}
 			} else if err.Error() != src[i].Want {
+				fmt.Println(`ERR`, err.Error(), `!=`, src[i].Want)
 				return testErr(err)
 			}
 		}
@@ -145,7 +146,7 @@ func TestVM(t *testing.T) {
 			top = top[:0]
 		}*/
 	//	return
-	for _, name := range []string{`run_test`, `err_test`} {
+	for _, name := range []string{ /*`err_test`,*/ `run_test`, `err_test`} {
 		if err := testFile(name); err != nil {
 			t.Error(err)
 			return

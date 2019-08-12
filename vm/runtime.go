@@ -34,6 +34,9 @@ main:
 			rt.SInt[top.Int-1] *= rt.SInt[top.Int]
 		case core.DIV:
 			top.Int--
+			if rt.SInt[top.Int] == 0 {
+				return nil, runtimeError(rt, i, ErrDivZero)
+			}
 			rt.SInt[top.Int-1] /= rt.SInt[top.Int]
 		case core.MOD:
 			top.Int--
@@ -89,6 +92,12 @@ main:
 		case core.DUP:
 			rt.SInt[top.Int] = rt.SInt[top.Int-1]
 			top.Int++
+		case core.CYCLE:
+			lenCalls := len(rt.Calls) - 1
+			rt.Calls[lenCalls].Cycle--
+			if rt.Calls[lenCalls].Cycle == 0 {
+				return nil, runtimeError(rt, i, ErrCycle)
+			}
 		case core.JMP:
 			i += int64(int16(code[i+1]))
 			//	top = rt.Calls[len(rt.Calls)-1]
@@ -139,6 +148,7 @@ main:
 			}
 			rt.Calls = append(rt.Calls, Call{
 				IsFunc: false,
+				Cycle:  rt.Owner.Settings.Cycle,
 				Offset: int32(i),
 				Int:    curTop.Int,
 				Float:  curTop.Float,
@@ -209,6 +219,9 @@ main:
 				Str:    top.Str,
 				Any:    top.Any,
 			})
+			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
+				return nil, runtimeError(rt, i, ErrDepth)
+			}
 			i = int64(rt.Owner.Exec.Funcs[int32(code[i])])
 			continue
 			//			rt.Run(int64(rt.Owner.Exec.Funcs[int32(code[i])]))

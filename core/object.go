@@ -61,6 +61,7 @@ type EmbedObject struct {
 	Params   []*TypeObject // the types of parameters
 	Variadic bool          // variadic function
 	Runtime  bool          // the first parameter is rt
+	CanError bool          // can generate error
 }
 
 // FuncObject contains information about the function

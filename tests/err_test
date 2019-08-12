@@ -1108,6 +1108,11 @@ run {
   while {10}
 }
 ===== [2:9] unexpected token, expecting expression or statement
+func myDiv(int a b) int {
+  return a/b
+} 
+run { myDiv(3, 0) }
+===== [2:11] divided by zero
 run { 
   int int
 }

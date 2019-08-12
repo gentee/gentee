@@ -71,8 +71,8 @@ var (
 // NewEmbedTypes adds a new EmbedObject to Unit with types
 func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
 	var (
-		variadic, isRuntime bool
-		code                []Bcode
+		variadic, isRuntime, isError bool
+		code                         []Bcode
 	)
 
 	if v, ok := Func.(Link); ok {
@@ -87,8 +87,13 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 	}
 
 	t := reflect.TypeOf(Func)
-	if t.NumOut() >= 1 && outType == nil {
-		outType = unit.TypeByGoType(t.Out(0))
+	if t.NumOut() >= 1 {
+		if outType == nil {
+			outType = unit.TypeByGoType(t.Out(0))
+		}
+		typeOut := t.Out(t.NumOut() - 1)
+		isError = typeOut.Kind() == reflect.Interface &&
+			typeOut.Implements(reflect.TypeOf((*error)(nil)).Elem())
 	}
 	inCount := t.NumIn()
 	if variadic = t.IsVariadic(); variadic {
@@ -119,6 +124,7 @@ func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType
 		Params:   inTypes,
 		Variadic: variadic,
 		Runtime:  isRuntime,
+		CanError: isError,
 	})
 	ind := len(unit.VM.Objects) - 1
 	if defFuncs[originalName] {
