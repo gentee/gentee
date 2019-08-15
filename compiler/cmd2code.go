@@ -5,34 +5,12 @@
 package compiler
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/gentee/gentee/core"
+	stdlib "github.com/gentee/gentee/stdlibvm"
 )
-
-func getPos(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
-	var (
-		ok   bool
-		name string
-	)
-	if obj := cmd.GetObject(); obj != nil {
-		name = obj.GetName()
-	}
-	line, column := linker.Lex.LineColumn(cmd.GetToken())
-	if _, ok = out.Strings[linker.Lex.Path]; !ok {
-		out.Strings[linker.Lex.Path] = uint16(len(out.Strings))
-	}
-	if _, ok = out.Strings[name]; !ok {
-		out.Strings[name] = uint16(len(out.Strings))
-	}
-	out.Pos = append(out.Pos, core.CodePos{
-		Offset: int32(len(out.Code)),
-		Path:   out.Strings[linker.Lex.Path],
-		Name:   out.Strings[name],
-		Line:   uint16(line),
-		Column: uint16(column),
-	})
-}
 
 func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 
@@ -54,14 +32,24 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 	push := func(pars ...core.Bcode) {
 		out.Code = append(out.Code, pars...)
 	}
-	callFunc := func(count int) {
+	callFunc := func(count int, ptypes ...core.Bcode) {
 		canError := true
 		obj := cmd.GetObject()
 		switch obj.GetType() {
 		case core.ObjEmbedded:
 			embed := obj.(*core.EmbedObject)
 			if embed.BCode.Code != nil {
-				push(embed.BCode.Code...)
+				code := embed.BCode.Code[0]
+				push(code) //...)
+				if (code & 0xffff) == core.EMBED {
+					embed := stdlib.Embedded[code>>16]
+					if embed.Variadic {
+						push(core.Bcode(len(ptypes)))
+						if len(ptypes) > 0 {
+							push(ptypes...)
+						}
+					}
+				}
 			}
 			canError = embed.CanError
 		case core.ObjFunc:
@@ -75,10 +63,22 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 				copyUsed(&obj.(*core.FuncObject).BCode, out)
 				out.Used[id] = 1
 			}
+		case core.ObjConst:
+			id := obj.(*core.ConstObject).ObjID
+			push(core.CONSTBYID, core.Bcode(id))
+			if out.Used == nil {
+				out.Used = make(map[int32]byte)
+			}
+			if out.Used[id] == 0 {
+				out.Init = append(out.Init, id)
+				genBytecode(obj.(*core.ConstObject).Unit.VM, id)
+				copyUsed(&obj.(*core.ConstObject).BCode, out)
+				out.Used[id] = 1
+			}
 		}
 		if canError {
 			getPos(linker, cmd, out)
-			//			fmt.Println(`POS`, obj.GetName(), out.Pos)
+			//			fmt.Println(`POS`, obj.GetName(), out.Pos, out.Code)
 		}
 	}
 	switch cmd.GetType() {
@@ -96,7 +96,17 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		for _, param := range anyFunc.Children {
 			cmd2Code(linker, param, out)
 		}
-		callFunc(len(anyFunc.Children))
+		obj := cmd.GetObject()
+		if obj.GetType() == core.ObjEmbedded && obj.(*core.EmbedObject).Variadic {
+			count := len(anyFunc.Children) + 1 - len(obj.(*core.EmbedObject).Params)
+			ptypes := make([]core.Bcode, count)
+			for i := 0; i < count; i++ {
+				ptypes[0] = type2Code(anyFunc.Children[len(obj.(*core.EmbedObject).Params)-1+i].GetResult())
+			}
+			callFunc(len(anyFunc.Children), ptypes...)
+		} else {
+			callFunc(len(anyFunc.Children))
+		}
 	case core.CtBinary:
 		cmd2Code(linker, cmd.(*core.CmdBinary).Left, out)
 		cmd2Code(linker, cmd.(*core.CmdBinary).Right, out)
@@ -122,12 +132,20 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			push(core.PUSH32, core.Bcode(val))
 		case rune:
 			push(core.PUSH32, core.Bcode(v))
+		case string:
+			var (
+				ok bool
+				id uint16
+			)
+			if id, ok = out.Strings[v]; !ok {
+				id = uint16(len(out.Strings))
+				out.Strings[v] = id
+			}
+			out.StrOffset = append(out.StrOffset, int32(len(out.Code)))
+			push(core.Bcode(uint32(id)<<16) | core.PUSHSTR)
 		}
-		//rt.Stack = append(rt.Stack, cmd.(*CmdValue).Value)
 	case core.CtConst:
-		/*					if err = rt.GetConst(cmd); err != nil {
-							return err
-						}*/
+		callFunc(1)
 	case core.CtVar:
 		var i int
 		block := cmd.(*core.CmdVar).Block
@@ -136,15 +154,18 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 				break
 			}
 		}
-		push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.GETVAR,
-			core.Bcode(int(type2Code(cmd.GetResult()))<<16|cmd.(*core.CmdVar).Index))
+		if len(cmd.(*core.CmdVar).Indexes) > 0 {
+			fmt.Println(`Getting index variables`)
+		} else {
+			push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.GETVAR,
+				core.Bcode(int(type2Code(cmd.GetResult()))<<16|cmd.(*core.CmdVar).Index))
+		}
 		/*		if err = getVar(rt, cmd.(*CmdVar)); err != nil {
 				return err
 			}*/
 	case core.CtStack:
 		cmdStack := cmd.(*core.CmdBlock)
-		//		lenStack := len(rt.Stack)
-		switch cmd.(*core.CmdBlock).ID {
+		switch cmdStack.ID {
 		/*		case StackSwitch:
 					if err = rt.runCmd(cmdStack.Children[0]); err != nil {
 						return err
@@ -310,18 +331,6 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			push(core.JMP, core.Bcode(save(cmdStack.Children[2])+2))
 			out.Code = append(out.Code, cmds[1].Code...)
 			cmds = cmds[:0]
-			/*					if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-									return err
-								}
-								iExp := 2
-								if rt.Stack[len(rt.Stack)-1].(bool) {
-									iExp = 1
-								}
-								if err = rt.runCmd(cmdStack.Children[iExp]); err != nil {
-									return err
-								}
-								rt.Stack[lenStack] = rt.Stack[len(rt.Stack)-1]
-								lenStack++*/
 		case core.StackAnd, core.StackOr:
 			cmd2Code(linker, cmdStack.Children[0], out)
 			size := save(cmdStack.Children[1])
@@ -332,46 +341,7 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			push(core.DUP, logic, core.Bcode(size))
 			out.Code = append(out.Code, cmds[0].Code...)
 			cmds = cmds[:0]
-			/*					if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-									return err
-								}
-								if (rt.Stack[len(rt.Stack)-1].(bool) && cmd.(*CmdBlock).ID == StackAnd) ||
-									(!rt.Stack[len(rt.Stack)-1].(bool) && cmd.(*CmdBlock).ID == StackOr) {
-									if err = rt.runCmd(cmdStack.Children[1]); err != nil {
-										return err
-									}
-								}
-								rt.Stack[lenStack] = rt.Stack[len(rt.Stack)-1]
-								lenStack++*/
-			/*				case StackIncDec:
-							cmdVar := cmdStack.Children[0].(*CmdVar)
-							if _, err = rt.getVars(cmdVar.Block); err != nil {
-								return err
-							}
-							var post bool
-							if err = getVar(rt, cmdVar); err != nil {
-								return err
-							}
-							val := rt.Stack[len(rt.Stack)-1].(int64)
-							rt.Stack = rt.Stack[:len(rt.Stack)-1]
-							shift := int64(cmdStack.ParCount)
-							if (shift & 0x1) == 0 {
-								post = true
-								shift /= 2
-							}
-							if err = setVar(rt, &CmdBlock{Children: []ICmd{
-								cmdVar, &CmdValue{Value: val + shift},
-							}, Object: rt.VM.StdLib().FindObj(DefAssignIntInt)}); err != nil {
-								return err
-							}
-							rt.Stack = rt.Stack[:len(rt.Stack)-1]
-							if !post {
-								val += shift
-							}
-							rt.Stack = append(rt.Stack, val)
-							lenStack++*/
-		case core.StackAssign:
-			cmd2Code(linker, cmdStack.Children[1], out)
+		case core.StackAssign, core.StackIncDec:
 			var i int
 			cmdVar := cmdStack.Children[0]
 			block := cmdVar.(*core.CmdVar).Block
@@ -380,8 +350,29 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 					break
 				}
 			}
-			push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.SETVAR,
-				core.Bcode(int(type2Code(cmdVar.GetResult()))<<16|cmdVar.(*core.CmdVar).Index))
+			if len(cmdVar.(*core.CmdVar).Indexes) > 0 {
+				fmt.Println(`Setting index variables`)
+			} else {
+				push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.ADDRESS,
+					core.Bcode(int(type2Code(cmdVar.GetResult()))<<16|cmdVar.(*core.CmdVar).Index))
+			}
+			if cmdStack.ID == core.StackAssign {
+				cmd2Code(linker, cmdStack.Children[1], out)
+				cmd = cmdStack
+				callFunc(2)
+			} else {
+				var post uint32
+				code := core.Bcode(core.INC)
+				shift := int64(cmdStack.ParCount)
+				if (shift & 0x1) == 0 {
+					post = 1
+				}
+				if shift < 0 {
+					code = core.DEC
+				}
+				push(core.Bcode(post<<16) | code)
+			}
+			//			push(core.Bcode((int(type2Code(cmdVar.GetResult()))<<16)| core.ASSIGN)
 			/*if err = setVar(rt, cmdStack); err != nil {
 				return err
 			}

@@ -408,6 +408,16 @@ run {
 }
 ===== [3:5] divided by zero
 run {
+  int a = 10
+  a <<= -3
+}
+===== [3:5] right operand of shift cannot be less than zero
+run {
+  int a = 10
+  a >>= -7
+}
+===== [3:5] right operand of shift cannot be less than zero
+run {
   int a = 10 % 0
 }
 ===== [2:14] divided by zero
@@ -1054,6 +1064,11 @@ run int { return 5<<-1}
 ===== [1:19] right operand of shift cannot be less than zero
 run { DEPTH = 1}
 ===== [1:13] expecting l-value in the left operand of assign operator
+const 1/IOTA {A B}
+run int {
+  return A + B
+}
+===== [1:8] divided by zero
 run { int a = IOTA}
 ===== [1:15] IOTA can be only used in const expression
 const {OOOPS = IOTA}
@@ -1069,6 +1084,12 @@ run { myFunc()}
 ===== [2:3] maximum depth of recursion has been reached
 run { while true{}}
 ===== [1:7] maximum cycle count has been reached
+func myConst(int par) int : return 2/par
+const { MYVAL = myConst(0)*2}
+run int { 
+  return MYVAL
+}
+===== [1:37] divided by zero
 const { CONST = CONST+1}
 run {}
 ===== [1:17] unknown identifier CONST

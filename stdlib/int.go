@@ -14,39 +14,39 @@ import (
 // InitInt appends stdlib int functions to the virtual machine
 func InitInt(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		core.Link{AddºIntInt, core.ADD},    // binary +
-		core.Link{DivºIntInt, core.DIV},    // binary /
-		core.Link{EqualºIntInt, core.EQ},   // binary ==
-		core.Link{GreaterºIntInt, core.GT}, // binary >
-		core.Link{LessºIntInt, core.LT},    // binary <
-		ModºIntInt,                         // binary %
-		core.Link{MulºIntInt, core.MUL},    // binary *
-		core.Link{SignºInt, core.SIGN},     // unary sign -
-		core.Link{SubºIntInt, core.SUB},    // binary -
-		BitOrºIntInt,                       // bitwise OR
-		BitXorºIntInt,                      // bitwise XOR
-		BitAndºIntInt,                      // bitwise AND
-		LShiftºIntInt,                      // binary <<
-		RShiftºIntInt,                      // binary >>
-		BitNotºInt,                         // unary bitwise NOT
-		floatºInt,                          // float( int )
-		strºInt,                            // str( int )
-		boolºInt,                           // bool( int )
-		ExpStrºInt,                         // expression in string
-		AssignºIntInt,                      // int = int
-		AssignºIntChar,                     // int = char
-		AssignAddºIntInt,                   // int += int
-		AssignBitAndºIntInt,                // int &= int
-		AssignBitOrºIntInt,                 // int |= int
-		AssignBitXorºIntInt,                // int ^= int
-		AssignDivºIntInt,                   // int /= int
-		AssignModºIntInt,                   // int %= int
-		AssignMulºIntInt,                   // int *= int
-		AssignSubºIntInt,                   // int -= int
-		AssignLShiftºIntInt,                // int <<= int
-		AssignRShiftºIntInt,                // int >>= int
-		MaxºIntInt,                         // Max(int, int)
-		MinºIntInt,                         // Min(int, int)
+		core.Link{AddºIntInt, core.ADD},                   // binary +
+		core.Link{DivºIntInt, core.DIV},                   // binary /
+		core.Link{EqualºIntInt, core.EQ},                  // binary ==
+		core.Link{GreaterºIntInt, core.GT},                // binary >
+		core.Link{LessºIntInt, core.LT},                   // binary <
+		core.Link{ModºIntInt, core.MOD},                   // binary %
+		core.Link{MulºIntInt, core.MUL},                   // binary *
+		core.Link{SignºInt, core.SIGN},                    // unary sign -
+		core.Link{SubºIntInt, core.SUB},                   // binary -
+		core.Link{BitOrºIntInt, core.BITOR},               // bitwise OR
+		core.Link{BitXorºIntInt, core.BITXOR},             // bitwise XOR
+		core.Link{BitAndºIntInt, core.BITAND},             // bitwise AND
+		core.Link{LShiftºIntInt, core.LSHIFT},             // binary <<
+		core.Link{RShiftºIntInt, core.RSHIFT},             // binary >>
+		core.Link{BitNotºInt, core.BITNOT},                // unary bitwise NOT
+		floatºInt,                                         // float( int )
+		core.Link{strºInt, 1<<16 | core.EMBED},            // str( int )
+		core.Link{boolºInt, 3<<16 | core.EMBED},           // bool( int )
+		core.Link{ExpStrºInt, 4<<16 | core.EMBED},         // expression in string
+		core.Link{AssignºIntInt, core.ASSIGN},             // int = int
+		AssignºIntChar,                                    // int = char
+		core.Link{AssignAddºIntInt, core.ASSIGNADD},       // int += int
+		core.Link{AssignBitAndºIntInt, core.ASSIGNBITAND}, // int &= int
+		core.Link{AssignBitOrºIntInt, core.ASSIGNBITOR},   // int |= int
+		core.Link{AssignBitXorºIntInt, core.ASSIGNBITXOR}, // int ^= int
+		core.Link{AssignDivºIntInt, core.ASSIGNDIV},       // int /= int
+		core.Link{AssignModºIntInt, core.ASSIGNMOD},       // int %= int
+		core.Link{AssignMulºIntInt, core.ASSIGNMUL},       // int *= int
+		core.Link{AssignSubºIntInt, core.ASSIGNSUB},       // int -= int
+		core.Link{AssignLShiftºIntInt, core.ASSIGNLSHIFT}, // int <<= int
+		core.Link{AssignRShiftºIntInt, core.ASSIGNRSHIFT}, // int >>= int
+		MaxºIntInt, // Max(int, int)
+		MinºIntInt, // Min(int, int)
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

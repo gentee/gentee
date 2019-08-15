@@ -4,7 +4,9 @@
 
 package vm
 
-import "github.com/gentee/gentee/core"
+import (
+	"github.com/gentee/gentee/core"
+)
 
 const (
 	STACKSIZE = 128
@@ -20,10 +22,16 @@ type Settings struct {
 	Depth   uint32 // limit of blocks stack
 }
 
+type Const struct {
+	Type  uint16
+	Value interface{}
+}
+
 // VM is the main structure of the virtual machine
 type VM struct {
 	Settings Settings
 	Exec     *core.Exec
+	Consts   map[int32]Const
 	Runtimes []*Runtime
 }
 
@@ -64,6 +72,7 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	vm := &VM{
 		Settings: settings,
 		Exec:     exec,
+		Consts:   make(map[int32]Const),
 	}
 	if vm.Settings.Cycle == 0 {
 		vm.Settings.Cycle = CYCLE
@@ -71,5 +80,39 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	if vm.Settings.Depth == 0 {
 		vm.Settings.Depth = DEPTH
 	}
+	//	fmt.Println(`CODE`, vm.Exec.Code)
+	//	fmt.Println(`POS`, vm.Exec.Pos)
+	//fmt.Println(`STRING`, vm.Exec.Strings)
+	for i, id := range vm.Exec.Init {
+		if i == 0 {
+			vm.Consts[id] = Const{Type: core.TYPEINT, Value: int64(0)}
+			continue
+		}
+		val, err := vm.RunThread(int64(vm.Exec.Funcs[id]))
+		if err != nil {
+			return nil, err
+		}
+		var constType uint16
+		switch v := val.(type) {
+		case int64:
+			constType = core.TYPEINT
+		case bool:
+			constType = core.TYPEBOOL
+			if v {
+				val = int64(1)
+			} else {
+				val = int64(0)
+			}
+			//				case reflect.TypeOf(float64(0.0)):
+			//					retType = core.STACKFLOAT
+		case rune:
+			constType = core.TYPECHAR
+			val = int64(v)
+		case string:
+			constType = core.TYPESTR
+		}
+		vm.Consts[id] = Const{Type: constType, Value: val}
+	}
+	//	fmt.Println(`CONST`, vm.Consts)
 	return vm.RunThread(0)
 }

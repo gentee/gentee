@@ -16,6 +16,7 @@ type Workspace struct {
 	UnitNames map[string]int
 	Objects   []IObject
 	Linked    map[string]int // compiled files
+	IotaID    int32
 }
 
 const (

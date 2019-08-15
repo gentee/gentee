@@ -1303,6 +1303,22 @@ run str {
 }
 ===== truefalsetrue0true1false
 run str { 
+  str a b c
+  c = b = `B`
+  a = `A`
+  c += `c`
+  return c + b + a
+}
+===== BcBA
+const : Q = "macro"
+func a str : return "Afunc"
+func b str : return "B" + "Afunc" + "macro" + "B"
+func c str : return Q + a()
+run str { 
+  return b() + c() + "Cfunc"
+}
+===== BAfuncmacroBmacroAfuncCfunc
+run str { 
   str stemp = ```begin end```
   return `tes``t тест` + ` ` + `` + `new
  line ` + stemp
@@ -1346,11 +1362,27 @@ run int {
   return (a | 0x177) & 0x33 ^ 0x122
 }
 ===== 273
+const : A1 = 6 + 1
+func f int : return A1 + 6 + A1
+const { B = f() } 
+const f() + IOTA { C D } 
+run int { return B-10 + D }
+===== 31
+const : КОНСТ = 21
+const IOTA + КОНСТ { A B C } 
+run int { return 3*C - 2*B - A  }
+===== 4
 const 2*IOTA + IOTA {FIRST SECOND // comment
   /* comment */
     THIRD} 
 run int { return THIRD + FIRST - SECOND }
 ===== 3
+func myConst(int par) int : return par +3
+const { MYVAL = myConst(7)*2}
+run int { 
+  return MYVAL + MYVAL*3
+}
+===== 80
 const 10+23 {TEST TEST2}
 run int { 
   return TEST + TEST2
@@ -1554,3 +1586,8 @@ run int {return 77}
 ===== 77
 run int {return 0647}
 ===== 423
+//const 2*IOTA + IOTA {FIRST SECOND // comment
+  /* comment */
+//    THIRD} 
+run int { return 3 }//THIRD + FIRST - SECOND }
+===== 3

@@ -16,17 +16,19 @@ import (
 // InitStr appends stdlib string functions to the virtual machine
 func InitStr(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		AddºStrStr,        // binary +
-		EqualºStrStr,      // binary ==
-		GreaterºStrStr,    // binary >
-		LenºStr,           // the length of str
-		LessºStrStr,       // binary <
-		intºStr,           // int( str )
-		floatºStr,         // float( str )
-		boolºStr,          // bool( str )
-		ExpStrºStr,        // expression in string
-		AssignºStrStr,     // str = str
-		AssignAddºStrStr,  // str += str
+		core.Link{AddºStrStr, core.Bcode(core.TYPESTR<<16) | core.ADDSTR}, // binary +
+		core.Link{EqualºStrStr, core.EQSTR},                               // binary ==
+		core.Link{GreaterºStrStr, core.GTSTR},                             // binary >
+		core.Link{LenºStr, core.LENSTR},                                   // the length of str
+		core.Link{LessºStrStr, core.LTSTR},                                // binary <
+		core.Link{intºStr, 2<<16 | core.EMBED},                            // int( str )
+		floatºStr,                                                         // float( str )
+		boolºStr,                                                          // bool( str )
+		core.Link{ExpStrºStr, core.ADDSTR},                                // expression in string
+		core.Link{AssignºStrStr,
+			core.Bcode(core.TYPESTR<<16) | core.ASSIGN}, // str = str
+		core.Link{AssignAddºStrStr,
+			core.Bcode(core.TYPESTR<<16) | core.ASSIGNADD}, // str += str
 		AssignºStrBool,    // str = bool
 		AssignºStrInt,     // str = int
 		FindºStrStr,       // Find( str, str ) int
