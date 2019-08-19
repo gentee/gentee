@@ -199,7 +199,13 @@ func popBuf(cmpl *compiler) error {
 
 		if expBuf.Oper == tkAssign && left.GetType() == core.CtUnary {
 			if left.GetObject() == cmpl.ws.StdLib().FindObj(core.DefGetEnv) {
-				setEnv := cmpl.ws.StdLib().FindObj(core.DefSetEnv)
+				//				setEnv := cmpl.ws.StdLib().FindObj(core.DefSetEnv)
+				setEnv := getFunc(cmpl, `SetEnv`, []*core.TypeObject{left.GetResult(),
+					right.GetResult()})
+				if setEnv == nil {
+					return cmpl.ErrorFunction(ErrFunction, expBuf.Pos, `SetEnv`,
+						[]*core.TypeObject{left.GetResult(), right.GetResult()})
+				}
 				icmd := &core.CmdBinary{CmdCommon: core.CmdCommon{TokenID: uint32(expBuf.Pos)},
 					Object: setEnv,
 					Result: setEnv.Result(), Left: left.(*core.CmdUnary).Operand, Right: right}

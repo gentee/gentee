@@ -864,6 +864,15 @@ run str {
   return mt.b + str(mt.a + 7)
 }
 ===== 7
+run str {
+  str ret
+  map my = {"A": "177", `B`:`302`}
+  for item, ind in my {
+    ret += "\{ind}=\{item}"
+  }
+  return ret
+}
+===== 0=1771=302
 run map.arr.int {
   map.arr.int ret = {"1": {3,33}
        `2`:{4,44}}
@@ -1128,6 +1137,15 @@ run str {
   return str(*array) + " \{array[0]} " + array[1]
 }
 ===== 2 first second
+run arr.str { 
+  arr a1
+  str s = `0Ê1`
+  s[0] = 'Ê'
+  a1 += `start`
+  a1[0] += s
+  return a1
+}
+===== [startÊÊ1]
 run int { 
   int ret
   for i, j in 3..5-7 {
@@ -1180,6 +1198,17 @@ run str {
   return dest
 }
 ===== Ω0123
+run str { 
+  str src
+  int i
+  while i < 10 {
+    src += str(i) + `-`
+    if i & 1 == 1 : i = i+1
+    else : i++
+  }
+  return src
+}
+===== 0-1-2-3-4-5-6-7-8-9-
 run str { 
   str s = `01 Ê123`
   s += s[2] = '\u0102'

@@ -1054,6 +1054,17 @@ run int {
   return a + b+c
 }
 ===== [2:10] unexpected token, expecting the name of the identifier
+run str { 
+  str s = `0Ê123`
+  ++s[0]
+  return s
+}
+===== [3:3] wrong type of operands, expecting int type
+run str { 
+  char a
+  a++
+}
+===== [3:4] wrong type of operands, expecting int type
 run bool { bool a; return ++a}
 ===== [1:27] wrong type of operands, expecting int type
 run int { int a; return --a++}

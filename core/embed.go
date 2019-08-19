@@ -43,7 +43,7 @@ const (
 	// DefNewKeyValue returns a pair of key value
 	DefNewKeyValue = `NewKeyValue`
 	// DefSetEnv sets an environment variable
-	DefSetEnv = `SetEnv`
+	DefSetEnv = `#SetEnv#str#int`
 	// DefGetEnv returns an environment variable
 	DefGetEnv = `GetEnv`
 )

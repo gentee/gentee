@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package stdlibvm
 
 import (
 	"fmt"
@@ -13,25 +13,6 @@ import (
 
 	"github.com/gentee/gentee/core"
 )
-
-// InitSystem appends stdlib system functions to the virtual machine
-func InitSystem(ws *core.Workspace) {
-	for _, item := range []interface{}{
-		core.Link{Command, 6<<16 | core.EMBED},       // $( str )
-		core.Link{CommandOutput, 7<<16 | core.EMBED}, // $( str )
-		core.Link{GetEnv, 8<<16 | core.EMBED},        // get environment variable
-		//		core.Link{SetEnv, 9<<16 | core.EMBED},        // set environment variable
-	} {
-		ws.StdLib().NewEmbed(item)
-	}
-	for _, item := range []embedInfo{
-		{core.Link{SetEnv, 9<<16 | core.EMBED}, `str,str`, ``},   // $name = str
-		{core.Link{SetEnv, 10<<16 | core.EMBED}, `str,int`, ``},  // $name = int
-		{core.Link{SetEnv, 11<<16 | core.EMBED}, `str,bool`, ``}, // $name = bool
-	} {
-		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
-	}
-}
 
 func splitCmdLine(cmdLine string) (*exec.Cmd, error) {
 	var (
@@ -120,6 +101,13 @@ func GetEnv(name string) string {
 // SetEnv assign the value to the environment variable
 func SetEnv(name string, value interface{}) (string, error) {
 	ret := fmt.Sprint(value)
+	err := os.Setenv(name, ret)
+	return ret, err
+}
+
+// SetEnvBool assign the value to the environment variable
+func SetEnvBool(name string, value int64) (string, error) {
+	ret := strºBool(value)
 	err := os.Setenv(name, ret)
 	return ret, err
 }

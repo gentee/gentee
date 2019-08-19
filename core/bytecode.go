@@ -43,15 +43,22 @@ type Embed struct {
 }
 
 const (
-	TYPENONE = iota
-	TYPEINT
-	TYPEBOOL
-	TYPECHAR
-	TYPESTR
+	TYPENONE  = 0
+	TYPEINT   = 0x101
+	TYPEBOOL  = 0x201
+	TYPECHAR  = 0x301
+	TYPESTR   = 0x402
+	TYPEFLOAT = 0x503
+	TYPEARR   = 0x604
+	TYPEPTR   = 0xf04
+)
 
-/*	STACKFLOAT
+const (
+	STACKNONE = iota
+	STACKINT
 	STACKSTR
-	STACKANY*/
+	STACKFLOAT
+	STACKANY
 )
 
 const (
@@ -103,11 +110,19 @@ const (
 	JNZ          // + int32 jump if the top value is not zero
 	INITVARS     // initializing variables
 	DELVARS      // delete variables
+	RANGE        // create range
+	LENGTH       // & (type<<16) length
+	FORINDEX     // get for value
+	FORINC       // & (index<<16) increment counter
 	RET          // & (type<<16) return from function
 	END          // end of the function
-	CONSTBYID    // + int32 id of the object
-	CALLBYID     // & (par count<<16) + int32 id of the object
-	EMBED        // & (embed id << 16) calls embedded func + int32 count for variadic funcs
+	INDEX        // & (int32 count) + {(type input<<16) + result type}
+	//	GETINDEX     // & (type result<<16)
+	SETINDEX  // & (type result<<16)
+	ADDRINDEX //
+	CONSTBYID // + int32 id of the object
+	CALLBYID  // & (par count<<16) + int32 id of the object
+	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
 	IOTA // & (iota<<16)
 )

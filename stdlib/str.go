@@ -29,8 +29,8 @@ func InitStr(ws *core.Workspace) {
 			core.Bcode(core.TYPESTR<<16) | core.ASSIGN}, // str = str
 		core.Link{AssignAddºStrStr,
 			core.Bcode(core.TYPESTR<<16) | core.ASSIGNADD}, // str += str
-		AssignºStrBool,    // str = bool
-		AssignºStrInt,     // str = int
+		core.Link{AssignºStrBool, 12<<16 | core.EMBED}, // str = bool
+		core.Link{AssignºStrInt, 13<<16 | core.EMBED},  // str = int
 		FindºStrStr,       // Find( str, str ) int
 		FormatºStr,        // Format( str, ... ) str
 		HasPrefixºStrStr,  // HasPrefix( str, str ) bool

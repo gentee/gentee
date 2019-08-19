@@ -7,6 +7,7 @@ package compiler
 import (
 	"fmt"
 	"math"
+	"reflect"
 
 	"github.com/gentee/gentee/core"
 	stdlib "github.com/gentee/gentee/stdlibvm"
@@ -148,17 +149,54 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		callFunc(1)
 	case core.CtVar:
 		var i int
-		block := cmd.(*core.CmdVar).Block
+		cmdVar := cmd.(*core.CmdVar)
+		block := cmdVar.Block
 		for i = len(linker.Blocks) - 1; i >= 0; i-- {
-			if linker.Blocks[i] == block {
+			if linker.Blocks[i].Block == block {
 				break
 			}
 		}
-		if len(cmd.(*core.CmdVar).Indexes) > 0 {
-			fmt.Println(`Getting index variables`)
-		} else {
-			push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.GETVAR,
-				core.Bcode(int(type2Code(cmd.GetResult()))<<16|cmd.(*core.CmdVar).Index))
+		for _, ival := range cmdVar.Indexes {
+			cmd2Code(linker, ival.Cmd, out)
+		}
+		inType := int(type2Code(block.Vars[cmdVar.Index]))
+		push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.GETVAR,
+			core.Bcode(inType<<16|linker.Blocks[i].Vars[cmdVar.Index]))
+		if len(cmdVar.Indexes) > 0 {
+			push(core.Bcode(len(cmdVar.Indexes)<<16) | core.INDEX)
+			for _, ival := range cmdVar.Indexes {
+				retType := type2Code(ival.Type)
+				push(core.Bcode(inType<<16) | retType)
+				getPos(linker, ival.Cmd, out)
+				inType = int(retType)
+				/*if typeValue == nil {
+					return runtimeError(rt, cmdVar, ErrRuntime, `getVar.typeValue`)
+				}*/
+			}
+			//			cmds = cmds[:0]
+			//core.Bcode(int(type2Code(cmd.GetResult()))<<16|linker.Blocks[i].Vars[cmdVar.Index]))
+
+			/*			typeValue := block.Vars[cmdVar.Index]
+						push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.ADDRESS,
+							core.Bcode(int(type2Code(typeValue))<<16|linker.Blocks[i].Vars[cmdVar.Index]))
+						for i, ival := range cmdVar.Indexes {
+											if typeValue == nil {
+											return runtimeError(rt, cmdVar, ErrRuntime, `getVar.typeValue`)
+										}
+							cmd2Code(linker, ival.Cmd, out)
+							if i == len(cmdVar.Indexes)-1 {
+								push(core.Bcode(type2Code(ival.Type)<<16) | core.INDEX)
+								getPos(linker, ival.Cmd, out)
+								return
+							}
+							if typeValue.Original == reflect.TypeOf(core.Struct{}) {
+								//	typeValue = custom.Type.Custom.Types[index]
+							} else {
+								typeValue = typeValue.IndexOf
+							}
+							push(core.Bcode(type2Code(typeValue)<<16) | core.ADDRINDEX)
+							getPos(linker, ival.Cmd, out)
+						}*/
 		}
 		/*		if err = getVar(rt, cmd.(*CmdVar)); err != nil {
 				return err
@@ -343,18 +381,42 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			cmds = cmds[:0]
 		case core.StackAssign, core.StackIncDec:
 			var i int
-			cmdVar := cmdStack.Children[0]
-			block := cmdVar.(*core.CmdVar).Block
+			cmdLeft := cmdStack.Children[0]
+			cmdVar := cmdLeft.(*core.CmdVar)
+			block := cmdVar.Block
 			for i = len(linker.Blocks) - 1; i >= 0; i-- {
-				if linker.Blocks[i] == block {
+				if linker.Blocks[i].Block == block {
 					break
 				}
 			}
-			if len(cmdVar.(*core.CmdVar).Indexes) > 0 {
+			if len(cmdVar.Indexes) > 0 {
 				fmt.Println(`Setting index variables`)
+				typeValue := block.Vars[cmdVar.Index]
+				push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.ADDRESS,
+					core.Bcode(int(type2Code(typeValue))<<16|linker.Blocks[i].Vars[cmdVar.Index]))
+				for i, ival := range cmdVar.Indexes {
+					/*				if typeValue == nil {
+									return runtimeError(rt, cmdVar, ErrRuntime, `getVar.typeValue`)
+								}*/
+					cmd2Code(linker, ival.Cmd, out)
+					if i == len(cmdVar.Indexes)-1 {
+						cmd2Code(linker, cmdStack.Children[1], out)
+						push(core.Bcode(type2Code(ival.Type)<<16) | core.SETINDEX)
+						getPos(linker, ival.Cmd, out)
+						return
+					}
+					if typeValue.Original == reflect.TypeOf(core.Struct{}) {
+						//	typeValue = custom.Type.Custom.Types[index]
+					} else {
+						typeValue = typeValue.IndexOf
+					}
+					push(core.Bcode(type2Code(typeValue)<<16) | core.ADDRINDEX)
+					getPos(linker, ival.Cmd, out)
+				}
 			} else {
 				push(core.Bcode((len(linker.Blocks)-1-i)<<16)|core.ADDRESS,
-					core.Bcode(int(type2Code(cmdVar.GetResult()))<<16|cmdVar.(*core.CmdVar).Index))
+					core.Bcode(int(type2Code(cmdLeft.GetResult()))<<16|
+						linker.Blocks[i].Vars[cmdVar.Index]))
 			}
 			if cmdStack.ID == core.StackAssign {
 				cmd2Code(linker, cmdStack.Children[1], out)
@@ -434,8 +496,65 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 									}
 									break
 								}*/
-			/*		case StackFor:
-					if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+		case core.StackFor:
+			bInfo := BlockInfo{
+				Block: cmdStack,
+			}
+			push(core.Bcode(cmdStack.ParCount<<16)|core.INITVARS, core.Bcode(len(cmdStack.Vars)))
+			var types []core.Bcode
+			if len(cmdStack.Vars) > 0 {
+				types = make([]core.Bcode, len(cmdStack.Vars))
+				var sInt, sStr, sFloat, sAny int
+				bInfo.Vars = make([]int, len(cmdStack.Vars))
+				for i, ivar := range cmdStack.Vars {
+					types[i] = type2Code(ivar)
+					switch types[i] & 0xff {
+					case core.STACKSTR:
+						bInfo.Vars[i] = sStr
+						sStr++
+					case core.STACKFLOAT:
+						bInfo.Vars[i] = sFloat
+						sFloat++
+					case core.STACKANY:
+						bInfo.Vars[i] = sAny
+						sAny++
+					default:
+						bInfo.Vars[i] = sInt
+						sInt++
+					}
+				}
+				push(types...)
+			}
+			linker.Blocks = append(linker.Blocks, bInfo)
+			cmd2Code(linker, cmdStack.Children[0], out)
+			srcType := type2Code(cmdStack.Children[0].GetResult())
+			pos := len(out.Code)
+			push(core.CYCLE)
+			getPos(linker, cmdStack, out)
+			push(core.GETVAR, core.Bcode((core.TYPEINT<<16)|bInfo.Vars[1]),
+				(srcType<<16)|core.LENGTH, core.LT)
+			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+6))
+
+			push(core.Bcode(int(srcType<<16)|core.FORINDEX),
+				core.Bcode(int(types[0]<<16)|bInfo.Vars[0]),
+				core.Bcode((core.TYPEINT<<16)|bInfo.Vars[1]))
+			out.Code = append(out.Code, cmds[0].Code...)
+			push(core.Bcode(bInfo.Vars[1]<<16) | core.FORINC)
+			push(core.JMP, core.Bcode(pos-len(out.Code)))
+			cmds = cmds[:0]
+			push(core.DELVARS)
+			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
+
+			/*			bInfo := BlockInfo{
+							Block: cmdStack,
+						}
+						push(core.Bcode(cmdStack.ParCount<<16)|core.INITVARS, core.Bcode(len(cmdStack.Vars)))
+			*/
+			/*			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+2))
+						out.Code = append(out.Code, cmds[0].Code...)
+						push(core.JMP, core.Bcode(pos-len(out.Code)))
+						cmds = cmds[:0]*/
+			/*		if err = rt.runCmd(cmdStack.Children[0]); err != nil {
 						return err
 					}
 					value := rt.Stack[len(rt.Stack)-1]
@@ -474,15 +593,34 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		case core.StackBlock, core.StackDefault:
 			/*			rt.Result = nil
 						lenStack -= initVars(rt, cmdStack)*/
-			linker.Blocks = append(linker.Blocks, cmdStack)
+			bInfo := BlockInfo{
+				Block: cmdStack,
+			}
 			push(core.Bcode(cmdStack.ParCount<<16)|core.INITVARS, core.Bcode(len(cmdStack.Vars)))
 			if len(cmdStack.Vars) > 0 {
+				var sInt, sStr, sFloat, sAny int
+				bInfo.Vars = make([]int, len(cmdStack.Vars))
 				types := make([]core.Bcode, len(cmdStack.Vars))
 				for i, ivar := range cmdStack.Vars {
 					types[i] = type2Code(ivar)
+					switch types[i] & 0xff {
+					case core.STACKSTR:
+						bInfo.Vars[i] = sStr
+						sStr++
+					case core.STACKFLOAT:
+						bInfo.Vars[i] = sFloat
+						sFloat++
+					case core.STACKANY:
+						bInfo.Vars[i] = sAny
+						sAny++
+					default:
+						bInfo.Vars[i] = sInt
+						sInt++
+					}
 				}
 				push(types...)
 			}
+			linker.Blocks = append(linker.Blocks, bInfo)
 			for _, item := range cmdStack.Children {
 				cmd2Code(linker, item, out)
 				/*					if err = rt.runCmd(item); err != nil {

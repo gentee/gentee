@@ -20,9 +20,11 @@ type embedInfo struct {
 // InitArray appends stdlib array functions to the virtual machine
 func InitArray(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{AssignAddºArrStr, `arr.str,str`, `arr.str`},     // arr += str
-		{LenºArr, `arr*`, `int`},                         // the length of array
-		{AssignAddºArrInt, `arr.int,int`, `arr.int`},     // arr += int
+		{core.Link{AssignAddºArrStr, 23<<16 | core.EMBED},
+			`arr.str,str`, `arr.str`}, // arr += str
+		{core.Link{LenºArr, 22<<16 | core.EMBED}, `arr*`, `int`}, // the length of array
+		{core.Link{AssignAddºArrInt, 24<<16 | core.EMBED},
+			`arr.int,int`, `arr.int`}, // arr += int
 		{AssignAddºArrArr, `arr.arr*,arr*`, `arr.arr*`},  // arr.arr += arr
 		{AssignAddºArrBool, `arr.bool,bool`, `arr.bool`}, // arr += bool
 		{AssignAddºArrMap, `arr.map*,map*`, `arr.map*`},  // arr.map += map

@@ -12,8 +12,13 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+type BlockInfo struct {
+	Block *core.CmdBlock
+	Vars  []int
+}
+
 type Linker struct {
-	Blocks []*core.CmdBlock
+	Blocks []BlockInfo
 	Lex    *core.Lex
 }
 
@@ -105,12 +110,14 @@ func type2Code(itype *core.TypeObject) (retType core.Bcode) {
 		retType = core.TYPEINT
 	case reflect.TypeOf(true):
 		retType = core.TYPEBOOL
-		//				case reflect.TypeOf(float64(0.0)):
-		//					retType = core.STACKFLOAT
+	case reflect.TypeOf(float64(0.0)):
+		retType = core.TYPEFLOAT
 	case reflect.TypeOf('a'):
 		retType = core.TYPECHAR
 	case reflect.TypeOf(``):
 		retType = core.TYPESTR
+	case reflect.TypeOf(core.Array{}):
+		retType = core.TYPEARR
 	}
 	return retType
 }

@@ -11,7 +11,7 @@ import (
 // InitRange appends stdlib range functions to the virtual machine
 func InitRange(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		NewRange, // binary ..
+		core.Link{NewRange, core.RANGE}, // binary ..
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

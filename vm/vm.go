@@ -81,7 +81,7 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		vm.Settings.Depth = DEPTH
 	}
 	//	fmt.Println(`CODE`, vm.Exec.Code)
-	//	fmt.Println(`POS`, vm.Exec.Pos)
+	//fmt.Println(`POS`, vm.Exec.Pos)
 	//fmt.Println(`STRING`, vm.Exec.Strings)
 	for i, id := range vm.Exec.Init {
 		if i == 0 {
