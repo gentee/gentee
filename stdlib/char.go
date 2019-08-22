@@ -11,15 +11,15 @@ import (
 // InitChar appends stdlib int functions to the virtual machine
 func InitChar(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		core.Link{AddºCharChar, 16<<16 | core.EMBED},      // binary +
-		core.Link{AddºStrChar, 14<<16 | core.EMBED},       // binary str + char
-		core.Link{AddºCharStr, 17<<16 | core.EMBED},       // binary char + str
-		core.Link{AssignAddºStrChar, 15<<16 | core.EMBED}, // str += char
-		core.Link{AssignºCharChar, core.ASSIGN},           // char = char
-		core.Link{ExpStrºChar, 18<<16 | core.EMBED},       // expression in string
-		core.Link{EqualºCharChar, core.EQ},                // binary ==
-		core.Link{GreaterºCharChar, 19<<16 | core.EMBED},  // binary >
-		core.Link{LessºCharChar, 20<<16 | core.EMBED},     // binary <
+		core.Link{AddºCharChar, 16<<16 | core.EMBED},                          // binary +
+		core.Link{AddºStrChar, 14<<16 | core.EMBED},                           // binary str + char
+		core.Link{AddºCharStr, 17<<16 | core.EMBED},                           // binary char + str
+		core.Link{AssignAddºStrChar /*15<<16 | core.EMBED*/, core.ASSIGN + 4}, // str += char
+		core.Link{AssignºCharChar, core.ASSIGN},                               // char = char
+		core.Link{ExpStrºChar, 18<<16 | core.EMBED},                           // expression in string
+		core.Link{EqualºCharChar, core.EQ},                                    // binary ==
+		core.Link{GreaterºCharChar, 19<<16 | core.EMBED},                      // binary >
+		core.Link{LessºCharChar, 20<<16 | core.EMBED},                         // binary <
 		intºChar, // int( char )
 		core.Link{strºChar, 21<<16 | core.EMBED}, // str( char )
 	} {

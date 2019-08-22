@@ -104,6 +104,42 @@ func copyUsed(src, dest *core.Bytecode) {
 	}
 }
 
+func initBlock(linker *Linker, cmd *core.CmdBlock, out *core.Bytecode) (BlockInfo, []core.Bcode) {
+	push := func(pars ...core.Bcode) {
+		out.Code = append(out.Code, pars...)
+	}
+	bInfo := BlockInfo{
+		Block: cmd,
+	}
+	push(core.Bcode(cmd.ParCount<<16)|core.INITVARS, core.Bcode(len(cmd.Vars)))
+	var types []core.Bcode
+	if len(cmd.Vars) > 0 {
+		types = make([]core.Bcode, len(cmd.Vars))
+		var sInt, sStr, sFloat, sAny int
+		bInfo.Vars = make([]int, len(cmd.Vars))
+		for i, ivar := range cmd.Vars {
+			types[i] = type2Code(ivar)
+			switch types[i] & 0xff {
+			case core.STACKSTR:
+				bInfo.Vars[i] = sStr
+				sStr++
+			case core.STACKFLOAT:
+				bInfo.Vars[i] = sFloat
+				sFloat++
+			case core.STACKANY:
+				bInfo.Vars[i] = sAny
+				sAny++
+			default:
+				bInfo.Vars[i] = sInt
+				sInt++
+			}
+		}
+		push(types...)
+	}
+	linker.Blocks = append(linker.Blocks, bInfo)
+	return bInfo, types
+}
+
 func type2Code(itype *core.TypeObject) (retType core.Bcode) {
 	switch itype.Original {
 	case reflect.TypeOf(int64(0)):
@@ -118,6 +154,10 @@ func type2Code(itype *core.TypeObject) (retType core.Bcode) {
 		retType = core.TYPESTR
 	case reflect.TypeOf(core.Array{}):
 		retType = core.TYPEARR
+	case reflect.TypeOf(core.Range{}):
+		retType = core.TYPERANGE
+	case reflect.TypeOf(core.Map{}):
+		retType = core.TYPEMAP
 	}
 	return retType
 }

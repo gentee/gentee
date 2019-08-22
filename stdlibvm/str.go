@@ -22,13 +22,25 @@ func intºStr(val string) (ret int64, err error) {
 }
 
 // AssignºStrBool assigns boolean to string
-func AssignºStrBool(ptr *string, value int64) string {
-	*ptr = strºBool(value)
-	return *ptr
+func AssignºStrBool(ptr *string, value interface{}) (string, error) {
+	*ptr = strºBool(value.(int64))
+	return *ptr, nil
 }
 
 // AssignºStrInt assigns integer to string
-func AssignºStrInt(ptr *string, value int64) string {
+func AssignºStrInt(ptr *string, value interface{}) (string, error) {
 	*ptr = fmt.Sprint(value)
-	return *ptr
+	return *ptr, nil
+}
+
+// AssignºStrStr assigns one string to another
+func AssignºStrStr(ptr *string, value interface{}) (string, error) {
+	*ptr = value.(string)
+	return *ptr, nil
+}
+
+// AssignAddºStrStr appends one string to another
+func AssignAddºStrStr(ptr *string, value interface{}) (string, error) {
+	*ptr += value.(string)
+	return *ptr, nil
 }

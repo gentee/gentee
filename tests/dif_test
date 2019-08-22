@@ -1,0 +1,8 @@
+run arr.bool {
+  arr.bool bib
+  bib += true
+  bib += false
+  bib += !false
+  return bib
+}
+===== [true false true]

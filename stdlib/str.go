@@ -16,21 +16,19 @@ import (
 // InitStr appends stdlib string functions to the virtual machine
 func InitStr(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		core.Link{AddºStrStr, core.Bcode(core.TYPESTR<<16) | core.ADDSTR}, // binary +
-		core.Link{EqualºStrStr, core.EQSTR},                               // binary ==
-		core.Link{GreaterºStrStr, core.GTSTR},                             // binary >
-		core.Link{LenºStr, core.LENSTR},                                   // the length of str
-		core.Link{LessºStrStr, core.LTSTR},                                // binary <
-		core.Link{intºStr, 2<<16 | core.EMBED},                            // int( str )
-		floatºStr,                                                         // float( str )
-		boolºStr,                                                          // bool( str )
-		core.Link{ExpStrºStr, core.ADDSTR},                                // expression in string
-		core.Link{AssignºStrStr,
-			core.Bcode(core.TYPESTR<<16) | core.ASSIGN}, // str = str
-		core.Link{AssignAddºStrStr,
-			core.Bcode(core.TYPESTR<<16) | core.ASSIGNADD}, // str += str
-		core.Link{AssignºStrBool, 12<<16 | core.EMBED}, // str = bool
-		core.Link{AssignºStrInt, 13<<16 | core.EMBED},  // str = int
+		core.Link{AddºStrStr, core.Bcode(core.TYPESTR<<16) | core.ADDSTR},  // binary +
+		core.Link{EqualºStrStr, core.EQSTR},                                // binary ==
+		core.Link{GreaterºStrStr, core.GTSTR},                              // binary >
+		core.Link{LenºStr, core.Bcode(core.TYPESTR<<16) | core.LEN},        // the length of str
+		core.Link{LessºStrStr, core.LTSTR},                                 // binary <
+		core.Link{intºStr, 2<<16 | core.EMBED},                             // int( str )
+		floatºStr,                                                          // float( str )
+		boolºStr,                                                           // bool( str )
+		core.Link{ExpStrºStr, core.ADDSTR},                                 // expression in string
+		core.Link{AssignºStrStr, core.ASSIGN},                              // str = str
+		core.Link{AssignAddºStrStr, core.ASSIGN + 1},                       // str += str
+		core.Link{AssignºStrBool, core.ASSIGN + 2 /*12<<16 | core.EMBED*/}, // str = bool
+		core.Link{AssignºStrInt, core.ASSIGN + 3 /*13<<16 | core.EMBED*/},  // str = int
 		FindºStrStr,       // Find( str, str ) int
 		FormatºStr,        // Format( str, ... ) str
 		HasPrefixºStrStr,  // HasPrefix( str, str ) bool

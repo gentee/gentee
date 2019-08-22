@@ -20,9 +20,9 @@ func AddºStrChar(left string, right int64) string {
 }
 
 // AssignAddºStrChar appends one rune to string
-func AssignAddºStrChar(ptr *string, value int64) string {
-	*ptr += string(rune(value))
-	return *ptr
+func AssignAddºStrChar(ptr *string, value interface{}) (string, error) {
+	*ptr += string(rune(value.(int64)))
+	return *ptr, nil
 }
 
 // ExpStrºChar adds string and char in string expression

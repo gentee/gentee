@@ -927,6 +927,21 @@ run arr.str {
   return myr
 }
 ===== [test asdf]
+run arr.arr.int { 
+  arr.arr.int a1 = {{1,2,3}, {4,5,6}}
+  arr.int b1 c1
+  b1 = a1[0]
+  c1 = a1[0]
+  for v in a1 {
+    v[0] = 7
+  }
+  b1[2] = 33
+  a1 += b1
+  b1[0] = 9
+  a1 += c1
+  return a1
+}
+===== [[7 2 3] [7 5 6] [9 2 33] [1 2 3]]
 run arr.int {
   arr.int myarr = {10, 
     20,3+5
@@ -1032,6 +1047,14 @@ run int {
   return sum
 }
 ===== 105
+run map {
+  map mymap
+  mymap["ok"] = `т123`
+  mymap["new"] = mymap["ok"]
+  mymap["new"][1] = mymap["ok"][0]
+  return mymap
+}
+===== map[ok:т123 new:тт23]
 run int {
   map.int mymap
   int sum
@@ -1050,14 +1073,6 @@ run map {
   return mymap
 }
 ===== map[test:true :false те:тест]
-run arr.bool {
-  arr.bool bib
-  bib += true
-  bib += false
-  bib += !false
-  return bib
-}
-===== [true false true]
 func newStr(arr.arr ina) {
     arr item
     item += str(*ina)
@@ -1137,15 +1152,27 @@ run str {
   return str(*array) + " \{array[0]} " + array[1]
 }
 ===== 2 first second
+run arr.int { 
+  arr.int ai
+  ai += 7
+  ai += 0
+  ai[0] += 3
+  ai[1] = 7
+  ai[1]++
+  return ai
+}
+===== [10 8]
 run arr.str { 
   arr a1
   str s = `0Ê1`
   s[0] = 'Ê'
   a1 += `start`
-  a1[0] += s
+  a1 += `end`
+  a1[1] += s
+  a1[0][2] = '7'
   return a1
 }
-===== [startÊÊ1]
+===== [st7rt endÊÊ1]
 run int { 
   int ret
   for i, j in 3..5-7 {

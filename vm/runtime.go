@@ -12,10 +12,174 @@ import (
 	stdlib "github.com/gentee/gentee/stdlibvm"
 )
 
+type indexInfo struct {
+	IntValue  int64
+	StrValue  string
+	PtrStr    *string
+	IndStr    int
+	Original  interface{}
+	OrigIndex interface{}
+	OrigType  int
+	Index     interface{}
+	RetType   int
+	VarType   int
+}
+
+func newValue(vtype int) interface{} {
+	switch vtype {
+	case core.TYPEINT:
+		return int64(0)
+	case core.TYPECHAR:
+		return int64(' ')
+	case core.TYPESTR:
+		return ``
+	case core.TYPEARR:
+		return core.NewArray()
+	case core.TYPEMAP:
+		return core.NewMap()
+	}
+	return nil
+}
+
 func (rt *Runtime) Run(i int64) (result interface{}, err error) {
+	var iInfo indexInfo
+
 	top := Call{}
 	code := rt.Owner.Exec.Code
 	end := int64(len(code))
+
+	pushIndex := func(ptr interface{}, retType int) {
+		switch retType & 0xff {
+		case core.STACKSTR:
+			rt.SStr[top.Str] = *ptr.(*string)
+			top.Str++
+		case core.STACKINT:
+			rt.SInt[top.Int] = *ptr.(*int64)
+			top.Int++
+		case core.STACKANY:
+			rt.SAny[top.Any] = ptr
+			top.Any++
+		default:
+			fmt.Printf("GET TYPE %T\n", ptr)
+		}
+	}
+	getIndex := func(set bool) (ptr interface{}, err error) {
+		var count int
+		if code[i+2]&0xffff == core.INDEX {
+			count = int(code[i+2] >> 16)
+		}
+		iInfo.Original = nil
+		iInfo.Index = nil
+		iInfo.PtrStr = nil
+		blockOff := rt.Calls[int32(len(rt.Calls)-1-int(code[i])>>16)]
+		i++
+		typeVar := int(code[i]) >> 16
+		typeRet := typeVar
+		varIndex := int32(int(code[i]) & 0xffff)
+		switch typeVar & 0xff {
+		case core.STACKSTR:
+			ptr = &rt.SStr[blockOff.Str+varIndex]
+		case core.STACKANY:
+			ptr = rt.SAny[blockOff.Any+varIndex]
+		default:
+			ptr = &rt.SInt[blockOff.Int+varIndex]
+		}
+		if count > 0 {
+			i++
+			for ind := 0; ind < count; ind++ {
+				i++
+				typeVar = int(code[i]) >> 16
+				typeRet = int(code[i]) & 0x0fff
+
+				if int(code[i])&0x8000 != 0 {
+					top.Str--
+					iInfo.Index = rt.SStr[top.Str]
+				} else {
+					top.Int--
+					iInfo.Index = rt.SInt[top.Int]
+					if iInfo.Index.(int64) < 0 {
+						err = runtimeError(rt, i, ErrIndexOut)
+						return
+					}
+				}
+				if typeVar&0xff == core.STACKANY && typeRet&0xff != core.STACKANY &&
+					iInfo.Original == nil {
+					iInfo.Original = ptr
+					iInfo.OrigIndex = iInfo.Index
+					iInfo.OrigType = typeRet
+				}
+				switch typeVar {
+				case core.TYPESTR:
+					if len(*ptr.(*string)) <= int(iInfo.Index.(int64)) {
+						err = runtimeError(rt, i, ErrIndexOut)
+						return
+					}
+					iInfo.PtrStr = ptr.(*string)
+					iInfo.IndStr = int(iInfo.Index.(int64))
+					runes := []rune(*iInfo.PtrStr)
+					iInfo.IntValue = int64(runes[iInfo.Index.(int64)])
+					ptr = &iInfo.IntValue
+				case core.TYPEARR:
+					if ptr.(*core.Array).Len() <= int(iInfo.Index.(int64)) {
+						err = runtimeError(rt, i, ErrIndexOut)
+						return
+					}
+					value := ptr.(*core.Array).Data[iInfo.Index.(int64)]
+					switch typeRet & 0xff {
+					case core.STACKINT:
+						iInfo.IntValue = value.(int64)
+						ptr = &iInfo.IntValue
+					case core.STACKSTR:
+						iInfo.StrValue = value.(string)
+						ptr = &iInfo.StrValue
+					default:
+						ptr = value
+					}
+				case core.TYPERANGE:
+					rangeVal := ptr.(*core.Range)
+					iInfo.IntValue = rangeVal.From - iInfo.Index.(int64)
+					if rangeVal.From < rangeVal.To {
+						iInfo.IntValue = rangeVal.From + iInfo.Index.(int64)
+					}
+					ptr = &iInfo.IntValue
+				case core.TYPEMAP:
+					var value interface{}
+
+					if key, ok := iInfo.Index.(string); ok {
+						if value, ok = ptr.(*core.Map).Data[key]; !ok {
+							if !set {
+								err = runtimeError(rt, i, ErrMapIndex, key)
+								return
+							}
+							value = newValue(typeRet)
+							ptr.(*core.Map).Data[key] = value
+							ptr.(*core.Map).Keys = append(ptr.(*core.Map).Keys, key)
+
+						}
+					} else {
+						value = ptr.(*core.Map).Data[ptr.(*core.Map).Keys[iInfo.Index.(int64)]]
+					}
+					switch typeRet & 0xff {
+					case core.STACKINT:
+						iInfo.IntValue = value.(int64)
+						ptr = &iInfo.IntValue
+					case core.STACKSTR:
+						iInfo.StrValue = value.(string)
+						ptr = &iInfo.StrValue
+					default:
+						ptr = value
+					}
+				default:
+					fmt.Printf("INDEX ANY %x %x\n", typeVar, typeRet)
+				}
+				//fmt.Printf("IND %x %x %v\r\n", typeVar, typeRet, iInfo)
+			}
+		}
+		iInfo.RetType = typeRet
+		iInfo.VarType = typeVar
+		return
+	}
+
 main:
 	for i < end {
 		switch code[i] & 0xffff {
@@ -130,198 +294,260 @@ main:
 				rt.SInt[top.Int] = 0
 			}
 			top.Int++
-		case core.LENSTR:
-			top.Str--
-			rt.SInt[top.Int] = int64(len(rt.SStr[top.Str]))
-			top.Int++
 		case core.GETVAR:
-			//soff := top.Str
-			ioff := top.Int
-			var count int
-			if code[i+2]&0xffff == core.INDEX {
-				count = int(code[i+2] >> 16)
-				for ind := 0; ind < count; ind++ {
-					// for map will be here
-					ioff--
-				}
+			ptr, err := getIndex(false)
+			if err != nil {
+				return nil, err
 			}
-			shift := int(code[i]) >> 16
+			//			fmt.Println(`GETVAR index`, ptr, iInfo)
+			/*if iInfo.Index != nil {
+			switch iInfo.VarType {
+			case core.TYPESTR:
+				runes := []rune(*ptr.(*string))
+				iInfo.IntValue = int64(runes[iInfo.Index.(int64)])
+			case core.TYPERANGE:
+				iInfo.IntValue = int64(ptr.(*core.Range).From - iInfo.Index.(int64))
+				if ptr.(*core.Range).From < ptr.(*core.Range).To {
+					iInfo.IntValue = ptr.(*core.Range).From + iInfo.Index.(int64)
+				}
+			default:
+				fmt.Printf("GET INDEX TYPE %x\n", iInfo.VarType)
+			}*/
+			/*				switch iInfo.RetType & 0xff {
+							case core.STACKINT:
+								ptr = &iInfo.IntValue
+								//				case core.STACKSTR:
+								//					ptr = &iInfo.StrValue
+							default:
+								fmt.Println(`GET RET`, iInfo.RetType)
+							}*/
+			//}
+			pushIndex(ptr, iInfo.RetType)
+			//			fmt.Println("GETVAR", rt.SInt[:top.Int], rt.SStr[:top.Str])
+		case core.SETVAR:
+			ptr, err := getIndex(true)
+			if err != nil {
+				return nil, err
+			}
 			i++
-			typeVar := int(code[i]) >> 16
-			index := int32(int(code[i]) & 0xffff)
-			blockOff := rt.Calls[int32(len(rt.Calls)-1-shift)]
-			switch typeVar & 0xff {
+			assign := code[i] & 0xffff
+			rightType := code[i] >> 16
+			//fmt.Printf("ASSIGN %x %d %x %x\n", iInfo.RetType, assign, iInfo.VarType, rightType)
+			if iInfo.Original == nil && assign == core.ASSIGN &&
+				core.Bcode(iInfo.VarType) == rightType {
+				switch v := ptr.(type) {
+				case *int64:
+					*v = rt.SInt[top.Int-1]
+				case *string:
+					*v = rt.SStr[top.Str-1]
+				default:
+					fmt.Println(`Assign`, rightType)
+				}
+				i++
+				continue
+			}
+			var iValue interface{}
+			switch rightType & 0xff {
+			case core.STACKINT, core.STACKNONE: // STACKNONE is for inc dec
+				top.Int--
+				iValue = rt.SInt[top.Int]
 			case core.STACKSTR:
-				rt.SStr[top.Str] = rt.SStr[blockOff.Str+index]
-				top.Str++
+				top.Str--
+				iValue = rt.SStr[top.Str]
 			case core.STACKANY:
-				rt.SAny[top.Any] = rt.SAny[blockOff.Any+index]
+				top.Any--
+				iValue = rt.SAny[top.Any]
+			default:
+				fmt.Printf("iValue %x\n", rightType)
+			}
+			/*if iInfo.Index != nil {
+								switch v := ptr.(type) {
+								case *string:
+									runes := []rune(*v)
+									iInfo.IntValue = int64(runes[iInfo.Index.(int64)])
+								default:
+									fmt.Printf("SET INDEX TYPE %T\n", v)
+								}
+								switch iInfo.RetType & 0xff {
+								case core.STACKINT:
+									ptr = &iInfo.IntValue
+								}
+			}*/
+			switch v := ptr.(type) {
+			case *int64:
+				rt.SInt[top.Int], err = stdlib.EmbedInt[assign-core.ASSIGN](
+					v, iValue.(int64))
+				top.Int++
+			case *string:
+				rt.SStr[top.Str], err = stdlib.EmbedStr[assign-core.ASSIGN](
+					v, iValue)
+				top.Str++
+			case *core.Array, *core.Map:
+				rt.SAny[top.Any], err = stdlib.EmbedAny[assign-core.ASSIGN](
+					ptr, iValue)
 				top.Any++
 			default:
-				rt.SInt[top.Int] = rt.SInt[blockOff.Int+index]
-				top.Int++
+				fmt.Println(`Embed Assign`, rightType)
 			}
-			if count > 0 {
-				//				var typeRet int
-				i++
-				for ind := 0; ind < count; ind++ {
-					i++
-					typeVar = int(code[i]) >> 16
-					//					typeRet = int(code[i]) & 0xffff
+			if err != nil {
+				return nil, runtimeError(rt, i, err)
+			}
+			if iInfo.PtrStr != nil {
+				runes := []rune(*iInfo.PtrStr)
+				runes[iInfo.IndStr] = rune(iInfo.IntValue)
+				*iInfo.PtrStr = string(runes)
+			}
+			if iInfo.Original != nil {
+				var iValue interface{}
+				switch iInfo.OrigType & 0xff {
+				case core.STACKINT:
+					iValue = iInfo.IntValue
+				case core.STACKSTR:
+					iValue = iInfo.StrValue
+				}
+				switch v := iInfo.Original.(type) {
+				case *core.Array:
+					v.Data[iInfo.OrigIndex.(int64)] = iValue
+				case *core.Map:
+					v.Data[iInfo.OrigIndex.(string)] = iValue
+				}
+			}
+			/*		case core.ASSIGN:
+					typeVar := int(code[i]) >> 16
+					top.Any--
 					switch typeVar {
 					case core.TYPESTR:
-						top.Str--
-						index := rt.SInt[ioff]
-						runes := []rune(rt.SStr[top.Str])
-						//						fmt.Println(`INDEX`, index, rt.SStr[top.Str])
-						if index < 0 || index >= int64(len(runes)) {
-							return nil, runtimeError(rt, i, ErrIndexOut)
-						}
-						rt.SInt[ioff] = int64(runes[index])
-						top.Int = ioff + 1
-					}
-					//					fmt.Printf("IND %x %x\r\n", typeVar, typeRet)
-				}
-			}
-			/*		case core.SETVAR:
-					shift := int(code[i]) >> 16
-					i++
-					typeVar := int(code[i]) >> 16
-					index := int32(int(code[i]) & 0xffff)
-					switch typeVar {
+						*(rt.SAny[top.Any].(*string)) = rt.SStr[top.Str-1]
+					case core.TYPEARR:
+						//				*(rt.SAny[top.Any].(*core.Array)) = rt.SAny[top.Any-1]
+						*(rt.SAny[top.Any].(*interface{})) = rt.SAny[top.Any-1]
 					default:
-						rt.SInt[rt.Calls[int32(len(rt.Calls)-1-shift)].Int+index] = rt.SInt[top.Int-1]
+						*(rt.SAny[top.Any].(*int64)) = rt.SInt[top.Int-1]
 					}*/
-		case core.ADDRESS:
-			shift := int(code[i]) >> 16
-			i++
-			typeVar := int(code[i]) >> 16
-			index := int32(int(code[i]) & 0xffff)
-			switch typeVar {
-			case core.TYPESTR:
-				rt.SAny[top.Any] = &rt.SStr[rt.Calls[int32(len(rt.Calls)-1-shift)].Str+index]
-			case core.TYPEARR:
-				rt.SAny[top.Any] = rt.SAny[rt.Calls[int32(len(rt.Calls)-1-shift)].Any+index]
-			default:
-				rt.SAny[top.Any] = &rt.SInt[rt.Calls[int32(len(rt.Calls)-1-shift)].Int+index]
-			}
-			top.Any++
-		case core.ASSIGN:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			case core.TYPESTR:
-				*(rt.SAny[top.Any].(*string)) = rt.SStr[top.Str-1]
-			case core.TYPEARR:
-				//				*(rt.SAny[top.Any].(*core.Array)) = rt.SAny[top.Any-1]
-				*(rt.SAny[top.Any].(*interface{})) = rt.SAny[top.Any-1]
-			default:
-				*(rt.SAny[top.Any].(*int64)) = rt.SInt[top.Int-1]
-			}
-		case core.ASSIGNADD:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			case core.TYPESTR:
-				*(rt.SAny[top.Any].(*string)) += rt.SStr[top.Str-1]
-				rt.SStr[top.Str-1] = *(rt.SAny[top.Any].(*string))
-			default:
-				*(rt.SAny[top.Any].(*int64)) += rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNSUB:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				*(rt.SAny[top.Any].(*int64)) -= rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNMUL:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				*(rt.SAny[top.Any].(*int64)) *= rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNDIV:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				if rt.SInt[top.Int-1] == 0 {
-					return nil, runtimeError(rt, i, ErrDivZero)
-				}
-				*(rt.SAny[top.Any].(*int64)) /= rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNMOD:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				if rt.SInt[top.Int-1] == 0 {
-					return nil, runtimeError(rt, i, ErrDivZero)
-				}
-				*(rt.SAny[top.Any].(*int64)) %= rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNBITOR:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				*(rt.SAny[top.Any].(*int64)) |= rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNBITXOR:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				*(rt.SAny[top.Any].(*int64)) ^= rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNBITAND:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				*(rt.SAny[top.Any].(*int64)) &= rt.SInt[top.Int-1]
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNLSHIFT:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				*(rt.SAny[top.Any].(*int64)) <<= uint32(rt.SInt[top.Int-1])
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.ASSIGNRSHIFT:
-			typeVar := int(code[i]) >> 16
-			top.Any--
-			switch typeVar {
-			default:
-				*(rt.SAny[top.Any].(*int64)) >>= uint32(rt.SInt[top.Int-1])
-				rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
-			}
-		case core.INC:
-			top.Any--
-			val := *(rt.SAny[top.Any].(*int64)) + 1
-			rt.SInt[top.Int] = val - (int64(code[i]) >> 16)
-			*(rt.SAny[top.Any].(*int64)) = val
-			top.Int++
-		case core.DEC:
-			top.Any--
-			val := *(rt.SAny[top.Any].(*int64)) - 1
-			rt.SInt[top.Int] = val + (int64(code[i]) >> 16)
-			*(rt.SAny[top.Any].(*int64)) = val
-			top.Int++
+			/*		case core.ASSIGNADD:
+								typeVar := int(code[i]) >> 16
+								top.Any--
+								switch typeVar {
+								case core.TYPESTR:
+									*(rt.SAny[top.Any].(*string)) += rt.SStr[top.Str-1]
+									rt.SStr[top.Str-1] = *(rt.SAny[top.Any].(*string))
+								default:
+									*(rt.SAny[top.Any].(*int64)) += rt.SInt[top.Int-1]
+									rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+								}
+					case core.ASSIGNSUB:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							*(rt.SAny[top.Any].(*int64)) -= rt.SInt[top.Int-1]
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNMUL:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							*(rt.SAny[top.Any].(*int64)) *= rt.SInt[top.Int-1]
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNDIV:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							if rt.SInt[top.Int-1] == 0 {
+								return nil, runtimeError(rt, i, ErrDivZero)
+							}
+							*(rt.SAny[top.Any].(*int64)) /= rt.SInt[top.Int-1]
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNMOD:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							if rt.SInt[top.Int-1] == 0 {
+								return nil, runtimeError(rt, i, ErrDivZero)
+							}
+							*(rt.SAny[top.Any].(*int64)) %= rt.SInt[top.Int-1]
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNBITOR:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							*(rt.SAny[top.Any].(*int64)) |= rt.SInt[top.Int-1]
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNBITXOR:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							*(rt.SAny[top.Any].(*int64)) ^= rt.SInt[top.Int-1]
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNBITAND:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							*(rt.SAny[top.Any].(*int64)) &= rt.SInt[top.Int-1]
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNLSHIFT:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							*(rt.SAny[top.Any].(*int64)) <<= uint32(rt.SInt[top.Int-1])
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.ASSIGNRSHIFT:
+						typeVar := int(code[i]) >> 16
+						top.Any--
+						switch typeVar {
+						default:
+							*(rt.SAny[top.Any].(*int64)) >>= uint32(rt.SInt[top.Int-1])
+							rt.SInt[top.Int-1] = *(rt.SAny[top.Any].(*int64))
+						}
+					case core.INC:
+						top.Any--
+						val := *(rt.SAny[top.Any].(*int64)) + 1
+						rt.SInt[top.Int] = val - (int64(code[i]) >> 16)
+						*(rt.SAny[top.Any].(*int64)) = val
+						top.Int++
+					case core.DEC:
+						top.Any--
+						val := *(rt.SAny[top.Any].(*int64)) - 1
+						rt.SInt[top.Int] = val + (int64(code[i]) >> 16)
+						*(rt.SAny[top.Any].(*int64)) = val
+						top.Int++*/
 		case core.DUP:
-			rt.SInt[top.Int] = rt.SInt[top.Int-1]
-			top.Int++
+			switch code[i] >> 16 & 0xff {
+			case core.STACKSTR:
+				rt.SStr[top.Str] = rt.SStr[top.Str-1]
+				top.Str++
+			case core.STACKANY:
+				rt.SAny[top.Any] = rt.SAny[top.Any-1]
+				top.Any++
+			default:
+				rt.SInt[top.Int] = rt.SInt[top.Int-1]
+				top.Int++
+			}
+		case core.POP:
+			switch code[i] >> 16 & 0xff {
+			case core.STACKSTR:
+				top.Str--
+			case core.STACKFLOAT:
+				top.Any--
+			case core.STACKANY:
+				top.Any--
+			default:
+				top.Int--
+			}
 		case core.CYCLE:
 			lenCalls := len(rt.Calls) - 1
 			rt.Calls[lenCalls].Cycle--
@@ -331,7 +557,7 @@ main:
 			}
 		case core.JMP:
 			i += int64(int16(code[i+1]))
-			//	top = rt.Calls[len(rt.Calls)-1]
+			//top = rt.Calls[len(rt.Calls)-1]
 			continue
 		case core.JZE:
 			top.Int--
@@ -373,6 +599,9 @@ main:
 					}
 				} else {
 					switch varType {
+					case core.TYPEINT, core.TYPEBOOL:
+						rt.SInt[top.Int] = 0
+						top.Int++
 					case core.TYPECHAR:
 						rt.SInt[top.Int] = int64(' ')
 						top.Int++
@@ -382,9 +611,11 @@ main:
 					case core.TYPEARR:
 						rt.SAny[top.Any] = core.NewArray()
 						top.Any++
+					case core.TYPEMAP:
+						rt.SAny[top.Any] = core.NewMap()
+						top.Any++
 					default:
-						rt.SInt[top.Int] = 0
-						top.Int++
+						fmt.Println(`INIT ANY`, varType)
 					}
 				}
 			}
@@ -401,6 +632,7 @@ main:
 				Str:    curTop.Str,
 				Any:    curTop.Any,
 			})
+			//			fmt.Println(`INITVARS`, rt.SInt[:top.Int])
 		case core.DELVARS:
 			curTop := top
 			top = rt.Calls[len(rt.Calls)-1]
@@ -410,57 +642,32 @@ main:
 			}
 		case core.RANGE:
 			top.Int -= 2
-			rt.SAny[top.Any] = core.Range{From: rt.SInt[top.Int], To: rt.SInt[top.Int+1]}
+			rt.SAny[top.Any] = &core.Range{From: rt.SInt[top.Int], To: rt.SInt[top.Int+1]}
 			top.Any++
-		case core.LENGTH:
+		case core.LEN:
 			var length int64
 			if code[i]>>16 == core.TYPESTR {
-				length = int64(len([]rune(rt.SStr[top.Str-1])))
+				top.Str--
+				length = int64(len([]rune(rt.SStr[top.Str])))
 			} else {
-				switch v := rt.SAny[top.Any-1].(type) {
+				top.Any--
+				switch v := rt.SAny[top.Any].(type) {
 				case *core.Array:
 					length = int64(v.Len())
-				case core.Range:
+				case *core.Range:
 					length = v.To - v.From
 					if length < 0 {
 						length = -length
 					}
 					length++
+				case *core.Map:
+					length = int64(len(v.Keys))
 				default:
 					fmt.Printf("LENGTH %T\n", v)
 				}
 			}
 			rt.SInt[top.Int] = length
 			top.Int++
-		case core.FORINDEX:
-			typeSrc := code[i] >> 16
-			i++
-			indDest := int32(code[i] & 0xffff)
-			typeDest := code[i] >> 16
-			i++
-			index := rt.SInt[rt.Calls[int(len(rt.Calls)-1)].Int+int32(code[i]&0xffff)]
-			if typeSrc == core.TYPESTR {
-				val := []rune(rt.SStr[top.Str-1])
-				rt.SInt[rt.Calls[int(len(rt.Calls)-1)].Int+indDest] = int64(val[index])
-			} else {
-				switch v := rt.SAny[top.Any-1].(type) {
-				case *core.Array:
-					switch typeDest & 0xff {
-					case core.STACKINT:
-						rt.SInt[rt.Calls[int(len(rt.Calls)-1)].Int+indDest] = v.Data[index].(int64)
-					case core.STACKSTR:
-						rt.SStr[rt.Calls[int(len(rt.Calls)-1)].Str+indDest] = v.Data[index].(string)
-					}
-				case core.Range:
-					val := int64(v.From - index)
-					if v.From < v.To {
-						val = v.From + index
-					}
-					rt.SInt[rt.Calls[int(len(rt.Calls)-1)].Int+indDest] = val
-				default:
-					fmt.Println(`FORINDEX`)
-				}
-			}
 		case core.FORINC:
 			rt.SInt[rt.Calls[int(len(rt.Calls)-1)].Int+int32(code[i]>>16)]++
 		case core.RET:
@@ -555,60 +762,6 @@ main:
 				}
 			default:
 				fmt.Printf("TYPE=%T %v\r\n", v, v)
-			}
-		case core.SETINDEX:
-			top.Any--
-			switch v := rt.SAny[top.Any].(type) {
-			case *string:
-				top.Int--
-				index := rt.SInt[top.Int-1]
-				runes := []rune(*v)
-				if index < 0 || index >= int64(len(runes)) {
-					return nil, runtimeError(rt, i, ErrIndexOut)
-				}
-				runes[index] = rune(rt.SInt[top.Int])
-				rt.SInt[top.Int-1] = int64(runes[index])
-				*v = string(runes)
-			case *core.Array:
-				top.Int--
-				index := rt.SInt[top.Int]
-				if index < 0 || index >= int64(v.Len()) {
-					return nil, runtimeError(rt, i, ErrIndexOut)
-				}
-				switch code[i] >> 16 {
-				case core.TYPEINT:
-					v.Data[index] = rt.SInt[top.Int-1]
-				case core.TYPESTR:
-					v.Data[index] = rt.SStr[top.Str-1]
-				default:
-					v.Data[index] = rt.SAny[top.Any-1]
-				}
-			case *interface{}:
-				top.Int--
-				index := rt.SInt[top.Int-1]
-				runes := []rune((*v).(string))
-				if index < 0 || index >= int64(len(runes)) {
-					return nil, runtimeError(rt, i, ErrIndexOut)
-				}
-				runes[index] = rune(rt.SInt[top.Int])
-				rt.SInt[top.Int-1] = int64(runes[index])
-				*v = string(runes)
-
-			default:
-				fmt.Printf("TYPE=%T %v\r\n", v, v)
-			}
-		case core.ADDRINDEX:
-			switch v := rt.SAny[top.Any-1].(type) {
-			case *core.Array:
-				top.Int--
-				index := rt.SInt[top.Int]
-				switch code[i] >> 16 {
-				case core.TYPESTR:
-					if index < 0 || index >= int64(v.Len()) {
-						return nil, runtimeError(rt, i, ErrIndexOut)
-					}
-					rt.SAny[top.Any-1] = &v.Data[index]
-				}
 			}
 		case core.CONSTBYID:
 			i++

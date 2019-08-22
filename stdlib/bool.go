@@ -15,7 +15,7 @@ func InitBool(ws *core.Workspace) {
 		intºBool,                                        // int( bool )
 		core.Link{Not, core.NOT},                        // unary boolean not
 		core.Link{ExpStrºBool, (5 << 16) | core.EMBED},  // expression in string
-		AssignºBoolBool,                                 // bool = bool
+		core.Link{AssignºBoolBool, core.ASSIGN},         // bool = bool
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

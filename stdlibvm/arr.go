@@ -5,10 +5,14 @@
 package stdlibvm
 
 import (
-	"fmt"
-
 	"github.com/gentee/gentee/core"
 )
+
+// AssignºArrArr copies one array to another one
+func AssignºArrArr(arr interface{}, value interface{}) (interface{}, error) {
+	core.CopyVar(&arr, value)
+	return arr, nil
+}
 
 // AssignAddºArrInt appends one integer to array
 func AssignAddºArrInt(arr *core.Array, value int64) *core.Array {
@@ -17,13 +21,12 @@ func AssignAddºArrInt(arr *core.Array, value int64) *core.Array {
 }
 
 // AssignAddºArrStr appends one string to array
-func AssignAddºArrStr(arr *core.Array, value string) *core.Array {
-	arr.Data = append(arr.Data, value)
-	return arr
+func AssignAddºArrStr(arr interface{}, value interface{}) (interface{}, error) {
+	arr.(*core.Array).Data = append(arr.(*core.Array).Data, value)
+	return arr, nil
 }
 
 // LenºArr returns the length of the array
 func LenºArr(arr *core.Array) int64 {
-	fmt.Println(`LENARR`, *arr)
 	return int64(len(arr.Data))
 }

@@ -889,6 +889,12 @@ run str {
 ===== [3:20] char type does not support indexing
 run str {
   arr array
+  array["OK"] = `qq`
+  return array[0]
+}
+===== [3:13] wrong type of index, expecting int type
+run str {
+  arr array
   array += `qq`
   return array[1]
 }

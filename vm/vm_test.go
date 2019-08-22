@@ -84,6 +84,7 @@ func TestVM(t *testing.T) {
 			testErr := func(err error) error {
 				return fmt.Errorf(`[%d] of %s  %v`, src[i].Line, filename, err)
 			}
+			fmt.Println(`LINE START`, src[i].Line)
 			unitID, err := workspace.Compile(src[i].Src, ``)
 			if err != nil && err.Error() != src[i].Want {
 				return testErr(err)
@@ -95,7 +96,6 @@ func TestVM(t *testing.T) {
 			if err != nil {
 				return testErr(err)
 			}
-			fmt.Println(`LINE START`, src[i].Line)
 			result, err := Run(linked, Settings{})
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {
@@ -109,7 +109,7 @@ func TestVM(t *testing.T) {
 		}
 		return nil
 	}
-	for _, name := range []string{ /*`err_test`,*/ `run_test`, `err_test`} {
+	for _, name := range []string{`err_test`, `run_test`, `err_test`} {
 		if err := testFile(name); err != nil {
 			t.Error(err)
 			return

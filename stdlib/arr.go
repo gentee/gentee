@@ -20,18 +20,19 @@ type embedInfo struct {
 // InitArray appends stdlib array functions to the virtual machine
 func InitArray(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{core.Link{AssignAddºArrStr, 23<<16 | core.EMBED},
+		{core.Link{AssignAddºArrStr /*23<<16 | core.EMBED*/, core.ASSIGN + 1},
 			`arr.str,str`, `arr.str`}, // arr += str
-		{core.Link{LenºArr, 22<<16 | core.EMBED}, `arr*`, `int`}, // the length of array
-		{core.Link{AssignAddºArrInt, 24<<16 | core.EMBED},
+		{core.Link{LenºArr /*22<<16 | core.EMBED*/, core.Bcode(core.TYPEARR<<16) | core.LEN},
+			`arr*`, `int`}, // the length of array
+		{core.Link{AssignAddºArrInt /*24<<16 | core.EMBED*/, core.ASSIGN + 1},
 			`arr.int,int`, `arr.int`}, // arr += int
-		{AssignAddºArrArr, `arr.arr*,arr*`, `arr.arr*`},  // arr.arr += arr
-		{AssignAddºArrBool, `arr.bool,bool`, `arr.bool`}, // arr += bool
-		{AssignAddºArrMap, `arr.map*,map*`, `arr.map*`},  // arr.map += map
-		{AssignºArrArr, `arr*,arr*`, `arr*`},             // arr = arr
-		{AssignBitAndºArrArr, `arr*,arr*`, `arr*`},       // arr &= arr
-		{JoinºArrStr, `arr.str,str`, `str`},              // Join( arr.str, str )
-		{SortºArr, `arr.str`, `arr.str`},                 // Sort( arr.str )
+		{core.Link{AssignAddºArrArr, core.ASSIGN + 1}, `arr.arr*,arr*`, `arr.arr*`},  // arr.arr += arr
+		{core.Link{AssignAddºArrBool, core.ASSIGN + 1}, `arr.bool,bool`, `arr.bool`}, // arr += bool
+		{AssignAddºArrMap, `arr.map*,map*`, `arr.map*`},                              // arr.map += map
+		{core.Link{AssignºArrArr, core.ASSIGN}, `arr*,arr*`, `arr*`},                 // arr = arr
+		{AssignBitAndºArrArr, `arr*,arr*`, `arr*`},                                   // arr &= arr
+		{JoinºArrStr, `arr.str,str`, `str`},                                          // Join( arr.str, str )
+		{SortºArr, `arr.str`, `arr.str`},                                             // Sort( arr.str )
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
