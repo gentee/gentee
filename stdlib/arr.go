@@ -20,15 +20,12 @@ type embedInfo struct {
 // InitArray appends stdlib array functions to the virtual machine
 func InitArray(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{core.Link{AssignAddºArrStr /*23<<16 | core.EMBED*/, core.ASSIGN + 1},
-			`arr.str,str`, `arr.str`}, // arr += str
-		{core.Link{LenºArr /*22<<16 | core.EMBED*/, core.Bcode(core.TYPEARR<<16) | core.LEN},
-			`arr*`, `int`}, // the length of array
-		{core.Link{AssignAddºArrInt /*24<<16 | core.EMBED*/, core.ASSIGN + 1},
-			`arr.int,int`, `arr.int`}, // arr += int
+		{core.Link{AssignAddºArrStr, core.ASSIGN + 1}, `arr.str,str`, `arr.str`},     // arr += str
+		{core.Link{LenºArr, core.Bcode(core.TYPEARR<<16) | core.LEN}, `arr*`, `int`}, // the length of array
+		{core.Link{AssignAddºArrInt, core.ASSIGN + 1}, `arr.int,int`, `arr.int`},     // arr += int
 		{core.Link{AssignAddºArrArr, core.ASSIGN + 1}, `arr.arr*,arr*`, `arr.arr*`},  // arr.arr += arr
 		{core.Link{AssignAddºArrBool, core.ASSIGN + 1}, `arr.bool,bool`, `arr.bool`}, // arr += bool
-		{AssignAddºArrMap, `arr.map*,map*`, `arr.map*`},                              // arr.map += map
+		{core.Link{AssignAddºArrMap, core.ASSIGN + 1}, `arr.map*,map*`, `arr.map*`},  // arr.map += map
 		{core.Link{AssignºArrArr, core.ASSIGN}, `arr*,arr*`, `arr*`},                 // arr = arr
 		{AssignBitAndºArrArr, `arr*,arr*`, `arr*`},                                   // arr &= arr
 		{JoinºArrStr, `arr.str,str`, `str`},                                          // Join( arr.str, str )

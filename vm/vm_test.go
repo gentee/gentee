@@ -109,7 +109,7 @@ func TestVM(t *testing.T) {
 		}
 		return nil
 	}
-	for _, name := range []string{`err_test`, `run_test`, `err_test`} {
+	for _, name := range []string{ /*`err_test`,*/ `run_test`, `err_test`} {
 		if err := testFile(name); err != nil {
 			t.Error(err)
 			return

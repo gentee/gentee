@@ -534,25 +534,28 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 								}*/
 		case core.StackFor:
 			bInfo, _ := initBlock(linker, cmdStack, out)
+
 			cmd2Code(linker, cmdStack.Children[0], out)
 			srcType := type2Code(cmdStack.Children[0].GetResult())
 			curType := type2Code(cmdStack.Vars[0])
 			//			fmt.Printf("For Type %x %x %x %v\n", srcType,
 			//				type2Code(cmdStack.Children[0].GetResult().IndexOf), curType, cmdStack.Vars)
+			indcur := 0
+			if curType&0xff == core.STACKANY {
+				indcur = 1
+			}
 			pos := len(out.Code)
 			push(core.CYCLE)
 			getPos(linker, cmdStack, out)
 			push(core.GETVAR, core.Bcode(int(core.TYPEINT)<<16|bInfo.Vars[1]),
-				(srcType<<16)|core.DUP,
-				(srcType<<16)|core.LEN, core.LT)
-			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+13))
+				(srcType<<16)|core.DUP, (srcType<<16)|core.LEN, core.LT)
+			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+12))
 
 			push(core.GETVAR, core.Bcode(int(core.TYPEINT)<<16|bInfo.Vars[1])) // set index
-			push(core.GETVAR, core.Bcode(int(srcType)<<16|0),                  // get cur value
+			push(core.GETVAR, core.Bcode(int(srcType)<<16|indcur),             // get cur value
 				core.Bcode(1<<16|core.INDEX), core.Bcode(int(srcType)<<16)|curType)
-
 			push(core.SETVAR, core.Bcode(int(curType)<<16|bInfo.Vars[0]),
-				core.Bcode(int(curType)<<16|core.ASSIGN), core.Bcode(int(curType)<<16|core.POP))
+				core.Bcode(int(curType)<<16|core.ASSIGNPTR), core.Bcode(int(curType)<<16|core.POP))
 
 			out.Code = append(out.Code, cmds[0].Code...)
 			push(core.Bcode(bInfo.Vars[1]<<16) | core.FORINC)

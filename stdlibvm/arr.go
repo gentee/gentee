@@ -14,19 +14,8 @@ func AssignºArrArr(arr interface{}, value interface{}) (interface{}, error) {
 	return arr, nil
 }
 
-// AssignAddºArrInt appends one integer to array
-func AssignAddºArrInt(arr *core.Array, value int64) *core.Array {
-	arr.Data = append(arr.Data, value)
-	return arr
-}
-
 // AssignAddºArrStr appends one string to array
-func AssignAddºArrStr(arr interface{}, value interface{}) (interface{}, error) {
+func AssignAddºArrAny(arr interface{}, value interface{}) (interface{}, error) {
 	arr.(*core.Array).Data = append(arr.(*core.Array).Data, value)
 	return arr, nil
-}
-
-// LenºArr returns the length of the array
-func LenºArr(arr *core.Array) int64 {
-	return int64(len(arr.Data))
 }

@@ -23,20 +23,13 @@ var Embedded = []core.Embed{
 		CanError: true},
 	{Func: SetEnvBool, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEBOOL},
 		CanError: true},
-	/*-*/ {Func: AssignºStrBool, Return: core.TYPESTR, Params: []uint16{core.TYPEPTR, core.TYPEBOOL}},
-	/*-*/ {Func: AssignºStrInt, Return: core.TYPESTR, Params: []uint16{core.TYPEPTR, core.TYPEINT}},
-	{Func: AddºStrChar, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPECHAR}},
-	/*-*/ {Func: AssignAddºStrChar, Return: core.TYPESTR, Params: []uint16{core.TYPEPTR, core.TYPECHAR}},
 	{Func: AddºCharChar, Return: core.TYPESTR, Params: []uint16{core.TYPECHAR, core.TYPECHAR}},
 	{Func: AddºCharStr, Return: core.TYPESTR, Params: []uint16{core.TYPECHAR, core.TYPESTR}},
+	{Func: AddºStrChar, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPECHAR}},
 	{Func: ExpStrºChar, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPECHAR}},
 	{Func: GreaterºCharChar, Return: core.TYPEBOOL, Params: []uint16{core.TYPECHAR, core.TYPECHAR}},
-	// 20
 	{Func: LessºCharChar, Return: core.TYPEBOOL, Params: []uint16{core.TYPECHAR, core.TYPECHAR}},
 	{Func: strºChar, Return: core.TYPESTR, Params: []uint16{core.TYPECHAR}},
-	/*-*/ {Func: LenºArr, Return: core.TYPEINT, Params: []uint16{core.TYPEARR}},
-	/*-*/ {Func: AssignAddºArrStr, Return: core.TYPEARR, Params: []uint16{core.TYPEPTR, core.TYPESTR}},
-	/*-*/ {Func: AssignAddºArrInt, Return: core.TYPEARR, Params: []uint16{core.TYPEPTR, core.TYPEINT}},
 }
 
 var EmbedInt = []core.AssignIntFunc{
@@ -64,6 +57,6 @@ var EmbedStr = []core.AssignStrFunc{
 
 var EmbedAny = []core.AssignAnyFunc{
 	AssignºArrArr,
-	AssignAddºArrStr,
+	AssignAddºArrAny,
 	AssignºMapMap,
 }

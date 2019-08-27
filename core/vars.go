@@ -21,6 +21,12 @@ type Range struct {
 	To   int64
 }
 
+type Indexer interface {
+	Len() int
+	GetIndex(interface{}) (interface{}, bool)
+	SetIndex(interface{}, interface{}) bool
+}
+
 // KeyValue is the type for key value :
 type KeyValue struct {
 	Key   interface{}
@@ -71,6 +77,27 @@ type Struct struct {
 	Values []interface{} // Values of fields
 }
 
+// Len is part of Indexer interface.
+func (prange *Range) Len() int {
+	if prange.From < prange.To {
+		return int(prange.To - prange.From + 1)
+	}
+	return int(prange.From - prange.To + 1)
+}
+
+// GetIndex is part of Indexer interface.
+func (prange *Range) GetIndex(index interface{}) (interface{}, bool) {
+	if prange.From < prange.To {
+		return prange.From + index.(int64), true
+	}
+	return prange.From - index.(int64), true
+}
+
+// SetIndex is part of Indexer interface.
+func (prange *Range) SetIndex(index, value interface{}) bool {
+	return false
+}
+
 // String interface for Map
 func (pmap Map) String() string {
 	list := make([]string, len(pmap.Keys))
@@ -86,6 +113,42 @@ func NewMap() *Map {
 		Data: make(map[string]interface{}),
 		Keys: make([]string, 0),
 	}
+}
+
+// Len is part of Indexer interface.
+func (pmap *Map) Len() int {
+	return len(pmap.Keys)
+}
+
+// GetIndex is part of Indexer interface.
+func (pmap *Map) GetIndex(index interface{}) (interface{}, bool) {
+	if key, ok := index.(string); ok {
+		var (
+			value interface{}
+			ok    bool
+		)
+		if value, ok = pmap.Data[key]; !ok {
+			return nil, false
+		}
+		return value, true
+	}
+	return pmap.Data[pmap.Keys[index.(int64)]], true
+}
+
+// SetIndex is part of Indexer interface.
+func (pmap *Map) SetIndex(index, value interface{}) bool {
+	if v, ok := index.(int64); ok {
+		pmap.Data[pmap.Keys[v]] = value
+		return true
+	}
+	sindex := index.(string)
+	if _, ok := pmap.Data[sindex]; !ok {
+		pmap.Data[sindex] = value
+		pmap.Keys = append(pmap.Keys, sindex)
+	} else {
+		pmap.Data[sindex] = value
+	}
+	return true
 }
 
 // String interface for Array
@@ -113,6 +176,25 @@ func (arr *Array) Swap(i, j int) {
 // Less is part of sort.Interface.
 func (arr *Array) Less(i, j int) bool {
 	return arr.Data[i].(string) < arr.Data[j].(string)
+}
+
+// GetIndex is part of Indexer interface.
+func (arr *Array) GetIndex(index interface{}) (interface{}, bool) {
+	aindex := int(index.(int64))
+	if aindex < 0 || aindex >= len(arr.Data) {
+		return nil, false
+	}
+	return arr.Data[aindex], true
+}
+
+// SetIndex is part of Indexer interface.
+func (arr *Array) SetIndex(index, value interface{}) bool {
+	aindex := int(index.(int64))
+	if aindex < 0 || aindex >= len(arr.Data) {
+		return false
+	}
+	arr.Data[aindex] = value
+	return true
 }
 
 // String interface for Buffer

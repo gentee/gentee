@@ -96,7 +96,7 @@ const (
 	GTSTR     // str > str
 	GETVAR    // & (block shift<<16) + int16 type + int16 index
 	SETVAR    // & (block shift<<16) + int16 type + int16 index + int16 index count + int16 assign
-	DUP       // & (type<<16) duplicate top int
+	DUP       // & (type<<16) duplicate top
 	POP       // & (type<<16) pop top
 	CYCLE     // cycle counter
 	JMP       // + int32 jump with clearing stack
@@ -109,13 +109,14 @@ const (
 	FORINC    // & (index<<16) increment counter
 	RET       // & (type<<16) return from function
 	END       // end of the function
-	INDEX     // & (int32 count) + {(type input<<16) + result type}
 	CONSTBYID // + int32 id of the object
 	CALLBYID  // & (par count<<16) + int32 id of the object
 	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
 	IOTA // & (iota<<16)
 
+	INDEX        // & (int32 count) + {(type input<<16) + result type}
+	ASSIGNPTR    // & (int16 type << 16)
 	ASSIGN       // & (int16 type << 16)
 	ASSIGNADD    // int += int  & (int16 type << 16) str += str
 	ASSIGNSUB    // int -= int
