@@ -776,13 +776,13 @@ run st_two {
   return st
 }
 ===== st_two[ID:28 one:st_one[ID:3 Id:88] st_arr:[one two] st_map:map[zero:0 first:1]]
-struct forInit : str name;int ID
+struct forInit : str name;int ID; int q
 run test forInit {
   str v = "value"
-  forInit fi={name: "string " + v, "ID": 74+3}
+  forInit fi={q: 11, name: "string " + v, "ID": 74+3}
   return fi
 }
-===== forInit[name:string value ID:77]
+===== forInit[name:string value ID:77 q:11]
 struct rec : int a; arr.rec self
 run rec {
   rec r1 r2
@@ -814,9 +814,10 @@ run map.eqa {
   arr.eqa atest = {eval}
   eval2.rec = atest
   eval2.a = 2
-  map.eqa test = {"eval": eval2}
+  map.eqa test &= {"eval": eval2}
   eval2.a = 3
   map.eqa test2 = test
+  test["q"] = eval2
   eval.a = 4
   eval2.a = 5
   return test2
@@ -917,11 +918,6 @@ run map {
   return ret
 }
 ===== map[test:qqq 1:asdf]
-run arr.bool {
-  arr.bool mb = : true, false, true
-  return mb
-}
-===== [true false true]
 run arr.str {
   arr myr = {"test",`asdf`,}
   return myr

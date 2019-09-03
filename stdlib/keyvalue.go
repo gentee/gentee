@@ -11,6 +11,7 @@ import (
 // InitKeyValue appends stdlib range functions to the virtual machine
 func InitKeyValue(ws *core.Workspace) {
 	for _, item := range []interface{}{
+		//		core.Link{NewKeyValue, core.KEYVALUE}, // binary :
 		NewKeyValue, // binary :
 	} {
 		ws.StdLib().NewEmbed(item)

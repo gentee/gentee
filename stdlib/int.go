@@ -29,12 +29,12 @@ func InitInt(ws *core.Workspace) {
 		core.Link{LShiftºIntInt, core.LSHIFT},            // binary <<
 		core.Link{RShiftºIntInt, core.RSHIFT},            // binary >>
 		core.Link{BitNotºInt, core.BITNOT},               // unary bitwise NOT
-		floatºInt,                                        // float( int )
+		core.Link{floatºInt, 19<<16 | core.EMBED},        // float( int )
 		core.Link{strºInt, 1<<16 | core.EMBED},           // str( int )
 		core.Link{boolºInt, 3<<16 | core.EMBED},          // bool( int )
 		core.Link{ExpStrºInt, 4<<16 | core.EMBED},        // expression in string
 		core.Link{AssignºIntInt, core.ASSIGN},            // int = int
-		AssignºIntChar,                                   // int = char
+		core.Link{AssignºIntChar, core.ASSIGN},           // int = char
 		core.Link{AssignAddºIntInt, core.ASSIGN + 1},     // int += int
 		core.Link{AssignBitAndºIntInt, core.ASSIGN + 6},  // int &= int
 		core.Link{AssignBitOrºIntInt, core.ASSIGN + 7},   // int |= int

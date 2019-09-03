@@ -574,8 +574,12 @@ func coVarExp(cmpl *compiler) error {
 				}
 			}
 			if tokens[cmpl.pos+2].Type == tkLCurly {
+				cmdID := uint32(core.StackInit)
+				if tokens[cmpl.pos+1].Type == tkBitAndEq {
+					cmdID = core.StackInitPtr
+				}
 				//				block := cmpl.curOwner()
-				cmd := core.CmdBlock{ID: core.StackInit, CmdCommon: core.CmdCommon{
+				cmd := core.CmdBlock{ID: cmdID, CmdCommon: core.CmdCommon{
 					TokenID: uint32(cmpl.pos + 1)}}
 				appendCmd(cmpl, &cmd)
 				cmpl.owners = append(cmpl.owners, &cmd)

@@ -72,6 +72,8 @@ const (
 	StackFor
 	// StackInit inits array and map variables
 	StackInit
+	// StackInitPtr inits array and map variables
+	StackInitPtr
 	// StackNew creates a new array or map
 	StackNew
 	// StackOptional is used for initialization of optional variables

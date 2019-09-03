@@ -8,12 +8,15 @@ type Bcode int32
 
 // Bytecode contains bytecode information
 type Bytecode struct {
-	Code      []Bcode
-	Used      map[int32]byte // identifier of used objects
-	Init      []int32        // offsets of init funcs
-	Strings   map[string]uint16
-	StrOffset []int32 // offsets of PUSHSTR
-	Pos       []CodePos
+	Code          []Bcode
+	Used          map[int32]byte // identifier of used objects
+	Init          []int32        // offsets of init funcs
+	Strings       map[string]uint16
+	StrOffset     []int32 // offsets of PUSHSTR
+	Structs       map[string]uint16
+	StructsList   []StructInfo
+	StructsOffset []int32 // offsets of struct types
+	Pos           []CodePos
 }
 
 type CodePos struct {
@@ -24,11 +27,18 @@ type CodePos struct {
 	Column uint16 // Column
 }
 
+type StructInfo struct {
+	Name   string
+	Fields []uint16 // types
+	Keys   []string
+}
+
 type Exec struct {
 	Code    []Bcode
 	Funcs   map[int32]int32
 	Init    []int32  // offsets of init funcs (initializing constants)
 	Strings []string // string resources
+	Structs []StructInfo
 	Pos     []CodePos
 }
 
@@ -43,22 +53,29 @@ type Embed struct {
 }
 
 type AssignIntFunc func(*int64, int64) (int64, error)
+type AssignFloatFunc func(*float64, float64) (float64, error)
 type AssignStrFunc func(*string, interface{}) (string, error)
 type AssignAnyFunc func(interface{}, interface{}) (interface{}, error)
 
 //type SetIndexFunc func(interface{}, interface{}, interface{}) error
 
 const (
-	TYPENONE  = 0
-	TYPEINT   = 0x101
-	TYPEBOOL  = 0x201
-	TYPECHAR  = 0x301
-	TYPESTR   = 0x402
-	TYPEFLOAT = 0x503
-	TYPEARR   = 0x604
-	TYPERANGE = 0x704
-	TYPEMAP   = 0x804
-	TYPEPTR   = 0xf04
+	TYPENONE   = 0
+	TYPEINT    = 0x011
+	TYPEBOOL   = 0x021
+	TYPECHAR   = 0x031
+	TYPESTR    = 0x042
+	TYPEFLOAT  = 0x053
+	TYPEARR    = 0x064
+	TYPERANGE  = 0x074
+	TYPEMAP    = 0x084
+	TYPEBUF    = 0x094
+	TYPESTRUCT = 0x104
+
+	BlBreak    = 0x0001
+	BlContinue = 0x0002
+	BlVars     = 0x0004
+	BlPars     = 0x0008
 )
 
 const (
@@ -73,6 +90,7 @@ const (
 	NOP       = iota
 	PUSH32    // + int32
 	PUSH64    // + int64
+	PUSHFLOAT // + float64
 	PUSHSTR   // & (strid << 16 )
 	ADD       // int + int
 	SUB       // int - int
@@ -90,6 +108,14 @@ const (
 	LT        // int < int
 	GT        // int > int
 	NOT       // logical not 1 => 0, 0 => 1
+	ADDFLOAT  // float + float
+	SUBFLOAT  // float - float
+	MULFLOAT  // float * float
+	DIVFLOAT  // float / float
+	SIGNFLOAT // -float
+	EQFLOAT   // float == float
+	LTFLOAT   // float < float
+	GTFLOAT   // float > float
 	ADDSTR    // str + str
 	EQSTR     // str == str
 	LTSTR     // str < str
@@ -99,14 +125,20 @@ const (
 	DUP       // & (type<<16) duplicate top
 	POP       // & (type<<16) pop top
 	CYCLE     // cycle counter
-	JMP       // + int32 jump with clearing stack
+	JMP       // + int32 jump
 	JZE       // + int32 jump if the top value is zero
 	JNZ       // + int32 jump if the top value is not zero
-	INITVARS  // initializing variables
-	DELVARS   // delete variables
-	RANGE     // create range
+	BLOCK     // & (flags << 16) + int32 start + int32 size
+	INITVARS  // & (flags<<16) initializing variables + parcount<<16 | var count +
+	// offset break + offset continue
+	DELVARS // delete variables
+	INITOBJ // & (count<<16) create a new object + int16 type +int16 type item
+	RANGE   // create range
+	//	KEYVALUE  // create keyvalue
 	LEN       // & (type<<16) length
 	FORINC    // & (index<<16) increment counter
+	BREAK     // break
+	CONTINUE  // continue
 	RET       // & (type<<16) return from function
 	END       // end of the function
 	CONSTBYID // + int32 id of the object
@@ -129,7 +161,4 @@ const (
 	ASSIGNLSHIFT // int <<= int
 	ASSIGNRSHIFT // int >>= int
 	INCDEC
-
-	INC // &( 1 << 16 int++ ) ++int
-	DEC // &( 1 << 16 int-- ) --int
 )

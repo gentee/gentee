@@ -6,3 +6,8 @@ run arr.bool {
   return bib
 }
 ===== [true false true]
+run arr.bool {
+  arr.bool mb = : true, false, true
+  return mb
+}
+===== [true false true]

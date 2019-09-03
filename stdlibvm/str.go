@@ -8,9 +8,19 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/gentee/gentee/core"
 )
+
+// floatºStr converts string value to float
+func floatºStr(val string) (ret float64, err error) {
+	ret, err = strconv.ParseFloat(val, 64)
+	if err != nil {
+		err = errors.New(core.ErrorText(core.ErrStrToFloat))
+	}
+	return
+}
 
 // intºStr converts string value to int
 func intºStr(val string) (ret int64, err error) {
@@ -43,4 +53,19 @@ func AssignºStrStr(ptr *string, value interface{}) (string, error) {
 func AssignAddºStrStr(ptr *string, value interface{}) (string, error) {
 	*ptr += value.(string)
 	return *ptr, nil
+}
+
+// LinesºStr splits a string to a array of strings
+func LinesºStr(in string) *core.Array {
+	out := core.NewArray()
+	items := strings.Split(in, "\n")
+	for _, item := range items {
+		out.Data = append(out.Data, strings.Trim(item, "\r"))
+	}
+	return out
+}
+
+// TrimSpaceºStr trims white space in a string
+func TrimSpaceºStr(in string) string {
+	return strings.TrimSpace(in)
 }

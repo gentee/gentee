@@ -11,8 +11,8 @@ import (
 // InitStruct appends stdlib map functions to the virtual machine
 func InitStruct(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{AssignºStructStruct, `struct,struct`, `struct`},       // struct = struct
-		{AssignBitAndºStructStruct, `struct,struct`, `struct`}, // struct &= struct
+		{core.Link{AssignºStructStruct, core.ASSIGN}, `struct,struct`, `struct`},          // struct = struct
+		{core.Link{AssignBitAndºStructStruct, core.ASSIGNPTR}, `struct,struct`, `struct`}, // struct &= struct
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

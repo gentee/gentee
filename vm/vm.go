@@ -5,6 +5,8 @@
 package vm
 
 import (
+	"fmt"
+
 	"github.com/gentee/gentee/core"
 )
 
@@ -57,6 +59,11 @@ type Call struct {
 	Float  int32
 	Str    int32
 	Any    int32
+	// for loop blocks
+	Flags    int16
+	Start    int32
+	Continue int32 // shift for continue
+	Break    int32 // shift for break
 }
 
 func (vm *VM) RunThread(offset int64) (interface{}, error) {
@@ -69,6 +76,9 @@ func (vm *VM) RunThread(offset int64) (interface{}, error) {
 }
 
 func Run(exec *core.Exec, settings Settings) (interface{}, error) {
+	if exec == nil {
+		return nil, fmt.Errorf(ErrorText(ErrNotRun))
+	}
 	vm := &VM{
 		Settings: settings,
 		Exec:     exec,
@@ -96,6 +106,8 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		switch v := val.(type) {
 		case int64:
 			constType = core.TYPEINT
+		case float64:
+			constType = core.TYPEFLOAT
 		case bool:
 			constType = core.TYPEBOOL
 			if v {

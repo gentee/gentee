@@ -30,6 +30,28 @@ var Embedded = []core.Embed{
 	{Func: GreaterºCharChar, Return: core.TYPEBOOL, Params: []uint16{core.TYPECHAR, core.TYPECHAR}},
 	{Func: LessºCharChar, Return: core.TYPEBOOL, Params: []uint16{core.TYPECHAR, core.TYPECHAR}},
 	{Func: strºChar, Return: core.TYPESTR, Params: []uint16{core.TYPECHAR}},
+	{Func: floatºInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEINT}},
+	// 20
+	{Func: floatºStr, Return: core.TYPEFLOAT, Params: []uint16{core.TYPESTR}, CanError: true},
+	{Func: AddºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
+	{Func: AddºIntFloat, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEINT, core.TYPEFLOAT}},
+	{Func: intºFloat, Return: core.TYPEINT, Params: []uint16{core.TYPEFLOAT}},
+	{Func: strºFloat, Return: core.TYPESTR, Params: []uint16{core.TYPEFLOAT}},
+	{Func: MulºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
+	{Func: SubºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
+	{Func: SubºIntFloat, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEINT, core.TYPEFLOAT}},
+	{Func: DivºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT},
+		CanError: true},
+	{Func: DivºIntFloat, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEINT, core.TYPEFLOAT},
+		CanError: true},
+	// 30
+	{Func: MulºIntFloat, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEINT, core.TYPEFLOAT}},
+	{Func: ExpStrºFloat, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEFLOAT}},
+	{Func: EqualºFloatInt, Return: core.TYPEBOOL, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
+	{Func: GreaterºFloatInt, Return: core.TYPEBOOL, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
+	{Func: LessºFloatInt, Return: core.TYPEBOOL, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
+	{Func: TrimSpaceºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
+	{Func: LinesºStr, Return: core.TYPEARR, Params: []uint16{core.TYPESTR}},
 }
 
 var EmbedInt = []core.AssignIntFunc{
@@ -47,6 +69,14 @@ var EmbedInt = []core.AssignIntFunc{
 	IncDecºInt,
 }
 
+var EmbedFloat = []core.AssignFloatFunc{
+	AssignºFloatFloat,
+	AssignAddºFloatFloat,
+	AssignSubºFloatFloat,
+	AssignMulºFloatFloat,
+	AssignDivºFloatFloat,
+}
+
 var EmbedStr = []core.AssignStrFunc{
 	AssignºStrStr,
 	AssignAddºStrStr,
@@ -59,4 +89,8 @@ var EmbedAny = []core.AssignAnyFunc{
 	AssignºArrArr,
 	AssignAddºArrAny,
 	AssignºMapMap,
+	AssignAddºBufChar,
+	AssignAddºBufInt,
+	AssignAddºBufBuf,
+	AssignAddºBufStr,
 }

@@ -6,6 +6,7 @@ package vm
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 
 	"github.com/gentee/gentee/core"
@@ -22,28 +23,40 @@ type indexInfo struct {
 	Objects [32]indexObj
 }
 
-func newValue(vtype int) interface{} {
+func newValue(rt *Runtime, vtype int) interface{} {
 	switch vtype {
-	case core.TYPEINT:
+	case core.TYPEINT, core.TYPEBOOL:
 		return int64(0)
 	case core.TYPECHAR:
 		return int64(' ')
 	case core.TYPESTR:
 		return ``
+	case core.TYPEFLOAT:
+		return float64(0.0)
 	case core.TYPEARR:
 		return core.NewArray()
 	case core.TYPEMAP:
 		return core.NewMap()
+	case core.TYPEBUF:
+		return core.NewBuffer()
+	default:
+		if vtype >= core.TYPESTRUCT {
+			return NewStruct(rt, &rt.Owner.Exec.Structs[(vtype-core.TYPESTRUCT)>>8])
+
+		} else {
+			fmt.Println(`NEW VALUE`, vtype)
+		}
 	}
 	return nil
 }
 
 func (rt *Runtime) Run(i int64) (result interface{}, err error) {
 	var (
-		iInfo  indexInfo
-		tmpInt int64
-		tmpStr string
-		count  int
+		iInfo    indexInfo
+		tmpInt   int64
+		tmpStr   string
+		tmpFloat float64
+		count    int
 	)
 
 	top := Call{}
@@ -61,6 +74,11 @@ main:
 			i += 2
 			rt.SInt[top.Int] = int64((uint64(code[i-1]) << 32) | (uint64(code[i]) & 0xffffffff))
 			top.Int++
+		case core.PUSHFLOAT:
+			i += 2
+			rt.SFloat[top.Float] = math.Float64frombits(uint64(code[i-1])<<32 |
+				uint64(code[i])&0xffffffff)
+			top.Float++
 		case core.PUSHSTR:
 			rt.SStr[top.Str] = rt.Owner.Exec.Strings[(code[i])>>16]
 			top.Str++
@@ -137,6 +155,47 @@ main:
 			} else {
 				rt.SInt[top.Int-1] = 0
 			}
+		case core.ADDFLOAT:
+			top.Float--
+			rt.SFloat[top.Float-1] += rt.SFloat[top.Float]
+		case core.SUBFLOAT:
+			top.Float--
+			rt.SFloat[top.Float-1] -= rt.SFloat[top.Float]
+		case core.MULFLOAT:
+			top.Float--
+			rt.SFloat[top.Float-1] *= rt.SFloat[top.Float]
+		case core.DIVFLOAT:
+			top.Float--
+			if rt.SFloat[top.Float] == 0.0 {
+				return nil, runtimeError(rt, i, ErrDivZero)
+			}
+			rt.SFloat[top.Float-1] /= rt.SFloat[top.Float]
+		case core.SIGNFLOAT:
+			rt.SFloat[top.Float-1] = -rt.SFloat[top.Float-1]
+		case core.EQFLOAT:
+			top.Float -= 2
+			if rt.SFloat[top.Float] == rt.SFloat[top.Float+1] {
+				rt.SInt[top.Int] = 1
+			} else {
+				rt.SInt[top.Int] = 0
+			}
+			top.Int++
+		case core.LTFLOAT:
+			top.Float -= 2
+			if rt.SFloat[top.Float] < rt.SFloat[top.Float+1] {
+				rt.SInt[top.Int] = 1
+			} else {
+				rt.SInt[top.Int] = 0
+			}
+			top.Int++
+		case core.GTFLOAT:
+			top.Float -= 2
+			if rt.SFloat[top.Float] > rt.SFloat[top.Float+1] {
+				rt.SInt[top.Int] = 1
+			} else {
+				rt.SInt[top.Int] = 0
+			}
+			top.Int++
 		case core.ADDSTR:
 			top.Str--
 			rt.SStr[top.Str-1] += rt.SStr[top.Str]
@@ -178,9 +237,11 @@ main:
 			i++
 			typeVar := int(code[i]) >> 16
 			root := int64(int(code[i]) & 0xffff)
-			switch typeVar & 0xff {
+			switch typeVar & 0xf {
 			case core.STACKINT:
 				root += int64(blockOff.Int)
+			case core.STACKFLOAT:
+				root += int64(blockOff.Float)
 			case core.STACKSTR:
 				root += int64(blockOff.Str)
 			case core.STACKANY:
@@ -189,10 +250,13 @@ main:
 				fmt.Println(`root index`, typeVar)
 			}
 			if count == 0 {
-				switch typeVar & 0xff {
+				switch typeVar & 0xf {
 				case core.STACKINT:
 					rt.SInt[top.Int] = rt.SInt[root]
 					top.Int++
+				case core.STACKFLOAT:
+					rt.SFloat[top.Float] = rt.SFloat[root]
+					top.Float++
 				case core.STACKSTR:
 					rt.SStr[top.Str] = rt.SStr[root]
 					top.Str++
@@ -208,7 +272,7 @@ main:
 			i++
 			var ptr, value interface{}
 			var ok bool
-			if typeVar&0xff == core.STACKSTR {
+			if typeVar&0xf == core.STACKSTR {
 				ptr = &rt.SStr[root]
 			} else {
 				ptr = rt.SAny[root]
@@ -227,7 +291,7 @@ main:
 			for ind := 0; ind < count; ind++ {
 				i++
 				typeVar = int(code[i]) >> 16
-				typeRet = int(code[i]) & 0x0fff
+				typeRet = int(code[i]) & 0x7fff
 				if int(code[i])&0x8000 != 0 {
 					top.Str--
 					index = rt.SStr[top.Str]
@@ -235,7 +299,7 @@ main:
 					top.Int--
 					index = rt.SInt[top.Int]
 				}
-				switch typeVar & 0xff {
+				switch typeVar & 0xf {
 				case core.STACKSTR:
 					runes := []rune(*ptr.(*string))
 					if int(index.(int64)) < 0 || len(runes) <= int(index.(int64)) {
@@ -253,10 +317,13 @@ main:
 						}
 						return
 					}
+					if value == nil {
+						return nil, runtimeError(rt, i, ErrUndefined)
+					}
 				default:
 					fmt.Printf("INDEX ANY %x\n", typeVar)
 				}
-				switch typeRet & 0xff {
+				switch typeRet & 0xf {
 				case core.STACKSTR:
 					rt.SStr[top.Str] = value.(string)
 					ptr = &rt.SStr[top.Str]
@@ -264,10 +331,13 @@ main:
 					ptr = value
 				}
 			}
-			switch typeRet & 0xff {
+			switch typeRet & 0xf {
 			case core.STACKINT:
 				rt.SInt[top.Int] = value.(int64)
 				top.Int++
+			case core.STACKFLOAT:
+				rt.SFloat[top.Float] = value.(float64)
+				top.Float++
 			case core.STACKSTR:
 				top.Str++
 			case core.STACKANY:
@@ -294,10 +364,13 @@ main:
 			obj := &iInfo.Objects[0]
 			obj.Type = typeVar
 			root := int64(int(code[i]) & 0xffff)
-			switch typeVar & 0xff {
+			switch typeVar & 0xf {
 			case core.STACKINT:
 				root += int64(blockOff.Int)
 				ptr = &rt.SInt[root]
+			case core.STACKFLOAT:
+				root += int64(blockOff.Float)
+				ptr = &rt.SFloat[root]
 			case core.STACKSTR:
 				root += int64(blockOff.Str)
 				ptr = &rt.SStr[root]
@@ -314,7 +387,7 @@ main:
 				for ind := 0; ind < count; ind++ {
 					i++
 					typeVar = int(code[i]) >> 16
-					typeRet = int(code[i]) & 0x0fff
+					typeRet = int(code[i]) & 0x7fff
 					//					iInfo.Count++
 					obj = &iInfo.Objects[ind+1]
 					//				fmt.Printf("IND %d %x %x\n", ind, typeVar, typeRet)
@@ -328,7 +401,7 @@ main:
 					obj.Obj = ptr
 					obj.Type = typeRet
 					//		fmt.Println(`OBJ`, iInfo.Objects[:iInfo.Count+1])
-					switch typeVar & 0xff {
+					switch typeVar & 0xf {
 					case core.STACKSTR:
 						runes := []rune(*ptr.(*string))
 						if int(obj.Index.(int64)) < 0 || len(runes) <= int(obj.Index.(int64)) {
@@ -344,18 +417,21 @@ main:
 						value, ok = ptr.(core.Indexer).GetIndex(obj.Index)
 						if !ok {
 							if key, ok := obj.Index.(string); ok {
-								value = newValue(typeRet)
-								if !ptr.(core.Indexer).SetIndex(key, value) {
+								value = newValue(rt, typeRet)
+								if ptr.(core.Indexer).SetIndex(key, value) != 0 {
 									return nil, runtimeError(rt, i, ErrIndexOut)
 								}
 							} else {
 								return nil, runtimeError(rt, i, ErrIndexOut)
 							}
 						}
-						switch typeRet & 0xff {
+						switch typeRet & 0xf {
 						case core.STACKINT:
 							tmpInt = value.(int64)
 							ptr = &tmpInt
+						case core.STACKFLOAT:
+							tmpFloat = value.(float64)
+							ptr = &tmpFloat
 						case core.STACKSTR:
 							tmpStr = value.(string)
 							ptr = &tmpStr
@@ -370,16 +446,23 @@ main:
 			i++
 			assign := code[i] & 0xffff
 			rightType := code[i] >> 16
+			//			fmt.Printf("Assign %d %d %d %d %x %x\n", count, assign, core.ASSIGN, core.ASSIGNPTR,
+			//				core.Bcode(typeVar), rightType)
 			if count == 0 && (assign == core.ASSIGN || assign == core.ASSIGNPTR) &&
 				core.Bcode(typeVar) == rightType {
-				switch rightType & 0xff {
+				switch rightType & 0xf {
 				case core.STACKINT:
 					rt.SInt[root] = rt.SInt[top.Int-1]
+				case core.STACKFLOAT:
+					rt.SFloat[root] = rt.SFloat[top.Float-1]
 				case core.STACKSTR:
 					rt.SStr[root] = rt.SStr[top.Str-1]
 				default:
+					if rt.SAny[root] == rt.SAny[top.Any-1] {
+						return nil, runtimeError(rt, i, ErrAssignment)
+					}
 					if assign == core.ASSIGN {
-						core.CopyVar(&rt.SAny[root], rt.SAny[top.Any-1])
+						CopyVar(rt, &rt.SAny[root], rt.SAny[top.Any-1])
 					} else {
 						rt.SAny[root] = rt.SAny[top.Any-1]
 					}
@@ -388,10 +471,13 @@ main:
 				continue
 			}
 			var iValue interface{}
-			switch rightType & 0xff {
+			switch rightType & 0xf {
 			case core.STACKINT, core.STACKNONE: // STACKNONE is for inc dec
 				top.Int--
 				iValue = rt.SInt[top.Int]
+			case core.STACKFLOAT:
+				top.Float--
+				iValue = rt.SFloat[top.Float]
 			case core.STACKSTR:
 				top.Str--
 				iValue = rt.SStr[top.Str]
@@ -407,11 +493,16 @@ main:
 				switch v := ptr.(type) {
 				case *int64:
 					*v = iValue.(int64)
+				case *float64:
+					*v = iValue.(float64)
 				case *string:
 					*v = iValue.(string)
 				default:
+					if ptr == iValue {
+						return nil, runtimeError(rt, i, ErrAssignment)
+					}
 					if assign == core.ASSIGN {
-						core.CopyVar(&ptr, iValue)
+						CopyVar(rt, &ptr, iValue)
 						iValue = ptr
 					}
 				}
@@ -420,22 +511,25 @@ main:
 				case *int64:
 					iValue, err = stdlib.EmbedInt[assign-core.ASSIGN](
 						v, iValue.(int64))
+				case *float64:
+					iValue, err = stdlib.EmbedFloat[assign-core.ASSIGN](
+						v, iValue.(float64))
 				case *string:
 					iValue, err = stdlib.EmbedStr[assign-core.ASSIGN](
 						v, iValue)
-				case *core.Array, *core.Map:
+				default:
 					iValue, err = stdlib.EmbedAny[assign-core.ASSIGN](
 						ptr, iValue)
-				default:
-					fmt.Println(`Embed Assign`, rightType)
+					//				default:
+					//					fmt.Println(`Embed Assign`, rightType)
 				}
 				if err != nil {
 					return nil, runtimeError(rt, i, err)
 				}
 			}
-			//			typeVar = (int(code[i]) >> 16) & 0xff
+			//			typeVar = (int(code[i]) >> 16) & 0xf
 			//			fmt.Println(`OBJ`, iInfo.Objects[:iInfo.Count+1], iValue)
-			if count > 0 || typeVar&0xff == core.STACKANY {
+			if count > 0 || typeVar&0xf == core.STACKANY {
 				if count > 0 && iInfo.Objects[count-1].Type == core.TYPESTR {
 					var dest string
 					obj = &iInfo.Objects[count-1]
@@ -452,12 +546,14 @@ main:
 					if obj.Obj == nil {
 						rt.SStr[obj.Index.(int64)] = dest
 					} else {
-						obj.Obj.(core.Indexer).SetIndex(obj.Index, dest)
+						if errID := obj.Obj.(core.Indexer).SetIndex(obj.Index, dest); errID != 0 {
+							return nil, runtimeError(rt, i, errID)
+						}
 					}
 				} else {
 					obj = &iInfo.Objects[count]
 					if obj.Obj == nil {
-						/*switch obj.Type & 0xff {
+						/*switch obj.Type & 0xf {
 						case core.STACKINT:
 							rt.SInt[obj.Index.(int64)] = iValue.(int64)
 						case core.STACKSTR:
@@ -466,20 +562,30 @@ main:
 						rt.SAny[obj.Index.(int64)] = iValue
 						//						}
 					} else {
-						switch obj.Type & 0xff {
+						switch obj.Type & 0xf {
 						case core.STACKINT:
 							iValue = tmpInt
+						case core.STACKFLOAT:
+							iValue = tmpFloat
 						case core.STACKSTR:
 							iValue = tmpStr
 						}
-						obj.Obj.(core.Indexer).SetIndex(obj.Index, iValue)
+						if obj.Obj == iValue {
+							return nil, runtimeError(rt, i, ErrAssignment)
+						}
+						if errID := obj.Obj.(core.Indexer).SetIndex(obj.Index, iValue); errID != 0 {
+							return nil, runtimeError(rt, i, errID)
+						}
 					}
 				}
 			}
-			switch iInfo.Objects[count].Type & 0xff {
+			switch iInfo.Objects[count].Type & 0xf {
 			case core.STACKINT:
 				rt.SInt[top.Int] = iValue.(int64)
 				top.Int++
+			case core.STACKFLOAT:
+				rt.SFloat[top.Float] = iValue.(float64)
+				top.Float++
 			case core.STACKSTR:
 				rt.SStr[top.Str] = iValue.(string)
 				top.Str++
@@ -491,7 +597,10 @@ main:
 			}
 			//			fmt.Println(`SETVAR`, rt.SInt[:top.Int], rt.SAny[:top.Any])
 		case core.DUP:
-			switch code[i] >> 16 & 0xff {
+			switch code[i] >> 16 & 0xf {
+			case core.STACKFLOAT:
+				rt.SFloat[top.Float] = rt.SFloat[top.Float-1]
+				top.Float++
 			case core.STACKSTR:
 				rt.SStr[top.Str] = rt.SStr[top.Str-1]
 				top.Str++
@@ -503,11 +612,13 @@ main:
 				top.Int++
 			}
 		case core.POP:
-			switch code[i] >> 16 & 0xff {
+			switch code[i] >> 16 & 0xf {
+			case core.STACKFLOAT:
+				top.Float--
 			case core.STACKSTR:
 				top.Str--
-			case core.STACKFLOAT:
-				top.Any--
+				//			case core.STACKFLOAT:
+				//				top.Any--
 			case core.STACKANY:
 				top.Any--
 			default:
@@ -538,6 +649,15 @@ main:
 				continue
 			}
 			i++
+		case core.BLOCK:
+			ind := len(rt.Calls) - 1
+			rt.Calls[ind].Flags = int16(code[i] >> 16)
+			rt.Calls[ind].Start = int32(i) + 3
+			i++
+			rt.Calls[ind].Continue = rt.Calls[ind].Start + int32(code[i])
+			i++
+			rt.Calls[ind].Break = rt.Calls[ind].Start + int32(code[i])
+			fmt.Println(`BLOCK`, rt.Calls)
 		case core.INITVARS:
 			//			parCount := code[i] >> 16
 			i++
@@ -551,7 +671,10 @@ main:
 				i++
 				varType := int(code[i])
 				if rt.ParCount > k {
-					switch varType & 0xff {
+					switch varType & 0xf {
+					case core.STACKFLOAT:
+						prevTop.Float--
+						curTop.Float--
 					case core.STACKSTR:
 						prevTop.Str--
 						curTop.Str--
@@ -570,17 +693,15 @@ main:
 					case core.TYPECHAR:
 						rt.SInt[top.Int] = int64(' ')
 						top.Int++
+					case core.TYPEFLOAT:
+						rt.SFloat[top.Float] = float64(0.0)
+						top.Float++
 					case core.TYPESTR:
 						rt.SStr[top.Str] = ``
 						top.Str++
-					case core.TYPEARR:
-						rt.SAny[top.Any] = core.NewArray()
-						top.Any++
-					case core.TYPEMAP:
-						rt.SAny[top.Any] = core.NewMap()
-						top.Any++
 					default:
-						fmt.Println(`INIT ANY`, varType)
+						rt.SAny[top.Any] = newValue(rt, varType)
+						top.Any++
 					}
 				}
 			}
@@ -605,10 +726,136 @@ main:
 			for j := top.Any; j < curTop.Any; j++ {
 				rt.SAny[j] = nil
 			}
+			//			fmt.Println(`DELVARS`, rt.Calls)
+		case core.INITOBJ:
+			count = int(code[i]) >> 16
+			i++
+			typeRet := int(code[i]) >> 16
+			typeVar := int(code[i]) & 0xffff
+			//			fmt.Printf("INITOBJ %d %x %x\n", count, typeVar, typeRet)
+			switch typeVar {
+			case core.TYPEARR:
+				parr := core.NewArray()
+				parr.Data = make([]interface{}, count)
+				for j := 0; j < count; j++ {
+					switch typeRet & 0xf {
+					case core.STACKINT:
+						top.Int--
+						parr.Data[count-j-1] = rt.SInt[top.Int]
+					case core.STACKFLOAT:
+						top.Float--
+						parr.Data[count-j-1] = rt.SFloat[top.Float]
+					case core.STACKSTR:
+						top.Str--
+						parr.Data[count-j-1] = rt.SStr[top.Str]
+					case core.STACKANY:
+						top.Any--
+						/*						var ptr interface{}
+												CopyVar(rt, &ptr, rt.SAny[top.Any])
+												parr.Data[count-j-1] = ptr*/
+						parr.Data[count-j-1] = rt.SAny[top.Any] //ptr
+					}
+				}
+				rt.SAny[top.Any] = parr
+			case core.TYPEMAP:
+				pmap := core.NewMap()
+				pmap.Keys = make([]string, count)
+				for j := 0; j < count; j++ {
+					var value interface{}
+					switch typeRet & 0xf {
+					case core.STACKINT:
+						top.Int--
+						value = rt.SInt[top.Int]
+					case core.STACKFLOAT:
+						top.Float--
+						value = rt.SFloat[top.Float]
+					case core.STACKSTR:
+						top.Str--
+						value = rt.SStr[top.Str]
+					case core.STACKANY:
+						top.Any--
+						//CopyVar(rt, &value, rt.SAny[top.Any])
+						value = rt.SAny[top.Any]
+					}
+					top.Str--
+					key := rt.SStr[top.Str]
+					pmap.Data[key] = value
+					pmap.Keys[count-j-1] = key
+				}
+				rt.SAny[top.Any] = pmap
+			case core.TYPEBUF:
+				pbuf := core.NewBuffer()
+				tmp := make([][]byte, count)
+				for j := 0; j < count; j++ {
+					top.Int--
+					switch rt.SInt[top.Int] {
+					case core.TYPEINT:
+						top.Int--
+						pos := rt.SInt[top.Int]
+						top.Int--
+						ind := rt.SInt[top.Int]
+						if uint64(ind) > 255 {
+							return nil, runtimeError(rt, pos, ErrByteOut)
+						}
+						tmp[j] = []byte{byte(ind)}
+					case core.TYPECHAR:
+						top.Int--
+						tmp[j] = append(tmp[j], []byte(string([]rune{rune(rt.SInt[top.Int])}))...)
+					case core.TYPESTR:
+						top.Str--
+						tmp[j] = append(tmp[j], []byte(rt.SStr[top.Str])...)
+					case core.TYPEBUF:
+						top.Any--
+						tmp[j] = append(tmp[j], rt.SAny[top.Any].(*core.Buffer).Data...)
+					default:
+						return nil, runtimeError(rt, i, ErrRuntime, `init buf`)
+					}
+				}
+				for j := len(tmp) - 1; j >= 0; j-- {
+					pbuf.Data = append(pbuf.Data, tmp[j]...)
+				}
+				rt.SAny[top.Any] = pbuf
+			default:
+				if typeVar >= core.TYPESTRUCT {
+					pstruct := NewStruct(rt,
+						&rt.Owner.Exec.Structs[(typeVar-core.TYPESTRUCT)>>8])
+					for j := 0; j < count; j++ {
+						top.Int--
+						ind := rt.SInt[top.Int]
+						var value interface{}
+						switch pstruct.Type.Fields[ind] & 0xf {
+						case core.STACKINT:
+							top.Int--
+							value = rt.SInt[top.Int]
+						case core.STACKFLOAT:
+							top.Float--
+							value = rt.SFloat[top.Float]
+						case core.STACKSTR:
+							top.Str--
+							value = rt.SStr[top.Str]
+						case core.STACKANY:
+							top.Any--
+							value = rt.SAny[top.Any]
+						}
+						pstruct.Values[ind] = value
+					}
+					rt.SAny[top.Any] = pstruct
+				} else {
+					fmt.Println(`NEW INITOBJ`, typeVar)
+				}
+			}
+			top.Any++
+
 		case core.RANGE:
 			top.Int -= 2
 			rt.SAny[top.Any] = &core.Range{From: rt.SInt[top.Int], To: rt.SInt[top.Int+1]}
 			top.Any++
+			/*		case core.KEYVALUE:
+					top.Str -= 2
+					rt.SAny[top.Any] = &core.KeyValue{
+						Key:   rt.SStr[top.Str],
+						Value: rt.SStr[top.Str+1]}
+					top.Any++*/
 		case core.LEN:
 			var length int64
 			if code[i]>>16 == core.TYPESTR {
@@ -622,6 +869,42 @@ main:
 			top.Int++
 		case core.FORINC:
 			rt.SInt[rt.Calls[int(len(rt.Calls)-1)].Int+int32(code[i]>>16)]++
+		case core.BREAK:
+			k := len(rt.Calls) - 1
+			for ; k >= 0; k-- {
+				if rt.Calls[k].Flags&core.BlBreak != 0 {
+					break
+				}
+			}
+			if k < len(rt.Calls)-1 {
+				for j := rt.Calls[k+1].Any; j < top.Any; j++ {
+					rt.SAny[j] = nil
+				}
+				top = rt.Calls[k+1]
+				rt.Calls = rt.Calls[:k+1]
+			}
+			i = int64(rt.Calls[k].Break)
+			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
+			//			fmt.Println(`BREAK COMMAND`, rt.Calls, i)
+			continue
+		case core.CONTINUE:
+			k := len(rt.Calls) - 1
+			for ; k >= 0; k-- {
+				if rt.Calls[k].Flags&core.BlContinue != 0 {
+					break
+				}
+			}
+			if k < len(rt.Calls)-1 {
+				for j := rt.Calls[k+1].Any; j < top.Any; j++ {
+					rt.SAny[j] = nil
+				}
+				top = rt.Calls[k+1]
+				rt.Calls = rt.Calls[:k+1]
+			}
+			i = int64(rt.Calls[k].Continue)
+			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
+			fmt.Println(`BREAK COMMAND`, k, rt.Calls, i)
+			continue
 		case core.RET:
 			retType := code[i] >> 16
 			k := len(rt.Calls) - 1
@@ -631,7 +914,6 @@ main:
 				}
 			}
 			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
-
 			rt.Calls = rt.Calls[:k+1]
 			if len(rt.Calls) == 0 { // return from run function
 				switch retType {
@@ -645,6 +927,8 @@ main:
 					}
 				case core.TYPECHAR:
 					result = rune(rt.SInt[top.Int-1])
+				case core.TYPEFLOAT:
+					result = rt.SFloat[top.Float-1]
 				case core.TYPESTR:
 					result = rt.SStr[top.Str-1]
 				default:
@@ -655,8 +939,11 @@ main:
 			curTop := top
 			top = rt.Calls[k]
 			rt.Calls = rt.Calls[:k]
-			switch retType & 0xff {
+			switch retType & 0xf {
 			case core.STACKNONE:
+			case core.STACKFLOAT:
+				rt.SFloat[top.Float] = rt.SFloat[curTop.Float-1]
+				top.Float++
 			case core.STACKSTR:
 				rt.SStr[top.Str] = rt.SStr[curTop.Str-1]
 				top.Str++
@@ -678,43 +965,6 @@ main:
 			top = rt.Calls[len(rt.Calls)-1]
 			rt.Calls = rt.Calls[:len(rt.Calls)-1]
 			i = int64(top.Offset)
-			/*		case core.INDEX:
-					top.Any--
-					switch v := rt.SAny[top.Any].(type) {
-					case *string:
-						index := rt.SInt[top.Int-1]
-						runes := []rune(*v)
-						if index < 0 || index >= int64(len(runes)) {
-							return nil, runtimeError(rt, i, ErrIndexOut)
-						}
-						rt.SInt[top.Int-1] = int64(runes[index])
-					case *interface{}:
-						index := rt.SInt[top.Int-1]
-						runes := []rune((*v).(string))
-						if index < 0 || index >= int64(len(runes)) {
-							return nil, runtimeError(rt, i, ErrIndexOut)
-						}
-						rt.SInt[top.Int-1] = int64(runes[index])
-					case *core.Array:
-						top.Int--
-						index := rt.SInt[top.Int]
-						if index < 0 || index >= int64(v.Len()) {
-							return nil, runtimeError(rt, i, ErrIndexOut)
-						}
-						switch code[i] >> 16 {
-						case core.TYPEINT:
-							rt.SInt[top.Int] = v.Data[index].(int64)
-							top.Int++
-						case core.TYPESTR:
-							rt.SStr[top.Str] = v.Data[index].(string)
-							top.Str++
-						default:
-							rt.SAny[top.Any] = v.Data[index]
-							top.Any++
-						}
-					default:
-						fmt.Printf("TYPE=%T %v\r\n", v, v)
-					}*/
 		case core.CONSTBYID:
 			i++
 			v := rt.Owner.Consts[int32(code[i])]
@@ -722,6 +972,9 @@ main:
 			case core.TYPEINT, core.TYPEBOOL, core.TYPECHAR:
 				rt.SInt[top.Int] = v.Value.(int64)
 				top.Int++
+			case core.TYPEFLOAT:
+				rt.SFloat[top.Float] = v.Value.(float64)
+				top.Float++
 			case core.TYPESTR:
 				rt.SStr[top.Str] = v.Value.(string)
 				top.Str++
@@ -742,9 +995,6 @@ main:
 			}
 			i = int64(rt.Owner.Exec.Funcs[int32(code[i])])
 			continue
-			//			rt.Run(int64(rt.Owner.Exec.Funcs[int32(code[i])]))
-			//			top = rt.States[len(rt.States)-1]
-			//			rt.States = rt.States[:len(rt.States)-1]
 		case core.EMBED:
 			var vCount int
 			embed := stdlib.Embedded[uint16(code[i]>>16)]
@@ -758,7 +1008,10 @@ main:
 			if vCount > 0 {
 				for i := vCount - 1; i >= 0; i-- {
 					i++
-					switch code[i] & 0xff {
+					switch code[i] & 0xf {
+					case core.STACKFLOAT:
+						top.Float--
+						pars[count+i] = reflect.ValueOf(rt.SFloat[top.Float])
 					case core.STACKSTR:
 						top.Str--
 						pars[count+i] = reflect.ValueOf(rt.SStr[top.Str])
@@ -772,7 +1025,10 @@ main:
 				}
 			}
 			for i := count - 1; i >= 0; i-- {
-				switch embed.Params[i] & 0xff {
+				switch embed.Params[i] & 0xf {
+				case core.STACKFLOAT:
+					top.Float--
+					pars[i] = reflect.ValueOf(rt.SFloat[top.Float])
 				case core.STACKSTR:
 					top.Str--
 					pars[i] = reflect.ValueOf(rt.SStr[top.Str])
@@ -799,8 +1055,11 @@ main:
 						return nil, runtimeError(rt, i, result[len(result)-1].Interface().(error))
 					}
 				}
-				switch embed.Return & 0xff {
+				switch embed.Return & 0xf {
 				case core.STACKNONE:
+				case core.STACKFLOAT:
+					rt.SFloat[top.Float] = result[0].Interface().(float64)
+					top.Float++
 				case core.STACKSTR:
 					rt.SStr[top.Str] = result[0].Interface().(string)
 					top.Str++

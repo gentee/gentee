@@ -15,40 +15,40 @@ import (
 // InitFloat appends stdlib float functions to the virtual machine
 func InitFloat(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		AddºFloatFloat,       // binary +
-		AddºFloatInt,         // binary +
-		AddºIntFloat,         // binary +
-		MulºFloatFloat,       // binary *
-		MulºFloatInt,         // binary *
-		MulºIntFloat,         // binary *
-		SubºFloatFloat,       // binary -
-		SubºFloatInt,         // binary -
-		SubºIntFloat,         // binary -
-		DivºFloatFloat,       // binary /
-		DivºFloatInt,         // binary /
-		DivºIntFloat,         // binary /
-		EqualºFloatFloat,     // binary ==
-		GreaterºFloatFloat,   // binary >
-		LessºFloatFloat,      // binary <
-		EqualºFloatInt,       // binary ==
-		GreaterºFloatInt,     // binary >
-		LessºFloatInt,        // binary <
-		boolºFloat,           // bool( float )
-		intºFloat,            // int( float )
-		SignºFloat,           // unary sign -*/
-		strºFloat,            // str( float )
-		ExpStrºFloat,         // expression in string
-		AssignºFloatFloat,    // float = float
-		AssignAddºFloatFloat, // float += float
-		AssignDivºFloatFloat, // float /= float
-		AssignMulºFloatFloat, // float *= float
-		AssignSubºFloatFloat, // float -= float
-		RoundºFloat,          // Round( float ) int
-		FloorºFloat,          // Floor( float ) int
-		CeilºFloat,           // Ceil( float ) int
-		RoundºFloatInt,       // Round( float, int ) float
-		MinºFloatFloat,       // Min(float, float)
-		MaxºFloatFloat,       // Max(float, float)
+		core.Link{AddºFloatFloat, core.ADDFLOAT},         // binary +
+		core.Link{AddºFloatInt, 21<<16 | core.EMBED},     // binary +
+		core.Link{AddºIntFloat, 22<<16 | core.EMBED},     // binary +
+		core.Link{MulºFloatFloat, core.MULFLOAT},         // binary *
+		core.Link{MulºFloatInt, 25<<16 | core.EMBED},     // binary *
+		core.Link{MulºIntFloat, 30<<16 | core.EMBED},     // binary *
+		core.Link{SubºFloatFloat, core.SUBFLOAT},         // binary -
+		core.Link{SubºFloatInt, 26<<16 | core.EMBED},     // binary -
+		core.Link{SubºIntFloat, 27<<16 | core.EMBED},     // binary -
+		core.Link{DivºFloatFloat, core.DIVFLOAT},         // binary /
+		core.Link{DivºFloatInt, 28<<16 | core.EMBED},     // binary /
+		core.Link{DivºIntFloat, 29<<16 | core.EMBED},     // binary /
+		core.Link{EqualºFloatFloat, core.EQFLOAT},        // binary ==
+		core.Link{GreaterºFloatFloat, core.GTFLOAT},      // binary >
+		core.Link{LessºFloatFloat, core.LTFLOAT},         // binary <
+		core.Link{EqualºFloatInt, 32<<16 | core.EMBED},   // binary ==
+		core.Link{GreaterºFloatInt, 33<<16 | core.EMBED}, // binary >
+		core.Link{LessºFloatInt, 34<<16 | core.EMBED},    // binary <
+		boolºFloat, // bool( float )
+		core.Link{intºFloat, 23<<16 | core.EMBED},        // int( float )
+		core.Link{SignºFloat, core.SIGNFLOAT},            // unary sign -*/
+		core.Link{strºFloat, 24<<16 | core.EMBED},        // str( float )
+		core.Link{ExpStrºFloat, 31<<16 | core.EMBED},     // expression in string
+		core.Link{AssignºFloatFloat, core.ASSIGN},        // float = float
+		core.Link{AssignAddºFloatFloat, core.ASSIGN + 1}, // float += float
+		core.Link{AssignDivºFloatFloat, core.ASSIGN + 4}, // float /= float
+		core.Link{AssignMulºFloatFloat, core.ASSIGN + 3}, // float *= float
+		core.Link{AssignSubºFloatFloat, core.ASSIGN + 2}, // float -= float
+		RoundºFloat,    // Round( float ) int
+		FloorºFloat,    // Floor( float ) int
+		CeilºFloat,     // Ceil( float ) int
+		RoundºFloatInt, // Round( float, int ) float
+		MinºFloatFloat, // Min(float, float)
+		MaxºFloatFloat, // Max(float, float)
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

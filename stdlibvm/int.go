@@ -112,6 +112,11 @@ func boolºInt(val int64) int64 {
 	return 0
 }
 
+// floatºInt converts integer value to float
+func floatºInt(val int64) float64 {
+	return float64(val)
+}
+
 // strºInt converts integer value to string
 func strºInt(val int64) string {
 	return strconv.FormatInt(val, 10)

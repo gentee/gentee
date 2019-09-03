@@ -684,10 +684,11 @@ run test itself {
 }
 ===== [4:10] undefined value
 struct rec : int a; rec owner
-run {
+run rec {
   rec r1
   r1.a = 1
-  r1.owner = r1
+  r1.owner &= r1
+  return r1
 }
 ===== [5:12] there is a recursive or self assignment
 run {

@@ -16,13 +16,13 @@ import (
 // InitStr appends stdlib string functions to the virtual machine
 func InitStr(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		core.Link{AddºStrStr, core.Bcode(core.TYPESTR<<16) | core.ADDSTR},  // binary +
-		core.Link{EqualºStrStr, core.EQSTR},                                // binary ==
-		core.Link{GreaterºStrStr, core.GTSTR},                              // binary >
-		core.Link{LenºStr, core.Bcode(core.TYPESTR<<16) | core.LEN},        // the length of str
-		core.Link{LessºStrStr, core.LTSTR},                                 // binary <
-		core.Link{intºStr, 2<<16 | core.EMBED},                             // int( str )
-		floatºStr,                                                          // float( str )
+		core.Link{AddºStrStr, core.Bcode(core.TYPESTR<<16) | core.ADDSTR}, // binary +
+		core.Link{EqualºStrStr, core.EQSTR},                               // binary ==
+		core.Link{GreaterºStrStr, core.GTSTR},                             // binary >
+		core.Link{LenºStr, core.Bcode(core.TYPESTR<<16) | core.LEN},       // the length of str
+		core.Link{LessºStrStr, core.LTSTR},                                // binary <
+		core.Link{intºStr, 2<<16 | core.EMBED},                            // int( str )
+		core.Link{floatºStr, 20<<16 | core.EMBED},                         // float( str )
 		boolºStr,                                                           // bool( str )
 		core.Link{ExpStrºStr, core.ADDSTR},                                 // expression in string
 		core.Link{AssignºStrStr, core.ASSIGN},                              // str = str
@@ -39,16 +39,16 @@ func InitStr(ws *core.Workspace) {
 		ReplaceºStrStrStr, // Replace( str, str, str )
 		ShiftºStr,         // unary bitwise OR
 		SubstrºStrIntInt,  // Substr( str, int, int ) str
-		TrimSpaceºStr,     // TrimSpace( str ) str
-		TrimRightºStr,     // TrimRight( str, str ) str
-		UpperºStr,         // Upper( str ) str
+		core.Link{TrimSpaceºStr, 35<<16 | core.EMBED}, // TrimSpace( str ) str
+		TrimRightºStr, // TrimRight( str, str ) str
+		UpperºStr,     // Upper( str ) str
 	} {
 		ws.StdLib().NewEmbed(item)
 	}
 
 	for _, item := range []embedInfo{
-		{LinesºStr, `str`, `arr.str`},        // Lines( str ) arr
-		{SplitºStrStr, `str,str`, `arr.str`}, // Split( str, str ) arr
+		{core.Link{LinesºStr, 36<<16 | core.EMBED}, `str`, `arr.str`}, // Lines( str ) arr
+		{SplitºStrStr, `str,str`, `arr.str`},                          // Split( str, str ) arr
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

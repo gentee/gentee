@@ -345,7 +345,7 @@ func (rt *RunTime) runCmd(cmd ICmd) (err error) {
 				return runtimeError(rt, cmd, ErrRuntime, `init arr`)
 			}
 			lenStack++
-		case StackInit:
+		case StackInit, StackInitPtr:
 			cmdVar := cmdStack.Children[0].(*CmdVar)
 			if vars, err = rt.getVars(cmdVar.Block); err != nil {
 				return err

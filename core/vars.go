@@ -24,7 +24,7 @@ type Range struct {
 type Indexer interface {
 	Len() int
 	GetIndex(interface{}) (interface{}, bool)
-	SetIndex(interface{}, interface{}) bool
+	SetIndex(interface{}, interface{}) int
 }
 
 // KeyValue is the type for key value :
@@ -94,8 +94,8 @@ func (prange *Range) GetIndex(index interface{}) (interface{}, bool) {
 }
 
 // SetIndex is part of Indexer interface.
-func (prange *Range) SetIndex(index, value interface{}) bool {
-	return false
+func (prange *Range) SetIndex(index, value interface{}) int {
+	return ErrIndexOut
 }
 
 // String interface for Map
@@ -136,10 +136,10 @@ func (pmap *Map) GetIndex(index interface{}) (interface{}, bool) {
 }
 
 // SetIndex is part of Indexer interface.
-func (pmap *Map) SetIndex(index, value interface{}) bool {
+func (pmap *Map) SetIndex(index, value interface{}) int {
 	if v, ok := index.(int64); ok {
 		pmap.Data[pmap.Keys[v]] = value
-		return true
+		return 0
 	}
 	sindex := index.(string)
 	if _, ok := pmap.Data[sindex]; !ok {
@@ -148,7 +148,7 @@ func (pmap *Map) SetIndex(index, value interface{}) bool {
 	} else {
 		pmap.Data[sindex] = value
 	}
-	return true
+	return 0
 }
 
 // String interface for Array
@@ -188,13 +188,13 @@ func (arr *Array) GetIndex(index interface{}) (interface{}, bool) {
 }
 
 // SetIndex is part of Indexer interface.
-func (arr *Array) SetIndex(index, value interface{}) bool {
+func (arr *Array) SetIndex(index, value interface{}) int {
 	aindex := int(index.(int64))
 	if aindex < 0 || aindex >= len(arr.Data) {
-		return false
+		return ErrIndexOut
 	}
 	arr.Data[aindex] = value
-	return true
+	return 0
 }
 
 // String interface for Buffer
@@ -207,6 +207,34 @@ func NewBuffer() *Buffer {
 	return &Buffer{
 		Data: make([]byte, 0, 32),
 	}
+}
+
+// Len is part of sort.Interface.
+func (buf *Buffer) Len() int {
+	return len(buf.Data)
+}
+
+// GetIndex is part of Indexer interface.
+func (buf *Buffer) GetIndex(index interface{}) (interface{}, bool) {
+	bindex := int(index.(int64))
+	if bindex < 0 || bindex >= len(buf.Data) {
+		return nil, false
+	}
+	return int64(buf.Data[bindex]), true
+}
+
+// SetIndex is part of Indexer interface.
+func (buf *Buffer) SetIndex(index, value interface{}) int {
+	bindex := int(index.(int64))
+	if bindex < 0 || bindex >= len(buf.Data) {
+		return ErrIndexOut
+	}
+	v := value.(int64)
+	if uint64(v) > 255 {
+		return ErrByteOut
+	}
+	buf.Data[bindex] = byte(v)
+	return 0
 }
 
 // String interface for Set

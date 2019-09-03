@@ -39,10 +39,11 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 	}
 	bcode := genBytecode(ws, int32(unit.RunID))
 	exec = &core.Exec{
-		Code:  append([]core.Bcode{}, bcode.Code...),
-		Funcs: make(map[int32]int32),
-		Init:  bcode.Init,
-		Pos:   bcode.Pos,
+		Code:    append([]core.Bcode{}, bcode.Code...),
+		Funcs:   make(map[int32]int32),
+		Init:    bcode.Init,
+		Pos:     bcode.Pos,
+		Structs: bcode.StructsList,
 	}
 	var (
 		ok  bool
@@ -56,7 +57,11 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 		for _, id := range usedCode.Init {
 			exec.Init = append(exec.Init, id)
 		}
+		var retype []uint16
 		rebuild := make([]uint16, len(usedCode.Strings))
+		if len(usedCode.Structs) > 0 {
+			retype = make([]uint16, len(usedCode.Structs))
+		}
 		for key, curInd := range usedCode.Strings {
 			if ind, ok = bcode.Strings[key]; !ok {
 				ind = uint16(len(bcode.Strings))
@@ -68,6 +73,40 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 			cur := exec.Code[shift+off] >> 16
 			exec.Code[shift+off] = core.Bcode((uint32(rebuild[cur]) << 16) | core.PUSHSTR)
 		}
+		countStructs := len(exec.Structs)
+		for key, curInd := range usedCode.Structs {
+			if ind, ok = bcode.Structs[key]; !ok {
+				ind = uint16(len(exec.Structs))
+				bcode.Structs[key] = ind
+				exec.Structs = append(exec.Structs, usedCode.StructsList[curInd])
+			}
+			retype[curInd] = ind
+		}
+		for ; countStructs < len(exec.Structs); countStructs++ {
+			sinfo := &exec.Structs[countStructs]
+			for i, field := range sinfo.Fields {
+				if field >= core.TYPESTRUCT {
+					sinfo.Fields[i] = retype[(field-core.TYPESTRUCT)>>8]<<8 + core.TYPESTRUCT
+				}
+			}
+		}
+		for _, off := range usedCode.StructsOffset {
+			var isleft bool
+			if off < 0 {
+				isleft = true
+				off = -off
+			}
+			cur := exec.Code[shift+off]
+			left := int32(cur >> 16)
+			right := int32(cur & 0xffff)
+			if isleft {
+				left = int32(retype[(left-core.TYPESTRUCT)>>8])<<8 + core.TYPESTRUCT
+			} else {
+				right = int32(retype[(right-core.TYPESTRUCT)>>8])<<8 + core.TYPESTRUCT
+			}
+			exec.Code[shift+off] = core.Bcode(left<<16 | right)
+		}
+
 		for _, pos := range usedCode.Pos {
 			exec.Pos = append(exec.Pos, core.CodePos{
 				Offset: pos.Offset + shift,
@@ -77,7 +116,6 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 				Column: pos.Column,
 			})
 		}
-
 	}
 	sort.Sort(Int32Slice(exec.Init))
 	if len(exec.Init) > 0 && exec.Init[0] != ws.IotaID {
@@ -87,6 +125,7 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 	for key, ikey := range bcode.Strings {
 		exec.Strings[ikey] = key
 	}
+	//fmt.Println(`Structs`, exec.Structs)
 	//	fmt.Println(`NAMES`, exec.Paths, exec.Names, exec.Pos)
 	//	fmt.Println(`USED`, exec.Funcs, exec.Code)
 	return exec, nil
@@ -104,6 +143,10 @@ func copyUsed(src, dest *core.Bytecode) {
 	}
 }
 
+func structOffset(out *core.Bytecode, shift int) {
+	out.StructsOffset = append(out.StructsOffset, int32(shift))
+}
+
 func initBlock(linker *Linker, cmd *core.CmdBlock, out *core.Bytecode) (BlockInfo, []core.Bcode) {
 	push := func(pars ...core.Bcode) {
 		out.Code = append(out.Code, pars...)
@@ -117,9 +160,10 @@ func initBlock(linker *Linker, cmd *core.CmdBlock, out *core.Bytecode) (BlockInf
 		types = make([]core.Bcode, len(cmd.Vars))
 		var sInt, sStr, sFloat, sAny int
 		bInfo.Vars = make([]int, len(cmd.Vars))
+		lenCode := len(out.Code)
 		for i, ivar := range cmd.Vars {
-			types[i] = type2Code(ivar)
-			switch types[i] & 0xff {
+			types[i] = type2Code(ivar, out)
+			switch types[i] & 0xf {
 			case core.STACKSTR:
 				bInfo.Vars[i] = sStr
 				sStr++
@@ -129,6 +173,9 @@ func initBlock(linker *Linker, cmd *core.CmdBlock, out *core.Bytecode) (BlockInf
 			case core.STACKANY:
 				bInfo.Vars[i] = sAny
 				sAny++
+				if types[i] >= core.TYPESTRUCT {
+					structOffset(out, lenCode+i)
+				}
 			default:
 				bInfo.Vars[i] = sInt
 				sInt++
@@ -140,7 +187,7 @@ func initBlock(linker *Linker, cmd *core.CmdBlock, out *core.Bytecode) (BlockInf
 	return bInfo, types
 }
 
-func type2Code(itype *core.TypeObject) (retType core.Bcode) {
+func type2Code(itype *core.TypeObject, out *core.Bytecode) (retType core.Bcode) {
 	switch itype.Original {
 	case reflect.TypeOf(int64(0)):
 		retType = core.TYPEINT
@@ -158,6 +205,48 @@ func type2Code(itype *core.TypeObject) (retType core.Bcode) {
 		retType = core.TYPERANGE
 	case reflect.TypeOf(core.Map{}):
 		retType = core.TYPEMAP
+	case reflect.TypeOf(core.Buffer{}):
+		retType = core.TYPEBUF
+	case reflect.TypeOf(core.Struct{}):
+		typeName := itype.GetName()
+		var (
+			ind uint16
+			ok  bool
+		)
+		if ind, ok = out.Structs[typeName]; !ok {
+			sInfo := core.StructInfo{
+				Name:   typeName,
+				Fields: make([]uint16, len(itype.Custom.Types)),
+				Keys:   make([]string, len(itype.Custom.Types)),
+			}
+			var self []int
+			for i, item := range itype.Custom.Types {
+				if item == itype {
+					self = append(self, i)
+				} else {
+					sInfo.Fields[i] = uint16(type2Code(item, out))
+				}
+			}
+			for name, i := range itype.Custom.Fields {
+				sInfo.Keys[i] = name
+			}
+			ind = uint16(len(out.StructsList))
+			if ind == 0 {
+				out.Structs = make(map[string]uint16)
+			}
+			for _, iself := range self {
+				sInfo.Fields[iself] = core.TYPESTRUCT + (ind << 8)
+			}
+			out.Structs[typeName] = ind
+			out.StructsList = append(out.StructsList, sInfo)
+		}
+		retType = core.Bcode(core.TYPESTRUCT + (ind << 8))
+		//		fmt.Printf("STRUCT%s %x %d %v\n", typeName, retType, ind, out.StructsList)
+
+		//	case reflect.TypeOf(core.KeyValue{}):
+		//		retType = core.TYPEKEYVALUE
+	default:
+		fmt.Println(`type2Code`)
 	}
 	return retType
 }
@@ -212,7 +301,11 @@ func genBytecode(ws *core.Workspace, idObj int32) *core.Bytecode {
 	}
 	cmd2Code(&Linker{Lex: ws.Objects[idObj].GetLex()}, block, bcode)
 	if isConst {
-		bcode.Code = append(bcode.Code, (type2Code(block.GetResult())<<16)|core.RET)
+		resType := type2Code(block.GetResult(), bcode)
+		bcode.Code = append(bcode.Code, (resType<<16)|core.RET)
+		if resType >= core.TYPESTRUCT {
+			structOffset(bcode, -len(bcode.Code)+1)
+		}
 	} else {
 		bcode.Code = append(bcode.Code, core.END)
 	}
