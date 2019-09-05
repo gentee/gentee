@@ -154,7 +154,25 @@ func initBlock(linker *Linker, cmd *core.CmdBlock, out *core.Bytecode) (BlockInf
 	bInfo := BlockInfo{
 		Block: cmd,
 	}
-	push(core.Bcode(cmd.ParCount<<16)|core.INITVARS, core.Bcode(len(cmd.Vars)))
+	flags := int32(out.BlockFlags)
+	out.BlockFlags = 0
+	if len(cmd.Vars) > 0 {
+		flags |= core.BlVars
+	}
+	if cmd.ParCount > 0 {
+		flags |= core.BlPars
+	}
+	//	push(core.Bcode(cmd.ParCount<<16)|core.INITVARS, core.Bcode(len(cmd.Vars)))
+	push(core.Bcode(flags<<16) | core.INITVARS)
+	if flags&core.BlBreak != 0 {
+		push(0)
+	}
+	if flags&core.BlContinue != 0 {
+		push(0)
+	}
+	if cmd.ParCount > 0 || flags&core.BlVars != 0 {
+		push(core.Bcode(cmd.ParCount<<16 | len(cmd.Vars)))
+	}
 	var types []core.Bcode
 	if len(cmd.Vars) > 0 {
 		types = make([]core.Bcode, len(cmd.Vars))

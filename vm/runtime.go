@@ -649,59 +649,90 @@ main:
 				continue
 			}
 			i++
-		case core.BLOCK:
-			ind := len(rt.Calls) - 1
-			rt.Calls[ind].Flags = int16(code[i] >> 16)
-			rt.Calls[ind].Start = int32(i) + 3
+		case core.JEQ:
+			switch (code[i] >> 16) & 0xf {
+			case core.STACKINT:
+				top.Int--
+				if rt.SInt[top.Int] == rt.SInt[top.Int-1] {
+					i += int64(code[i+1])
+					continue
+				}
+			case core.STACKSTR:
+				top.Str--
+				if rt.SStr[top.Str] == rt.SStr[top.Str-1] {
+					i += int64(code[i+1])
+					continue
+				}
+			case core.STACKFLOAT:
+				top.Float--
+				if rt.SFloat[top.Float] == rt.SFloat[top.Float-1] {
+					i += int64(code[i+1])
+					continue
+				}
+			}
 			i++
-			rt.Calls[ind].Continue = rt.Calls[ind].Start + int32(code[i])
-			i++
-			rt.Calls[ind].Break = rt.Calls[ind].Start + int32(code[i])
-			fmt.Println(`BLOCK`, rt.Calls)
 		case core.INITVARS:
+			var (
+				breakJmp, continueJmp int32
+			)
+			flags := int16(code[i] >> 16)
+			pos := i
 			//			parCount := code[i] >> 16
-			i++
+			if flags&core.BlBreak != 0 {
+				i++
+				breakJmp = int32(code[i])
+			}
+			if flags&core.BlContinue != 0 {
+				i++
+				continueJmp = int32(code[i])
+			}
 			var prevTop Call
 			curTop := top
 			if rt.ParCount > 0 {
 				prevTop = rt.Calls[len(rt.Calls)-1] //top
 			}
-			varCount := int32(code[i])
-			for k := int32(0); k < varCount; k++ {
+			//			fmt.Printf("INITVARS START %d %x %x\n", i, flags, flags&core.BlVars)
+			//			fmt.Println(`INITVARS`, rt.ParCount, rt.SInt[:top.Int], rt.SAny[:top.Any])
+			if flags&core.BlVars != 0 {
 				i++
-				varType := int(code[i])
-				if rt.ParCount > k {
-					switch varType & 0xf {
-					case core.STACKFLOAT:
-						prevTop.Float--
-						curTop.Float--
-					case core.STACKSTR:
-						prevTop.Str--
-						curTop.Str--
-					case core.STACKANY:
-						prevTop.Any--
-						curTop.Any--
-					default:
-						prevTop.Int--
-						curTop.Int--
-					}
-				} else {
-					switch varType {
-					case core.TYPEINT, core.TYPEBOOL:
-						rt.SInt[top.Int] = 0
-						top.Int++
-					case core.TYPECHAR:
-						rt.SInt[top.Int] = int64(' ')
-						top.Int++
-					case core.TYPEFLOAT:
-						rt.SFloat[top.Float] = float64(0.0)
-						top.Float++
-					case core.TYPESTR:
-						rt.SStr[top.Str] = ``
-						top.Str++
-					default:
-						rt.SAny[top.Any] = newValue(rt, varType)
-						top.Any++
+				varCount := int32(code[i] & 0xffff)
+				for k := int32(0); k < varCount; k++ {
+					i++
+					varType := int(code[i])
+					//					fmt.Printf("%d %d %x %x \n", i, k, varCount, varType)
+					if rt.ParCount > k {
+						switch varType & 0xf {
+						case core.STACKFLOAT:
+							prevTop.Float--
+							curTop.Float--
+						case core.STACKSTR:
+							prevTop.Str--
+							curTop.Str--
+						case core.STACKANY:
+							prevTop.Any--
+							curTop.Any--
+						default:
+							prevTop.Int--
+							curTop.Int--
+						}
+					} else {
+						switch varType {
+						case core.TYPEINT, core.TYPEBOOL:
+							rt.SInt[top.Int] = 0
+							top.Int++
+						case core.TYPECHAR:
+							rt.SInt[top.Int] = int64(' ')
+							top.Int++
+						case core.TYPEFLOAT:
+							rt.SFloat[top.Float] = float64(0.0)
+							top.Float++
+						case core.TYPESTR:
+							rt.SStr[top.Str] = ``
+							top.Str++
+						default:
+							rt.SAny[top.Any] = newValue(rt, varType)
+							top.Any++
+						}
 					}
 				}
 			}
@@ -710,15 +741,19 @@ main:
 				rt.ParCount = 0
 			}
 			rt.Calls = append(rt.Calls, Call{
-				IsFunc: false,
-				Cycle:  rt.Owner.Settings.Cycle,
-				Offset: int32(i),
-				Int:    curTop.Int,
-				Float:  curTop.Float,
-				Str:    curTop.Str,
-				Any:    curTop.Any,
+				IsFunc:   false,
+				Cycle:    rt.Owner.Settings.Cycle,
+				Offset:   int32(pos),
+				Int:      curTop.Int,
+				Float:    curTop.Float,
+				Str:      curTop.Str,
+				Any:      curTop.Any,
+				Flags:    flags,
+				Break:    breakJmp,
+				Continue: continueJmp,
 			})
-			//			fmt.Println(`INITVARS`, rt.SInt[:top.Int])
+			//			fmt.Println(`INIT OK`, rt.SInt[:top.Int], rt.SAny[:top.Any])
+			//			fmt.Println(`INITVARS`, rt.SInt[:top.Int], rt.Calls)
 		case core.DELVARS:
 			curTop := top
 			top = rt.Calls[len(rt.Calls)-1]
@@ -850,12 +885,37 @@ main:
 			top.Int -= 2
 			rt.SAny[top.Any] = &core.Range{From: rt.SInt[top.Int], To: rt.SInt[top.Int+1]}
 			top.Any++
-			/*		case core.KEYVALUE:
-					top.Str -= 2
-					rt.SAny[top.Any] = &core.KeyValue{
-						Key:   rt.SStr[top.Str],
-						Value: rt.SStr[top.Str+1]}
-					top.Any++*/
+		case core.ARRAY:
+			count := int(code[i] >> 16)
+			ret := core.NewArray()
+			ret.Data = make([]interface{}, 0, count)
+			for j := 0; j < count; j++ {
+				i++
+				itype := int(code[i] & 0xffff)
+				if int(code[i]>>16) == 1 {
+					top.Any--
+					ret.Data = append(ret.Data, rt.SAny[top.Any].(*core.Array).Data...)
+				} else {
+					var value interface{}
+					switch itype & 0xf {
+					case core.STACKINT:
+						top.Int--
+						value = rt.SInt[top.Int]
+					case core.STACKSTR:
+						top.Str--
+						value = rt.SStr[top.Str]
+					case core.STACKFLOAT:
+						top.Float--
+						value = rt.SFloat[top.Float]
+					case core.STACKANY:
+						top.Any--
+						value = rt.SAny[top.Any]
+					}
+					ret.Data = append(ret.Data, value)
+				}
+			}
+			rt.SAny[top.Any] = ret
+			top.Any++
 		case core.LEN:
 			var length int64
 			if code[i]>>16 == core.TYPESTR {
@@ -876,14 +936,14 @@ main:
 					break
 				}
 			}
-			if k < len(rt.Calls)-1 {
-				for j := rt.Calls[k+1].Any; j < top.Any; j++ {
-					rt.SAny[j] = nil
-				}
-				top = rt.Calls[k+1]
-				rt.Calls = rt.Calls[:k+1]
+			//			if k < len(rt.Calls)-1 {
+			for j := rt.Calls[k].Any; j < top.Any; j++ {
+				rt.SAny[j] = nil
 			}
-			i = int64(rt.Calls[k].Break)
+			i = int64(rt.Calls[k].Offset + rt.Calls[k].Break)
+			top = rt.Calls[k]
+			rt.Calls = rt.Calls[:k]
+			//			}
 			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
 			//			fmt.Println(`BREAK COMMAND`, rt.Calls, i)
 			continue
@@ -894,16 +954,13 @@ main:
 					break
 				}
 			}
-			if k < len(rt.Calls)-1 {
-				for j := rt.Calls[k+1].Any; j < top.Any; j++ {
-					rt.SAny[j] = nil
-				}
-				top = rt.Calls[k+1]
-				rt.Calls = rt.Calls[:k+1]
+			for j := rt.Calls[k].Any; j < top.Any; j++ {
+				rt.SAny[j] = nil
 			}
-			i = int64(rt.Calls[k].Continue)
+			i = int64(rt.Calls[k].Offset + rt.Calls[k].Continue)
+			top = rt.Calls[k]
+			rt.Calls = rt.Calls[:k]
 			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
-			fmt.Println(`BREAK COMMAND`, k, rt.Calls, i)
 			continue
 		case core.RET:
 			retType := code[i] >> 16
@@ -913,7 +970,6 @@ main:
 					break
 				}
 			}
-			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
 			rt.Calls = rt.Calls[:k+1]
 			if len(rt.Calls) == 0 { // return from run function
 				switch retType {

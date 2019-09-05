@@ -16,6 +16,7 @@ type Bytecode struct {
 	Structs       map[string]uint16
 	StructsList   []StructInfo
 	StructsOffset []int32 // offsets of struct types
+	BlockFlags    int16
 	Pos           []CodePos
 }
 
@@ -128,13 +129,13 @@ const (
 	JMP       // + int32 jump
 	JZE       // + int32 jump if the top value is zero
 	JNZ       // + int32 jump if the top value is not zero
-	BLOCK     // & (flags << 16) + int32 start + int32 size
-	INITVARS  // & (flags<<16) initializing variables + parcount<<16 | var count +
-	// offset break + offset continue
-	DELVARS // delete variables
-	INITOBJ // & (count<<16) create a new object + int16 type +int16 type item
-	RANGE   // create range
-	//	KEYVALUE  // create keyvalue
+	JEQ       // & (type<<16) + int32 jump if equals for case statement
+	INITVARS  // & (flags<<16) initializing variables + offset break + offset continue +
+	// parcount<<16 | var count +
+	DELVARS   // delete variables
+	INITOBJ   // & (count<<16) create a new object + int16 type +int16 type item
+	RANGE     // create range
+	ARRAY     // &(count<<16) create array + int32 types
 	LEN       // & (type<<16) length
 	FORINC    // & (index<<16) increment counter
 	BREAK     // break

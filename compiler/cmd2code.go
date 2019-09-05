@@ -21,12 +21,14 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 
 	save := func(icmd core.ICmd) int {
 		code := core.Bytecode{
-			Code:    make([]core.Bcode, 0, 16),
-			Strings: out.Strings,
+			Code:       make([]core.Bcode, 0, 16),
+			Strings:    out.Strings,
+			BlockFlags: out.BlockFlags,
 		}
 		cmd2Code(linker, icmd, &code)
 		copyUsed(&code, out)
 		cmds = append(cmds, code)
+		out.BlockFlags = 0
 		return len(code.Code)
 	}
 	push := func(pars ...core.Bcode) {
@@ -146,10 +148,27 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			count := len(anyFunc.Children) + 1 - len(obj.(*core.EmbedObject).Params)
 			ptypes := make([]core.Bcode, count)
 			for i := 0; i < count; i++ {
-				ptypes[0] = type2Code(anyFunc.Children[len(obj.(*core.EmbedObject).Params)-1+i].GetResult(), out)
+				ptypes[i] = type2Code(anyFunc.Children[len(obj.(*core.EmbedObject).Params)-1+i].GetResult(), out)
 				// we don't need call structOffset here because it doesn't matter type of struct
 			}
 			callFunc(len(anyFunc.Children), ptypes...)
+		} else if obj.GetType() == core.ObjFunc && obj.(*core.FuncObject).Block.Variadic {
+			block := obj.(*core.FuncObject).Block
+			count := len(anyFunc.Children) - block.ParCount
+			push(core.Bcode(count<<16 | core.ARRAY))
+			for j := count - 1; j >= 0; j-- {
+				typeRet := anyFunc.Children[block.ParCount+j].GetResult()
+				itype := type2Code(typeRet, out)
+				var isarray int32
+				if itype == core.TYPEARR && isEqualTypes(block.Vars[block.ParCount], typeRet) {
+					isarray = 1
+				}
+				push(core.Bcode(isarray<<16) | itype)
+				if itype >= core.TYPESTRUCT {
+					structOffset(out, len(out.Code)-1)
+				}
+			}
+			callFunc(block.ParCount + 1)
 		} else {
 			callFunc(len(anyFunc.Children))
 		}
@@ -215,64 +234,98 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 	case core.CtStack:
 		cmdStack := cmd.(*core.CmdBlock)
 		switch cmdStack.ID {
-		/*		case StackSwitch:
-				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-					return err
-				}
-				original := rt.Stack[len(rt.Stack)-1]
-				rt.Stack = rt.Stack[:len(rt.Stack)-1]
-				var (
-					done bool
-					def  ICmd
-				)
-				for i := 1; i < len(cmdStack.Children); i++ {
-					caseStack := cmdStack.Children[i].(*CmdBlock)
-					if caseStack.ID == StackDefault {
-						def = caseStack
-						break
-					}
+		case core.StackSwitch:
+			cmd2Code(linker, cmdStack.Children[0], out)
+			cmpType := type2Code(cmdStack.Children[0].GetResult(), out)
+			offsets := make([]int, 0)
+			for i := 1; i < len(cmdStack.Children); i++ {
+				caseStack := cmdStack.Children[i].(*core.CmdBlock)
+				if caseStack.ID == core.StackDefault {
+					out.BlockFlags = core.BlBreak
+					offsets = append(offsets, len(out.Code))
+					cmd2Code(linker, caseStack, out)
+					break
+				} else {
+					cases := make([]int, 0)
 					for j := 0; j < len(caseStack.Children)-1; j++ {
-						if err = rt.runCmd(caseStack.Children[j]); err != nil {
-							return err
-						}
-						val := rt.Stack[len(rt.Stack)-1]
-						rt.Stack = rt.Stack[:len(rt.Stack)-1]
-						var equal bool
-						switch v := original.(type) {
-						case int64:
-							equal = v == val.(int64)
-						case rune:
-							equal = v == val.(rune)
-						case bool:
-							equal = v == val.(bool)
-						case string:
-							equal = v == val.(string)
-						case float64:
-							equal = v == val.(float64)
-						}
-						if equal {
-							if err = rt.runCmd(caseStack.Children[len(caseStack.Children)-1]); err != nil {
+						cmd2Code(linker, caseStack.Children[j], out)
+						cases = append(cases, len(out.Code))
+						push(core.Bcode(cmpType<<16)|core.JEQ, 0)
+					}
+					out.BlockFlags = core.BlBreak
+					push(core.JMP, core.Bcode(save(
+						caseStack.Children[len(caseStack.Children)-1])+4))
+					for _, icase := range cases {
+						out.Code[icase+1] = core.Bcode(len(out.Code) - icase)
+					}
+					offsets = append(offsets, len(out.Code))
+					out.Code = append(out.Code, cmds[0].Code...)
+					offsets = append(offsets, len(out.Code))
+					push(core.JMP, 0)
+					cmds = cmds[:0]
+				}
+				//cmd2Code(linker, caseStack.Children[len(caseStack.Children)-1], out)
+			}
+			for _, ioff := range offsets {
+				out.Code[ioff+1] = core.Bcode(len(out.Code) - ioff)
+			}
+			/*				if err = rt.runCmd(cmdStack.Children[0]); err != nil {
 								return err
 							}
-							done = true
-							if rt.Command == RcBreak && rt.Catch == 0 {
-								rt.Command = 0
+							original := rt.Stack[len(rt.Stack)-1]
+							rt.Stack = rt.Stack[:len(rt.Stack)-1]
+							var (
+								done bool
+								def  ICmd
+							)
+							for i := 1; i < len(cmdStack.Children); i++ {
+								caseStack := cmdStack.Children[i].(*CmdBlock)
+								if caseStack.ID == StackDefault {
+									def = caseStack
+									break
+								}
+								for j := 0; j < len(caseStack.Children)-1; j++ {
+									if err = rt.runCmd(caseStack.Children[j]); err != nil {
+										return err
+									}
+									val := rt.Stack[len(rt.Stack)-1]
+									rt.Stack = rt.Stack[:len(rt.Stack)-1]
+									var equal bool
+									switch v := original.(type) {
+									case int64:
+										equal = v == val.(int64)
+									case rune:
+										equal = v == val.(rune)
+									case bool:
+										equal = v == val.(bool)
+									case string:
+										equal = v == val.(string)
+									case float64:
+										equal = v == val.(float64)
+									}
+									if equal {
+										if err = rt.runCmd(caseStack.Children[len(caseStack.Children)-1]); err != nil {
+											return err
+										}
+										done = true
+										if rt.Command == RcBreak && rt.Catch == 0 {
+											rt.Command = 0
+										}
+										break
+									}
+								}
+								if done {
+									break
+								}
 							}
-							break
-						}
-					}
-					if done {
-						break
-					}
-				}
-				if !done && def != nil {
-					if err = rt.runCmd(def); err != nil {
-						return err
-					}
-					if rt.Command == RcBreak && rt.Catch == 0 {
-						rt.Command = 0
-					}
-				}*/
+							if !done && def != nil {
+								if err = rt.runCmd(def); err != nil {
+									return err
+								}
+								if rt.Command == RcBreak && rt.Catch == 0 {
+									rt.Command = 0
+								}
+							}*/
 		case core.StackNew:
 			switch cmd.(*core.CmdBlock).Result.Original {
 			case reflect.TypeOf(core.Array{}), reflect.TypeOf(core.Map{}):
@@ -520,9 +573,13 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			push(core.CYCLE)
 			getPos(linker, cmdStack, out)
 			cmd2Code(linker, cmdStack.Children[0], out)
+			out.BlockFlags = core.BlContinue | core.BlBreak
 			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+2))
+			blockStart := len(out.Code)
 			out.Code = append(out.Code, cmds[0].Code...)
 			push(core.JMP, core.Bcode(pos-len(out.Code)))
+			out.Code[blockStart+1] = core.Bcode(len(out.Code) - blockStart) // set break of BLOCK
+			out.Code[blockStart+2] = core.Bcode(pos - blockStart)           // set continue of BLOCK
 			cmds = cmds[:0]
 			//			out.Code[pos-1] = core.Bcode(len(out.Code) - pos) // set size of BLOCK
 			//			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
@@ -570,20 +627,20 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			getPos(linker, cmdStack, out)
 			push(core.GETVAR, core.Bcode(int(core.TYPEINT)<<16|bInfo.Vars[1]),
 				(srcType<<16)|core.DUP, (srcType<<16)|core.LEN, core.LT)
+			out.BlockFlags = core.BlContinue | core.BlBreak
 			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+12))
-
 			push(core.GETVAR, core.Bcode(int(core.TYPEINT)<<16|bInfo.Vars[1])) // set index
 			push(core.GETVAR, core.Bcode(int(srcType)<<16|indcur),             // get cur value
 				core.Bcode(1<<16|core.INDEX), core.Bcode(int(srcType)<<16)|curType)
 			push(core.SETVAR, core.Bcode(int(curType)<<16|bInfo.Vars[0]),
 				core.Bcode(int(curType)<<16|core.ASSIGNPTR), core.Bcode(int(curType)<<16|core.POP))
-
+			blockStart := len(out.Code)
 			out.Code = append(out.Code, cmds[0].Code...)
-			//			out.Code[pos-2] = core.Bcode(len(out.Code) - pos) // set continue of BLOCK
+			out.Code[blockStart+2] = core.Bcode(len(out.Code) - blockStart) // set continue of BLOCK
 			push(core.Bcode(bInfo.Vars[1]<<16) | core.FORINC)
 			push(core.JMP, core.Bcode(pos-len(out.Code)))
 			cmds = cmds[:0]
-			//			out.Code[pos-1] = core.Bcode(len(out.Code) - pos) // set break of BLOCK
+			out.Code[blockStart+1] = core.Bcode(len(out.Code) - blockStart) // set break of BLOCK
 			push(core.DELVARS)
 			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
 
