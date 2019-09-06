@@ -117,12 +117,12 @@ func floatºInt(val int64) float64 {
 	return float64(val)
 }
 
-// strºInt converts integer value to string
-func strºInt(val int64) string {
+// StrºInt converts integer value to string
+func StrºInt(val int64) string {
 	return strconv.FormatInt(val, 10)
 }
 
 // ExpStrºInt adds string and integer in string expression
 func ExpStrºInt(left string, right int64) string {
-	return left + strºInt(right)
+	return left + StrºInt(right)
 }

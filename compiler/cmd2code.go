@@ -84,7 +84,7 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			if embed.BCode.Code != nil {
 				code := embed.BCode.Code[0]
 				push(code) //...)
-				if (code & 0xffff) == core.EMBED {
+				if (code & 0xffff) == core.EMBED && (code>>16 < 1000) {
 					embed := stdlib.Embedded[code>>16]
 					if embed.Variadic {
 						push(core.Bcode(len(ptypes)))
@@ -144,7 +144,11 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			cmd2Code(linker, param, out)
 		}
 		obj := cmd.GetObject()
-		if obj.GetType() == core.ObjEmbedded && obj.(*core.EmbedObject).Variadic {
+		if obj == nil {
+			cmd2Code(linker, anyFunc.FnVar, out)
+			push(core.Bcode(len(anyFunc.Children)<<16)|core.CALLBYID, 0)
+			getPos(linker, cmd, out)
+		} else if obj.GetType() == core.ObjEmbedded && obj.(*core.EmbedObject).Variadic {
 			count := len(anyFunc.Children) + 1 - len(obj.(*core.EmbedObject).Params)
 			ptypes := make([]core.Bcode, count)
 			for i := 0; i < count; i++ {
@@ -212,6 +216,19 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			}
 			out.StrOffset = append(out.StrOffset, int32(len(out.Code)))
 			push(core.Bcode(uint32(id)<<16) | core.PUSHSTR)
+		case *core.Fn:
+			id := v.Func.(*core.FuncObject).ObjID
+			push(core.PUSHFUNC, core.Bcode(id))
+			if out.Used == nil {
+				out.Used = make(map[int32]byte)
+			}
+			if out.Used[id] == 0 {
+				genBytecode(v.Func.(*core.FuncObject).Unit.VM, id)
+				copyUsed(&v.Func.(*core.FuncObject).BCode, out)
+				out.Used[id] = 1
+			}
+		default:
+			fmt.Printf("CmdValue %T %v\n", cmd.(*core.CmdValue).Value, v)
 		}
 	case core.CtConst:
 		callFunc(1)

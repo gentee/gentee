@@ -71,6 +71,7 @@ const (
 	TYPERANGE  = 0x074
 	TYPEMAP    = 0x084
 	TYPEBUF    = 0x094
+	TYPEFUNC   = 0x0a4
 	TYPESTRUCT = 0x104
 
 	BlBreak    = 0x0001
@@ -93,6 +94,7 @@ const (
 	PUSH64    // + int64
 	PUSHFLOAT // + float64
 	PUSHSTR   // & (strid << 16 )
+	PUSHFUNC  // + id func
 	ADD       // int + int
 	SUB       // int - int
 	MUL       // int * int

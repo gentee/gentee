@@ -23,33 +23,6 @@ type indexInfo struct {
 	Objects [32]indexObj
 }
 
-func newValue(rt *Runtime, vtype int) interface{} {
-	switch vtype {
-	case core.TYPEINT, core.TYPEBOOL:
-		return int64(0)
-	case core.TYPECHAR:
-		return int64(' ')
-	case core.TYPESTR:
-		return ``
-	case core.TYPEFLOAT:
-		return float64(0.0)
-	case core.TYPEARR:
-		return core.NewArray()
-	case core.TYPEMAP:
-		return core.NewMap()
-	case core.TYPEBUF:
-		return core.NewBuffer()
-	default:
-		if vtype >= core.TYPESTRUCT {
-			return NewStruct(rt, &rt.Owner.Exec.Structs[(vtype-core.TYPESTRUCT)>>8])
-
-		} else {
-			fmt.Println(`NEW VALUE`, vtype)
-		}
-	}
-	return nil
-}
-
 func (rt *Runtime) Run(i int64) (result interface{}, err error) {
 	var (
 		iInfo    indexInfo
@@ -82,6 +55,10 @@ main:
 		case core.PUSHSTR:
 			rt.SStr[top.Str] = rt.Owner.Exec.Strings[(code[i])>>16]
 			top.Str++
+		case core.PUSHFUNC:
+			i++
+			rt.SAny[top.Any] = &Fn{Func: int32(code[i])}
+			top.Any++
 		case core.ADD:
 			top.Int--
 			rt.SInt[top.Int-1] += rt.SInt[top.Int]
@@ -1038,6 +1015,14 @@ main:
 		case core.CALLBYID:
 			rt.ParCount = int32(code[i]) >> 16
 			i++
+			id := int32(code[i])
+			if id == 0 {
+				top.Any--
+				id = rt.SAny[top.Any].(*Fn).Func
+				if id == 0 {
+					return nil, runtimeError(rt, i, ErrFnEmpty)
+				}
+			}
 			rt.Calls = append(rt.Calls, Call{
 				IsFunc: true,
 				Offset: int32(i),
@@ -1049,11 +1034,19 @@ main:
 			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
 				return nil, runtimeError(rt, i, ErrDepth)
 			}
-			i = int64(rt.Owner.Exec.Funcs[int32(code[i])])
+			i = int64(rt.Owner.Exec.Funcs[id])
 			continue
 		case core.EMBED:
-			var vCount int
-			embed := stdlib.Embedded[uint16(code[i]>>16)]
+			var (
+				vCount int
+				embed core.Embed
+			)
+			idEmbed := uint16(code[i]>>16)
+			if idEmbed < 1000 {
+				embed = stdlib.Embedded[idEmbed]
+			} else {
+				embed = Embedded[idEmbed-1000]
+			}
 			count := len(embed.Params)
 			if embed.Variadic {
 				i++
@@ -1096,9 +1089,9 @@ main:
 					pars[i] = reflect.ValueOf(rt.SInt[top.Int])
 				}
 			}
-			/*			if obj.Runtime {
-						pars = append(pars, reflect.ValueOf(rt))
-					}*/
+			if embed.Runtime {
+				pars = append([]reflect.Value{reflect.ValueOf(rt)}, pars...)
+			}
 			/*			for i := lenStack; i < len(rt.Stack); i++ {
 							pars = append(pars, reflect.ValueOf(rt.Stack[i]))
 						}

@@ -308,12 +308,20 @@ run str {
   return ##`#a# -> #0#` + ##b
 }
 ===== ABC -> 123 = ABC
-fn ls(str) int
+fn myInt() int
+fn myStr(str) int
+
+func a1 int : return 101
+func a2( str s ) int : return int(s) + 3
+
 run int {
-  ls ils = &Len.ls
-  return ils(`string строка`)
+  myInt i1 = &a1.myInt
+  myInt i2 = i1
+  myStr s1 = &a2.myStr
+  myStr s2 = s1
+  return i1() + i2() + s1(`23`) + s2(`7`)
 }
-===== 13
+===== 238
 fn myz() 
 fn myType
 fn myInt() int

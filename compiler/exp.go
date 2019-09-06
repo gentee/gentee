@@ -380,6 +380,12 @@ func coFnOperator(cmpl *compiler) error {
 	if obj == nil {
 		return cmpl.ErrorFunction(ErrFunction, cmpl.pos+1, faddr[0], ftype.(*core.TypeObject).Func.Params)
 	}
+	if _, isEmbed := obj.(*core.EmbedObject); isEmbed {
+		return cmpl.Error(ErrFnBuildIn)
+	}
+	if obj.(*core.FuncObject).Block.Variadic {
+		return cmpl.Error(ErrFnVariadic)
+	}
 	if !isEqualTypes(obj.Result(), ftype.(*core.TypeObject).Func.Result) {
 		return cmpl.Error(ErrFnReturn, faddr[0], faddr[1])
 	}

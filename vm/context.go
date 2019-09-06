@@ -2,14 +2,16 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package vm
 
 import (
 	"fmt"
 	"strings"
+	//	"strings"
 	"unicode/utf8"
+	//	"github.com/gentee/gentee/core"
 
-	"github.com/gentee/gentee/core"
+	stdlib "github.com/gentee/gentee/stdlibvm"
 )
 
 const (
@@ -30,82 +32,62 @@ var (
 	ErrCtxDeep = `maximum depth reached`
 )
 
-// InitContext appends stdlib context functions to the virtual machine
-func InitContext(ws *core.Workspace) {
-	for _, item := range []embedInfo{
-		{core.Link{CtxSetºStrStr, 1000<<16 | core.EMBED}, `str,str`, `str`}, // CtxSet( str, str )
-		{core.Link{CtxSetºStrBool, 1001<<16 | core.EMBED}, `str,bool`, `str`}, 
-		     // CtxSet( str, bool )
-		{core.Link{CtxSetºStrFloat, 1002<<16 | core.EMBED}, `str,float`, `str`},                         // CtxSet( str, float )
-		{core.Link{CtxSetºStrInt, 1003<<16 | core.EMBED}, `str,int`, `str`}, // CtxSet( str, int )
-		{core.Link{CtxValueºStr, 1004<<16 | core.EMBED}, `str`, `str`},  // CtxValue( str )
-		{core.Link{CtxIsºStr, 1005<<16 | core.EMBED}, `str`, `bool`}, // CtxIs( str )
-		{core.Link{CtxºStr, 1006<<16 | core.EMBED}, `str`, `str`}, // Ctx( str )
-		{core.Link{CtxGetºStr, 1007<<16 | core.EMBED}, `str`, `str`}, // CtxGet( str )
-	} {
-		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
-	}
-}
-
 // CtxIsºStr returns true if a context key exists
-func CtxIsºStr(rt *core.RunTime, key string) bool {
-	th := rt.Root.Threads
-	th.ConstMutex.RLock()
-	defer th.ConstMutex.RUnlock()
-	if _, ok := th.Context[key]; ok {
-		return true
+func CtxIsºStr(rt *Runtime, key string) int64 {
+	rt.Owner.CtxMutex.RLock()
+	defer rt.Owner.CtxMutex.RUnlock()
+	if _, ok := rt.Owner.Context[key]; ok {
+		return 1
 	}
-	return false
+	return 0
 }
 
 // CtxSetºStrStr sets a context value
-func CtxSetºStrStr(rt *core.RunTime, key, value string) (string, error) {
+func CtxSetºStrStr(rt *Runtime, key, value string) (string, error) {
 	if utf8.RuneCountInString(key) > CtxLength {
 		return ``, fmt.Errorf(ErrCtxLength, CtxLength)
 	}
-	th := rt.Root.Threads
-	th.ConstMutex.Lock()
-	th.Context[key] = value
-	th.ConstMutex.Unlock()
+	rt.Owner.CtxMutex.Lock()
+	rt.Owner.Context[key] = value
+	rt.Owner.CtxMutex.Unlock()
 	return value, nil
 }
 
 // CtxSetºStrFloat assign a float to a context key
-func CtxSetºStrFloat(rt *core.RunTime, key string, value float64) (string, error) {
-	return CtxSetºStrStr(rt, key, strºFloat(value))
+func CtxSetºStrFloat(rt *Runtime, key string, value float64) (string, error) {
+	return CtxSetºStrStr(rt, key, stdlib.StrºFloat(value))
 }
 
 // CtxSetºStrBool assign a bool to a context key
-func CtxSetºStrBool(rt *core.RunTime, key string, value bool) (string, error) {
-	return CtxSetºStrStr(rt, key, strºBool(value))
+func CtxSetºStrBool(rt *Runtime, key string, value int64) (string, error) {
+	return CtxSetºStrStr(rt, key, stdlib.StrºBool(value))
 }
 
 // CtxSetºStrInt assign an integer to a context key
-func CtxSetºStrInt(rt *core.RunTime, key string, value int64) (string, error) {
-	return CtxSetºStrStr(rt, key, strºInt(value))
+func CtxSetºStrInt(rt *Runtime, key string, value int64) (string, error) {
+	return CtxSetºStrStr(rt, key, stdlib.StrºInt(value))
 }
 
 // CtxValueºStr returns a context value
-func CtxValueºStr(rt *core.RunTime, key string) string {
-	th := rt.Root.Threads
-	th.ConstMutex.RLock()
-	defer th.ConstMutex.RUnlock()
-	return th.Context[key]
+func CtxValueºStr(rt *Runtime, key string) string {
+	rt.Owner.CtxMutex.RLock()
+	defer rt.Owner.CtxMutex.RUnlock()
+	return rt.Owner.Context[key]
 }
 
 // CtxºStr replaces context values in a string
-func CtxºStr(rt *core.RunTime, input string) (string, error) {
+func CtxºStr(rt *Runtime, input string) (string, error) {
 	stack := make([]string, 0)
 	ret, err := replace(rt, []rune(input), &stack)
 	return string(ret), err
 }
 
 // CtxGetºStr replaces context values in the value of the key
-func CtxGetºStr(rt *core.RunTime, key string) (string, error) {
+func CtxGetºStr(rt *Runtime, key string) (string, error) {
 	return CtxºStr(rt, CtxValueºStr(rt, key))
 }
 
-func replace(rt *core.RunTime, input []rune, stack *[]string) ([]rune, error) {
+func replace(rt *Runtime, input []rune, stack *[]string) ([]rune, error) {
 	if len(input) == 0 || strings.IndexRune(string(input), CtxChar) == -1 {
 		return input, nil
 	}
@@ -134,10 +116,9 @@ func replace(rt *core.RunTime, input []rune, stack *[]string) ([]rune, error) {
 			continue
 		}
 		if isName {
-			th := rt.Root.Threads
-			th.ConstMutex.RLock()
-			value, ok = th.Context[string(name)]
-			th.ConstMutex.RUnlock()
+			rt.Owner.CtxMutex.RLock()
+			value, ok = rt.Owner.Context[string(name)]
+			rt.Owner.CtxMutex.RUnlock()
 			if ok {
 				if len(*stack) < CtxDeep {
 					for _, item := range *stack {

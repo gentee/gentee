@@ -72,7 +72,7 @@ func DivºIntFloat(left int64, right float64) (float64, error) {
 
 // ExpStrºFloat adds string and float in string expression
 func ExpStrºFloat(left string, right float64) string {
-	return left + strºFloat(right)
+	return left + StrºFloat(right)
 }
 
 // MulºFloatInt multiplies float and int
@@ -124,7 +124,7 @@ func intºFloat(val float64) int64 {
 	return int64(val)
 }
 
-// strºFloat converts float value to string
-func strºFloat(val float64) string {
+// StrºFloat converts float value to string
+func StrºFloat(val float64) string {
 	return strconv.FormatFloat(val, 'f', -1, 64)
 }

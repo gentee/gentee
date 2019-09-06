@@ -11,7 +11,8 @@ import (
 // InitFn appends stdlib fn functions to the virtual machine
 func InitFn(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{AssignºFnFn, `fn,fn`, `fn`}, // fn = fn
+		{core.Link{AssignºFnFn, core.ASSIGN + 7}, `fn,fn`, `fn`}, // fn = fn
+		//		{core.Link{AssignBitAndºFnFn, core.ASSIGNPTR}, `fn*,fn*`, `fn*`}, // fn &= fn
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -22,3 +23,9 @@ func AssignºFnFn(ptr *interface{}, value *core.Fn) *core.Fn {
 	core.CopyVar(ptr, value)
 	return (*ptr).(*core.Fn)
 }
+
+// AssignBitAndºFnFn assigns a pointer to the array
+/*func AssignBitAndºFnFn(ptr *interface{}, value *core.Fn) *core.Fn {
+	*ptr = value
+	return (*ptr).(*core.Fn)
+}*/

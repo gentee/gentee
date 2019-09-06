@@ -177,6 +177,10 @@ const (
 	ErrRetry
 	// ErrLinkIndex is returned when linker gets incorrect unit index
 	ErrLinkIndex
+	// ErrFnBuildIn is returned when fn variable assigned to build-in function
+	ErrFnBuildIn
+	// ErrFnVariadic is returned when fn variable assigned to variadic function
+	ErrFnVariadic
 
 	// ErrCompiler error. It means a bug.
 	ErrCompiler
@@ -278,6 +282,8 @@ var (
 		ErrRecover:        `'recover' can only be inside catch`,
 		ErrRetry:          `'retry' can only be inside catch`,
 		ErrLinkIndex:      `incorrect link index %d`,
+		ErrFnBuildIn:      `fn variable can't be assigned to a built-in function`,
+		ErrFnVariadic:     `fn variable can't be assigned to a variadic function`,
 
 		ErrCompiler: `you have found a compiler bug [%s]. Let us know, please`,
 	}

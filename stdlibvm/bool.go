@@ -4,8 +4,8 @@
 
 package stdlibvm
 
-// strºBool converts boolean value to string
-func strºBool(val int64) string {
+// StrºBool converts boolean value to string
+func StrºBool(val int64) string {
 	if val != 0 {
 		return `true`
 	}
@@ -14,5 +14,5 @@ func strºBool(val int64) string {
 
 // ExpStrºBool adds string and boolean in string expression
 func ExpStrºBool(left string, right int64) string {
-	return left + strºBool(right)
+	return left + StrºBool(right)
 }

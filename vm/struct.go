@@ -19,8 +19,6 @@ type Struct struct {
 
 // NewStruct creates a new struct object
 func NewStruct(rt *Runtime, sInfo *core.StructInfo) *Struct {
-	//	ind := (itype - core.TYPESTRUCT) >> 8
-	//	sInfo := rt.Owner.Exec.Structs[ind]
 	values := make([]interface{}, len(sInfo.Fields))
 	for i, v := range sInfo.Fields {
 		if v < core.TYPESTRUCT ||
@@ -29,7 +27,7 @@ func NewStruct(rt *Runtime, sInfo *core.StructInfo) *Struct {
 		}
 	}
 	return &Struct{
-		Type:   sInfo, //rt.Owner.Exec.Structs[ind],
+		Type:   sInfo,
 		Values: values,
 	}
 }

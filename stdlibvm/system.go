@@ -107,7 +107,7 @@ func SetEnv(name string, value interface{}) (string, error) {
 
 // SetEnvBool assign the value to the environment variable
 func SetEnvBool(name string, value int64) (string, error) {
-	ret := strºBool(value)
+	ret := StrºBool(value)
 	err := os.Setenv(name, ret)
 	return ret, err
 }

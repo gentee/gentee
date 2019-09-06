@@ -6,6 +6,7 @@ package vm
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/gentee/gentee/core"
 )
@@ -35,6 +36,8 @@ type VM struct {
 	Exec     *core.Exec
 	Consts   map[int32]Const
 	Runtimes []*Runtime
+	CtxMutex    sync.RWMutex
+	Context     map[string]string
 }
 
 // Runtime is the one thread structure
@@ -83,6 +86,7 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		Settings: settings,
 		Exec:     exec,
 		Consts:   make(map[int32]Const),
+		Context:  make(map[string]string),
 	}
 	if vm.Settings.Cycle == 0 {
 		vm.Settings.Cycle = CYCLE

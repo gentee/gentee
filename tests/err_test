@@ -345,6 +345,30 @@ run {
   &my2.my
 }
 ===== [4:4] function my2(int, str) has not been found
+fn my(int,int) int
+func t(int a, int b...) int : return 0
+run int {
+  my f = &t.my
+  return f(10, 20)
+}
+===== [4:10] fn variable can't be assigned to a variadic function
+fn my(int, int) int
+func t(int a, int c, float b...) int {
+  return a+c
+}
+run int {
+  my f = &t.my
+  return f(10, 20)
+}
+===== [6:10] fn variable can't be assigned to a variadic function
+fn ls(str) int
+run int {
+  ls ils = &Len.ls
+  return ils(`string строка`)
+}
+===== [3:12] fn variable can't be assigned to a built-in function
+fn my(int,int...)int : return 0
+===== [1:14] unexpected token, expecting type
 fn my(int,) int : return 0
 ===== [1:11] unexpected token, expecting type
 fn my(ty)

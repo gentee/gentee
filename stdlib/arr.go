@@ -27,7 +27,7 @@ func InitArray(ws *core.Workspace) {
 		{core.Link{AssignAddºArrBool, core.ASSIGN + 1}, `arr.bool,bool`, `arr.bool`}, // arr += bool
 		{core.Link{AssignAddºArrMap, core.ASSIGN + 1}, `arr.map*,map*`, `arr.map*`},  // arr.map += map
 		{core.Link{AssignºArrArr, core.ASSIGN}, `arr*,arr*`, `arr*`},                 // arr = arr
-		{AssignBitAndºArrArr, `arr*,arr*`, `arr*`},                                   // arr &= arr
+		{core.Link{AssignBitAndºArrArr, core.ASSIGNPTR}, `arr*,arr*`, `arr*`},        // arr &= arr
 		{JoinºArrStr, `arr.str,str`, `str`},                                          // Join( arr.str, str )
 		{SortºArr, `arr.str`, `arr.str`},                                             // Sort( arr.str )
 	} {

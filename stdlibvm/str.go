@@ -33,7 +33,7 @@ func intºStr(val string) (ret int64, err error) {
 
 // AssignºStrBool assigns boolean to string
 func AssignºStrBool(ptr *string, value interface{}) (string, error) {
-	*ptr = strºBool(value.(int64))
+	*ptr = StrºBool(value.(int64))
 	return *ptr, nil
 }
 

@@ -7,8 +7,8 @@ package stdlibvm
 import "github.com/gentee/gentee/core"
 
 var Embedded = []core.Embed{
-	{Func: strºBool, Return: core.TYPESTR, Params: []uint16{core.TYPEBOOL}},
-	{Func: strºInt, Return: core.TYPESTR, Params: []uint16{core.TYPEINT}},
+	{Func: StrºBool, Return: core.TYPESTR, Params: []uint16{core.TYPEBOOL}},
+	{Func: StrºInt, Return: core.TYPESTR, Params: []uint16{core.TYPEINT}},
 	{Func: intºStr, Return: core.TYPEINT, Params: []uint16{core.TYPESTR}, CanError: true},
 	{Func: boolºInt, Return: core.TYPEBOOL, Params: []uint16{core.TYPEINT}},
 	{Func: ExpStrºInt, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEINT}},
@@ -36,7 +36,7 @@ var Embedded = []core.Embed{
 	{Func: AddºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
 	{Func: AddºIntFloat, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEINT, core.TYPEFLOAT}},
 	{Func: intºFloat, Return: core.TYPEINT, Params: []uint16{core.TYPEFLOAT}},
-	{Func: strºFloat, Return: core.TYPESTR, Params: []uint16{core.TYPEFLOAT}},
+	{Func: StrºFloat, Return: core.TYPESTR, Params: []uint16{core.TYPEFLOAT}},
 	{Func: MulºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
 	{Func: SubºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
 	{Func: SubºIntFloat, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEINT, core.TYPEFLOAT}},
@@ -93,4 +93,5 @@ var EmbedAny = []core.AssignAnyFunc{
 	AssignAddºBufInt,
 	AssignAddºBufBuf,
 	AssignAddºBufStr,
+	AssignºFnFn,
 }

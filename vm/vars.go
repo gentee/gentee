@@ -5,18 +5,43 @@
 package vm
 
 import (
+	"fmt"
+
 	"github.com/gentee/gentee/core"
 )
+
+var Embedded = []core.Embed{
+	{Func: CtxSetºStrStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPESTR},
+		Runtime: true, CanError: true},
+	{Func: CtxSetºStrBool, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEBOOL},
+		Runtime: true, CanError: true},
+	{Func: CtxSetºStrFloat, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEFLOAT},
+		Runtime: true, CanError: true},
+	{Func: CtxSetºStrInt, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEINT},
+		Runtime: true, CanError: true},
+	{Func: CtxValueºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, Runtime: true},
+	{Func: CtxIsºStr, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTR}, Runtime: true},
+	{Func: CtxºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, Runtime: true},
+	{Func: CtxºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR},
+		Runtime: true, CanError: true},
+	{Func: CtxGetºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR},
+		Runtime: true, CanError: true},
+}
+
+// Fn is used for custom func types
+type Fn struct {
+	Func int32 // id of function
+}
 
 // CopyVar copies one object to another one
 func CopyVar(rt *Runtime, ptr *interface{}, value interface{}) {
 	switch vItem := value.(type) {
-	case *core.Fn:
-		var pfn *core.Fn
+	case *Fn:
+		var pfn *Fn
 		if ptr == nil || *ptr == nil {
-			pfn = &core.Fn{}
+			pfn = &Fn{}
 		} else {
-			pfn = (*ptr).(*core.Fn)
+			pfn = (*ptr).(*Fn)
 		}
 		pfn.Func = vItem.Func
 		*ptr = pfn
@@ -83,4 +108,33 @@ func CopyVar(rt *Runtime, ptr *interface{}, value interface{}) {
 	default:
 		*ptr = value
 	}
+}
+
+func newValue(rt *Runtime, vtype int) interface{} {
+	switch vtype {
+	case core.TYPEINT, core.TYPEBOOL:
+		return int64(0)
+	case core.TYPECHAR:
+		return int64(' ')
+	case core.TYPESTR:
+		return ``
+	case core.TYPEFLOAT:
+		return float64(0.0)
+	case core.TYPEARR:
+		return core.NewArray()
+	case core.TYPEMAP:
+		return core.NewMap()
+	case core.TYPEBUF:
+		return core.NewBuffer()
+	case core.TYPEFUNC:
+		return &Fn{}
+	default:
+		if vtype >= core.TYPESTRUCT {
+			return NewStruct(rt, &rt.Owner.Exec.Structs[(vtype-core.TYPESTRUCT)>>8])
+
+		} else {
+			fmt.Println(`NEW VALUE`, vtype)
+		}
+	}
+	return nil
 }
