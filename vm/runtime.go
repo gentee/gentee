@@ -648,6 +648,22 @@ main:
 				}
 			}
 			i++
+		case core.JMPOPT:
+			idopt := int32(code[i] >> 16)
+			for k := len(rt.Calls) - 1; k >= 0; k-- {
+				if rt.Calls[k].IsFunc {
+					if rt.Calls[k].Optional != nil {
+						for _, optVar := range *rt.Calls[k].Optional {
+							if idopt == optVar.Var {
+								i += int64(code[i+1])
+								continue main
+							}
+						}
+					}
+					break
+				}
+			}
+			i++
 		case core.INITVARS:
 			var (
 				breakJmp, continueJmp int32
@@ -668,9 +684,12 @@ main:
 			if rt.ParCount > 0 {
 				prevTop = rt.Calls[len(rt.Calls)-1] //top
 			}
-			//			fmt.Printf("INITVARS START %d %x %x\n", i, flags, flags&core.BlVars)
 			//			fmt.Println(`INITVARS`, rt.ParCount, rt.SInt[:top.Int], rt.SAny[:top.Any])
 			if flags&core.BlVars != 0 {
+				var optional *[]OptValue
+				if len(rt.Calls) > 0 {
+					optional = rt.Calls[len(rt.Calls)-1].Optional
+				}
 				i++
 				varCount := int32(code[i] & 0xffff)
 				for k := int32(0); k < varCount; k++ {
@@ -693,22 +712,29 @@ main:
 							curTop.Int--
 						}
 					} else {
-						switch varType {
-						case core.TYPEINT, core.TYPEBOOL:
-							rt.SInt[top.Int] = 0
+						value := newValue(rt, varType)
+						if optional != nil {
+							for _, optVar := range *optional {
+								if k == optVar.Var {
+									value = optVar.Value
+								}
+							}
+						}
+						switch varType & 0xf {
+						case core.STACKINT:
+							rt.SInt[top.Int] = value.(int64)
 							top.Int++
-						case core.TYPECHAR:
-							rt.SInt[top.Int] = int64(' ')
-							top.Int++
-						case core.TYPEFLOAT:
-							rt.SFloat[top.Float] = float64(0.0)
-							top.Float++
-						case core.TYPESTR:
-							rt.SStr[top.Str] = ``
+						case core.STACKSTR:
+							rt.SStr[top.Str] = value.(string)
 							top.Str++
-						default:
-							rt.SAny[top.Any] = newValue(rt, varType)
+						case core.STACKFLOAT:
+							rt.SFloat[top.Float] = value.(float64)
+							top.Float++
+						case core.STACKANY:
+							rt.SAny[top.Any] = value
 							top.Any++
+						default:
+							fmt.Println(`INIT DEFAULT`, varType)
 						}
 					}
 				}
@@ -729,8 +755,9 @@ main:
 				Break:    breakJmp,
 				Continue: continueJmp,
 			})
+
 			//			fmt.Println(`INIT OK`, rt.SInt[:top.Int], rt.SAny[:top.Any])
-			//			fmt.Println(`INITVARS`, rt.SInt[:top.Int], rt.Calls)
+			//			fmt.Println(`INITVARS`, rt.SStr[:top.Str])
 		case core.DELVARS:
 			curTop := top
 			top = rt.Calls[len(rt.Calls)-1]
@@ -739,6 +766,38 @@ main:
 				rt.SAny[j] = nil
 			}
 			//			fmt.Println(`DELVARS`, rt.Calls)
+		case core.OPTPARS:
+			count := int64(code[i] >> 16)
+			optional := make([]OptValue, count)
+			//			rt.Optional = make([]OptValue, count)
+			//			rt.IsOptional = true
+			for j := count; j > 0; j-- {
+				var value interface{}
+				itype := int(code[i+j] >> 16)
+				switch itype & 0xf {
+				case core.STACKINT:
+					top.Int--
+					value = rt.SInt[top.Int]
+				case core.STACKSTR:
+					top.Str--
+					value = rt.SStr[top.Str]
+				case core.STACKFLOAT:
+					top.Float--
+					value = rt.SFloat[top.Float]
+				case core.STACKANY:
+					top.Any--
+					value = rt.SAny[top.Any]
+				default:
+					fmt.Println(`OOOPS`, itype)
+				}
+				optional[j-1] = OptValue{
+					Var:   int32(code[i+j] & 0xffff),
+					Type:  itype,
+					Value: value,
+				}
+			}
+			rt.Optional = &optional
+			i += count
 		case core.INITOBJ:
 			count = int(code[i]) >> 16
 			i++
@@ -871,7 +930,10 @@ main:
 				itype := int(code[i] & 0xffff)
 				if int(code[i]>>16) == 1 {
 					top.Any--
-					ret.Data = append(ret.Data, rt.SAny[top.Any].(*core.Array).Data...)
+					for k := len(rt.SAny[top.Any].(*core.Array).Data) - 1; k >= 0; k-- {
+						ret.Data = append(ret.Data, rt.SAny[top.Any].(*core.Array).Data[k])
+					}
+					//					ret.Data = append(ret.Data, rt.SAny[top.Any].(*core.Array).Data...)
 				} else {
 					var value interface{}
 					switch itype & 0xf {
@@ -891,7 +953,7 @@ main:
 					ret.Data = append(ret.Data, value)
 				}
 			}
-			rt.SAny[top.Any] = ret
+			rt.SAny[top.Any] = stdlib.ReverseºArr(ret)
 			top.Any++
 		case core.LEN:
 			var length int64
@@ -1024,24 +1086,54 @@ main:
 				}
 			}
 			rt.Calls = append(rt.Calls, Call{
-				IsFunc: true,
-				Offset: int32(i),
-				Int:    top.Int,
-				Float:  top.Float,
-				Str:    top.Str,
-				Any:    top.Any,
+				IsFunc:   true,
+				Offset:   int32(i),
+				Int:      top.Int,
+				Float:    top.Float,
+				Str:      top.Str,
+				Any:      top.Any,
+				Optional: rt.Optional,
 			})
+			rt.Optional = nil
 			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
 				return nil, runtimeError(rt, i, ErrDepth)
 			}
 			i = int64(rt.Owner.Exec.Funcs[id])
 			continue
+		case core.GOBYID:
+			//		rt.ParCount = int32(code[i]) >> 16
+			i++
+			id := int32(code[i])
+			//			fmt.Println(`GOBYID`, id, rt.Owner.Exec.Funcs[id], int32(code[i])>>16)
+			threadID := rt.GoThread(int64(rt.Owner.Exec.Funcs[id]))
+			rt.SInt[top.Int] = threadID
+			top.Int++
+			/*			if id == 0 {
+							top.Any--
+							id = rt.SAny[top.Any].(*Fn).Func
+							if id == 0 {
+								return nil, runtimeError(rt, i, ErrFnEmpty)
+							}
+						}
+						rt.Calls = append(rt.Calls, Call{
+							IsFunc: true,
+							Offset: int32(i),
+							Int:    top.Int,
+							Float:  top.Float,
+							Str:    top.Str,
+							Any:    top.Any,
+						})
+						if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
+							return nil, runtimeError(rt, i, ErrDepth)
+						}
+						i = int64(rt.Owner.Exec.Funcs[id])
+						continue*/
 		case core.EMBED:
 			var (
 				vCount int
-				embed core.Embed
+				embed  core.Embed
 			)
-			idEmbed := uint16(code[i]>>16)
+			idEmbed := uint16(code[i] >> 16)
 			if idEmbed < 1000 {
 				embed = stdlib.Embedded[idEmbed]
 			} else {

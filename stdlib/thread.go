@@ -13,12 +13,13 @@ import (
 // InitThread appends stdlib thread functions to the virtual machine
 func InitThread(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{AssignºThreadThread, `thread,thread`, `thread`},      // thread = thread
-		{AssignAddºArrInt, `arr.thread,thread`, `arr.thread`}, // arr += thread
-		{terminateºThread, `thread`, ``},                      // close( thread )
-		{resumeºThread, `thread`, ``},                         // resume( thread )
-		{suspendºThread, `thread`, ``},                        // suspend( thread )
-		{waitºThread, `thread`, ``},                           // wait( thread )
+		{core.Link{AssignºThreadThread, core.ASSIGN}, `thread,thread`, `thread`}, // thread = thread
+		{core.Link{AssignAddºArrInt, core.ASSIGN + 1}, `arr.thread,thread`, `arr.thread`},
+		// arr += thread
+		{terminateºThread, `thread`, ``}, // close( thread )
+		{resumeºThread, `thread`, ``},    // resume( thread )
+		{suspendºThread, `thread`, ``},   // suspend( thread )
+		{waitºThread, `thread`, ``},      // wait( thread )
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

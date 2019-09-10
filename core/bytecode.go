@@ -67,11 +67,11 @@ const (
 	TYPECHAR   = 0x031
 	TYPESTR    = 0x042
 	TYPEFLOAT  = 0x053
-	TYPEARR    = 0x064
-	TYPERANGE  = 0x074
-	TYPEMAP    = 0x084
-	TYPEBUF    = 0x094
-	TYPEFUNC   = 0x0a4
+	TYPEARR    = 0x014
+	TYPERANGE  = 0x024
+	TYPEMAP    = 0x034
+	TYPEBUF    = 0x044
+	TYPEFUNC   = 0x054
 	TYPESTRUCT = 0x104
 
 	BlBreak    = 0x0001
@@ -132,9 +132,11 @@ const (
 	JZE       // + int32 jump if the top value is zero
 	JNZ       // + int32 jump if the top value is not zero
 	JEQ       // & (type<<16) + int32 jump if equals for case statement
+	JMPOPT    // & (idvar<<16) jump if defined
 	INITVARS  // & (flags<<16) initializing variables + offset break + offset continue +
 	// parcount<<16 | var count +
 	DELVARS   // delete variables
+	OPTPARS   // & (count << 16) + {type<<16 | idvar}
 	INITOBJ   // & (count<<16) create a new object + int16 type +int16 type item
 	RANGE     // create range
 	ARRAY     // &(count<<16) create array + int32 types
@@ -146,6 +148,7 @@ const (
 	END       // end of the function
 	CONSTBYID // + int32 id of the object
 	CALLBYID  // & (par count<<16) + int32 id of the object
+	GOBYID    // & (par count<<16) + int32 id of the object new thread
 	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
 	IOTA // & (iota<<16)

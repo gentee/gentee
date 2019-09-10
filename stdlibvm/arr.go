@@ -19,3 +19,13 @@ func AssignAddºArrAny(arr interface{}, value interface{}) (interface{}, error) 
 	arr.(*core.Array).Data = append(arr.(*core.Array).Data, value)
 	return arr, nil
 }
+
+// ReverseºArr reverses an array
+func ReverseºArr(arr interface{}) interface{} {
+	data := arr.(*core.Array).Data
+	for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
+		data[i], data[j] = data[j], data[i]
+	}
+	arr.(*core.Array).Data = data
+	return arr
+}

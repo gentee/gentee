@@ -32,12 +32,22 @@ type Const struct {
 
 // VM is the main structure of the virtual machine
 type VM struct {
-	Settings Settings
-	Exec     *core.Exec
-	Consts   map[int32]Const
-	Runtimes []*Runtime
+	Settings    Settings
+	Exec        *core.Exec
+	Consts      map[int32]Const
+	Runtimes    []*Runtime
 	CtxMutex    sync.RWMutex
+	ThreadMutex sync.RWMutex
 	Context     map[string]string
+	Count       int64 // count of active threads
+	ChCount     chan int64
+	ChError     chan error
+}
+
+type OptValue struct {
+	Var   int32       // id of variable
+	Type  int         // type of variable
+	Value interface{} // value
 }
 
 // Runtime is the one thread structure
@@ -45,7 +55,9 @@ type Runtime struct {
 	Owner    *VM
 	ParCount int32
 	Calls    []Call
-	//	Consts
+	Thread   Thread
+	ThreadID int64
+	Optional *[]OptValue
 	// These are stacks for different types
 	SInt   [STACKSIZE]int64       // int, char, bool
 	SFloat [STACKSIZE]float64     // float
@@ -55,13 +67,14 @@ type Runtime struct {
 
 // Call stores stack of blocks
 type Call struct {
-	IsFunc bool
-	Cycle  uint64
-	Offset int32
-	Int    int32
-	Float  int32
-	Str    int32
-	Any    int32
+	IsFunc   bool
+	Cycle    uint64
+	Offset   int32
+	Int      int32
+	Float    int32
+	Str      int32
+	Any      int32
+	Optional *[]OptValue
 	// for loop blocks
 	Flags    int16
 	Start    int32
@@ -69,12 +82,11 @@ type Call struct {
 	Break    int32 // shift for break
 }
 
-func (vm *VM) RunThread(offset int64) (interface{}, error) {
+func (vm *VM) runConsts(offset int64) (interface{}, error) {
 	rt := &Runtime{
 		Owner: vm,
 	}
 	vm.Runtimes = append(vm.Runtimes, rt)
-
 	return rt.Run(offset)
 }
 
@@ -87,6 +99,9 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		Exec:     exec,
 		Consts:   make(map[int32]Const),
 		Context:  make(map[string]string),
+		Runtimes: make([]*Runtime, 0, 32),
+		ChCount:  make(chan int64, 16),
+		ChError:  make(chan error, 16),
 	}
 	if vm.Settings.Cycle == 0 {
 		vm.Settings.Cycle = CYCLE
@@ -102,7 +117,7 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 			vm.Consts[id] = Const{Type: core.TYPEINT, Value: int64(0)}
 			continue
 		}
-		val, err := vm.RunThread(int64(vm.Exec.Funcs[id]))
+		val, err := vm.runConsts(int64(vm.Exec.Funcs[id]))
 		if err != nil {
 			return nil, err
 		}
@@ -129,6 +144,40 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		}
 		vm.Consts[id] = Const{Type: constType, Value: val}
 	}
-	//	fmt.Println(`CONST`, vm.Consts)
-	return vm.RunThread(0)
+	vm.Runtimes = vm.Runtimes[:0]
+	rt := vm.newThread(ThWork)
+	go func() {
+		x := int64(1)
+		for x != 0 {
+			select {
+			case x = <-vm.ChCount:
+				if x != 0 {
+					vm.ThreadMutex.Lock()
+					vm.Count--
+					vm.ThreadMutex.Unlock()
+				}
+			}
+		}
+	}()
+	result, errResult := rt.Run(0)
+	if errResult != nil {
+		vm.closeAll()
+	}
+	for vm.Count > 0 {
+		select {
+		case err := <-vm.ChError:
+			vm.closeAll()
+			if errResult == nil {
+				errResult = err
+			}
+		default:
+		}
+	}
+	vm.ChCount <- 0
+	close(vm.Runtimes[0].Thread.Chan)
+	close(vm.ChCount)
+	close(vm.ChError)
+
+	return result, errResult
+
 }

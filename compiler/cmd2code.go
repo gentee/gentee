@@ -13,6 +13,14 @@ import (
 	stdlib "github.com/gentee/gentee/stdlibvm"
 )
 
+func pushSaved(dest *core.Bytecode, src *core.Bytecode) {
+	ldest := int32(len(dest.Code))
+	dest.Code = append(dest.Code, src.Code...)
+	for _, strOffset := range src.StrOffset {
+		dest.StrOffset = append(dest.StrOffset, ldest+strOffset)
+	}
+}
+
 func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 
 	var (
@@ -84,7 +92,7 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			if embed.BCode.Code != nil {
 				code := embed.BCode.Code[0]
 				push(code) //...)
-				if (code & 0xffff) == core.EMBED && (code>>16 < 1000) {
+				if (code&0xffff) == core.EMBED && (code>>16 < 1000) {
 					embed := stdlib.Embedded[code>>16]
 					if embed.Variadic {
 						push(core.Bcode(len(ptypes)))
@@ -97,7 +105,24 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			canError = embed.CanError
 		case core.ObjFunc:
 			id := obj.(*core.FuncObject).ObjID
-			push(core.Bcode(count<<16)|core.CALLBYID, core.Bcode(id))
+			anyFunc := cmd.(*core.CmdAnyFunc)
+			if anyFunc.IsThread {
+				push(core.Bcode(count<<16)|core.GOBYID, core.Bcode(id))
+			} else {
+				/*				var optCount int
+								if optCount = len(anyFunc.Optional); optCount > 0 {
+									push(core.Bcode(optCount<<16) | core.OPTPARS)
+									for _, num := range anyFunc.Optional {
+										ptype := type2Code(obj.(*core.FuncObject).Block.Vars[num], out)
+										push(ptype<<16 | core.Bcode(num))
+										if ptype >= core.TYPESTRUCT {
+											structOffset(out, -len(out.Code)+1)
+										}
+									}
+									count -= optCount
+								}*/
+				push(core.Bcode(count<<16)|core.CALLBYID, core.Bcode(id))
+			}
 			if out.Used == nil {
 				out.Used = make(map[int32]byte)
 			}
@@ -144,37 +169,56 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			cmd2Code(linker, param, out)
 		}
 		obj := cmd.GetObject()
+		count := len(anyFunc.Children)
 		if obj == nil {
 			cmd2Code(linker, anyFunc.FnVar, out)
-			push(core.Bcode(len(anyFunc.Children)<<16)|core.CALLBYID, 0)
+			push(core.Bcode(count<<16)|core.CALLBYID, 0)
 			getPos(linker, cmd, out)
-		} else if obj.GetType() == core.ObjEmbedded && obj.(*core.EmbedObject).Variadic {
-			count := len(anyFunc.Children) + 1 - len(obj.(*core.EmbedObject).Params)
-			ptypes := make([]core.Bcode, count)
-			for i := 0; i < count; i++ {
-				ptypes[i] = type2Code(anyFunc.Children[len(obj.(*core.EmbedObject).Params)-1+i].GetResult(), out)
-				// we don't need call structOffset here because it doesn't matter type of struct
-			}
-			callFunc(len(anyFunc.Children), ptypes...)
-		} else if obj.GetType() == core.ObjFunc && obj.(*core.FuncObject).Block.Variadic {
-			block := obj.(*core.FuncObject).Block
-			count := len(anyFunc.Children) - block.ParCount
-			push(core.Bcode(count<<16 | core.ARRAY))
-			for j := count - 1; j >= 0; j-- {
-				typeRet := anyFunc.Children[block.ParCount+j].GetResult()
-				itype := type2Code(typeRet, out)
-				var isarray int32
-				if itype == core.TYPEARR && isEqualTypes(block.Vars[block.ParCount], typeRet) {
-					isarray = 1
+		} else if obj.GetType() == core.ObjEmbedded {
+			if obj.(*core.EmbedObject).Variadic {
+				vcount := count + 1 - len(obj.(*core.EmbedObject).Params)
+				ptypes := make([]core.Bcode, vcount)
+				for i := 0; i < vcount; i++ {
+					ptypes[i] = type2Code(anyFunc.Children[len(obj.(*core.EmbedObject).Params)-1+i].GetResult(), out)
+					// we don't need call structOffset here because it doesn't matter type of struct
 				}
-				push(core.Bcode(isarray<<16) | itype)
-				if itype >= core.TYPESTRUCT {
-					structOffset(out, len(out.Code)-1)
-				}
+				callFunc(count, ptypes...)
+			} else {
+				callFunc(count)
 			}
-			callFunc(block.ParCount + 1)
-		} else {
-			callFunc(len(anyFunc.Children))
+		} else if obj.GetType() == core.ObjFunc {
+			var optCount int
+			if optCount = len(anyFunc.Optional); optCount > 0 {
+				push(core.Bcode(optCount<<16) | core.OPTPARS)
+				for _, num := range anyFunc.Optional {
+					ptype := type2Code(obj.(*core.FuncObject).Block.Vars[num], out)
+					push(ptype<<16 | core.Bcode(num))
+					if ptype >= core.TYPESTRUCT {
+						structOffset(out, -len(out.Code)+1)
+					}
+				}
+				count -= optCount
+			}
+			if obj.(*core.FuncObject).Block.Variadic {
+				block := obj.(*core.FuncObject).Block
+				vcount := count - block.ParCount
+				push(core.Bcode(vcount<<16 | core.ARRAY))
+				for j := vcount - 1; j >= 0; j-- {
+					typeRet := anyFunc.Children[block.ParCount+j].GetResult()
+					itype := type2Code(typeRet, out)
+					var isarray int32
+					if itype == core.TYPEARR && isEqualTypes(block.Vars[block.ParCount], typeRet) {
+						isarray = 1
+					}
+					push(core.Bcode(isarray<<16) | itype)
+					if itype >= core.TYPESTRUCT {
+						structOffset(out, len(out.Code)-1)
+					}
+				}
+				callFunc(block.ParCount + 1)
+			} else {
+				callFunc(count)
+			}
 		}
 	case core.CtBinary:
 		cmd2Code(linker, cmd.(*core.CmdBinary).Left, out)
@@ -276,7 +320,8 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 						out.Code[icase+1] = core.Bcode(len(out.Code) - icase)
 					}
 					offsets = append(offsets, len(out.Code))
-					out.Code = append(out.Code, cmds[0].Code...)
+					pushSaved(out, &cmds[0])
+					//					out.Code = append(out.Code, cmds[0].Code...)
 					offsets = append(offsets, len(out.Code))
 					push(core.JMP, 0)
 					cmds = cmds[:0]
@@ -493,9 +538,9 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		case core.StackQuestion:
 			cmd2Code(linker, cmdStack.Children[0], out)
 			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+2))
-			out.Code = append(out.Code, cmds[0].Code...)
+			pushSaved(out, &cmds[0])
 			push(core.JMP, core.Bcode(save(cmdStack.Children[2])+2))
-			out.Code = append(out.Code, cmds[1].Code...)
+			pushSaved(out, &cmds[1])
 			cmds = cmds[:0]
 		case core.StackAnd, core.StackOr:
 			cmd2Code(linker, cmdStack.Children[0], out)
@@ -505,7 +550,8 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 				logic = core.JNZ
 			}
 			push(core.DUP, logic, core.Bcode(size))
-			out.Code = append(out.Code, cmds[0].Code...)
+			pushSaved(out, &cmds[0])
+			//			out.Code = append(out.Code, cmds[0].Code...)
 			cmds = cmds[:0]
 		case core.StackAssign, core.StackIncDec:
 			rightType := core.Bcode(core.TYPEINT)
@@ -572,7 +618,8 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			}
 			for k, code := range cmds {
 				size -= len(code.Code) + 2
-				out.Code = append(out.Code, code.Code...)
+				pushSaved(out, &code)
+				//				out.Code = append(out.Code, code.Code...)
 				if k&1 == 0 && k < len(cmds)-1 {
 					more := 2
 					if !isElse && k == len(cmds)-2 {
@@ -593,7 +640,8 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			out.BlockFlags = core.BlContinue | core.BlBreak
 			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+2))
 			blockStart := len(out.Code)
-			out.Code = append(out.Code, cmds[0].Code...)
+			pushSaved(out, &cmds[0])
+			//			out.Code = append(out.Code, cmds[0].Code...)
 			push(core.JMP, core.Bcode(pos-len(out.Code)))
 			out.Code[blockStart+1] = core.Bcode(len(out.Code) - blockStart) // set break of BLOCK
 			out.Code[blockStart+2] = core.Bcode(pos - blockStart)           // set continue of BLOCK
@@ -652,7 +700,8 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			push(core.SETVAR, core.Bcode(int(curType)<<16|bInfo.Vars[0]),
 				core.Bcode(int(curType)<<16|core.ASSIGNPTR), core.Bcode(int(curType)<<16|core.POP))
 			blockStart := len(out.Code)
-			out.Code = append(out.Code, cmds[0].Code...)
+			pushSaved(out, &cmds[0])
+			//			out.Code = append(out.Code, cmds[0].Code...)
 			out.Code[blockStart+2] = core.Bcode(len(out.Code) - blockStart) // set continue of BLOCK
 			push(core.Bcode(bInfo.Vars[1]<<16) | core.FORINC)
 			push(core.JMP, core.Bcode(pos-len(out.Code)))
@@ -733,31 +782,37 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			} else {
 				push(core.END)
 			}
-			/*			if cmdStack.Children != nil {
-							if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-								return err
-							}
-							if rt.Result == nil {
-								rt.Result = rt.Stack[len(rt.Stack)-1]
-							}
-						} else { // return from the function without result value
-							rt.Result = true
-						}*/
-			/*		case StackOptional: // assigns value if the variable has not yet been assigned as optional
-						block := rt.Blocks[len(rt.Blocks)-1]
-						var defined bool
-						for _, v := range block.Optional {
-							if cmdStack.ParCount == v {
-								defined = true
-								break
-							}
+		/*			if cmdStack.Children != nil {
+						if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+							return err
 						}
-						if !defined {
-							if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-								return err
-							}
+						if rt.Result == nil {
+							rt.Result = rt.Stack[len(rt.Stack)-1]
 						}
-					case StackLocal:
+					} else { // return from the function without result value
+						rt.Result = true
+					}*/
+		case core.StackOptional:
+			// assigns value if the variable has not yet been assigned as optional
+			push(core.Bcode(cmdStack.ParCount<<16)|core.JMPOPT, core.Bcode(save(
+				cmdStack.Children[0])+2))
+			pushSaved(out, &cmds[0])
+			//			out.Code = append(out.Code, cmds[0].Code...)
+			cmds = cmds[:0]
+			/*				block := rt.Blocks[len(rt.Blocks)-1]
+							var defined bool
+							for _, v := range block.Optional {
+								if cmdStack.ParCount == v {
+									defined = true
+									break
+								}
+							}
+							if !defined {
+								if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+									return err
+								}
+							}*/
+			/*		case StackLocal:
 					case StackCallLocal:
 						for i := 1; i < len(cmdStack.Children); i++ {
 							if err = rt.runCmd(cmdStack.Children[i]); err != nil {

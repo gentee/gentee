@@ -1402,6 +1402,15 @@ run str {
   return c + b + a
 }
 ===== BcBA
+func mystr str {
+  return ?(true, `f`, `g`) + ?(false, `d`, `e`)
+}
+
+run str {
+  str ret = `a`
+  return mystr() + ret + ?(true, `b`, `c`)
+} 
+===== feab
 const : Q = "macro"
 func a str : return "Afunc"
 func b str : return "B" + "Afunc" + "macro" + "B"
