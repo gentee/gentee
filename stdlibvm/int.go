@@ -126,3 +126,19 @@ func StrºInt(val int64) string {
 func ExpStrºInt(left string, right int64) string {
 	return left + StrºInt(right)
 }
+
+// MaxºIntInt returns the maximum of two integers
+func MaxºIntInt(left, right int64) int64 {
+	if left < right {
+		return right
+	}
+	return left
+}
+
+// MinºIntInt returns the minimum of two integers
+func MinºIntInt(left, right int64) int64 {
+	if left > right {
+		return right
+	}
+	return left
+}

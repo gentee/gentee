@@ -21,11 +21,16 @@ var Embedded = []core.Embed{
 		Runtime: true, CanError: true},
 	{Func: CtxValueºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, Runtime: true},
 	{Func: CtxIsºStr, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTR}, Runtime: true},
-	{Func: CtxºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, Runtime: true},
 	{Func: CtxºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR},
 		Runtime: true, CanError: true},
 	{Func: CtxGetºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR},
 		Runtime: true, CanError: true},
+	{Func: sleepºInt, Params: []uint16{core.TYPEINT}, Runtime: true},
+	{Func: errorºIntStr, Params: []uint16{core.TYPEINT, core.TYPESTR}, CanError: true,
+		Variadic: true},
+	// 10
+	{Func: terminateºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
+	{Func: waitºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
 }
 
 // Fn is used for custom func types
@@ -137,4 +142,15 @@ func newValue(rt *Runtime, vtype int) interface{} {
 		}
 	}
 	return nil
+}
+
+// errorºIntStr throws an error
+func errorºIntStr(code int64, text string, pars ...interface{}) error {
+	if len(pars) > 0 {
+		text = fmt.Sprintf(text, pars...)
+	}
+	return &RuntimeError{
+		ID:      int(code),
+		Message: text,
+	}
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gentee/gentee/core"
 	stdlib "github.com/gentee/gentee/stdlibvm"
+	"github.com/gentee/gentee/vm"
 )
 
 func pushSaved(dest *core.Bytecode, src *core.Bytecode) {
@@ -31,6 +32,7 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		code := core.Bytecode{
 			Code:       make([]core.Bcode, 0, 16),
 			Strings:    out.Strings,
+			Locals:     out.Locals,
 			BlockFlags: out.BlockFlags,
 		}
 		cmd2Code(linker, icmd, &code)
@@ -92,9 +94,14 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			if embed.BCode.Code != nil {
 				code := embed.BCode.Code[0]
 				push(code) //...)
-				if (code&0xffff) == core.EMBED && (code>>16 < 1000) {
-					embed := stdlib.Embedded[code>>16]
-					if embed.Variadic {
+				if (code & 0xffff) == core.EMBED {
+					var variadic bool
+					if code>>16 < 1000 {
+						variadic = stdlib.Embedded[code>>16].Variadic
+					} else {
+						variadic = vm.Embedded[code>>16-1000].Variadic
+					}
+					if variadic {
 						push(core.Bcode(len(ptypes)))
 						if len(ptypes) > 0 {
 							push(ptypes...)
@@ -107,20 +114,16 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			id := obj.(*core.FuncObject).ObjID
 			anyFunc := cmd.(*core.CmdAnyFunc)
 			if anyFunc.IsThread {
-				push(core.Bcode(count<<16)|core.GOBYID, core.Bcode(id))
+				block := obj.(*core.FuncObject).Block
+				push(core.Bcode(block.ParCount<<16)|core.GOBYID, core.Bcode(id))
+				for k := 0; k < block.ParCount; k++ {
+					ptype := type2Code(block.Vars[k], out)
+					push(core.Bcode(ptype))
+					if ptype >= core.TYPESTRUCT {
+						structOffset(out, len(out.Code)-1)
+					}
+				}
 			} else {
-				/*				var optCount int
-								if optCount = len(anyFunc.Optional); optCount > 0 {
-									push(core.Bcode(optCount<<16) | core.OPTPARS)
-									for _, num := range anyFunc.Optional {
-										ptype := type2Code(obj.(*core.FuncObject).Block.Vars[num], out)
-										push(ptype<<16 | core.Bcode(num))
-										if ptype >= core.TYPESTRUCT {
-											structOffset(out, -len(out.Code)+1)
-										}
-									}
-									count -= optCount
-								}*/
 				push(core.Bcode(count<<16)|core.CALLBYID, core.Bcode(id))
 			}
 			if out.Used == nil {
@@ -176,10 +179,10 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			getPos(linker, cmd, out)
 		} else if obj.GetType() == core.ObjEmbedded {
 			if obj.(*core.EmbedObject).Variadic {
-				vcount := count + 1 - len(obj.(*core.EmbedObject).Params)
+				vcount := count - len(obj.(*core.EmbedObject).Params)
 				ptypes := make([]core.Bcode, vcount)
 				for i := 0; i < vcount; i++ {
-					ptypes[i] = type2Code(anyFunc.Children[len(obj.(*core.EmbedObject).Params)-1+i].GetResult(), out)
+					ptypes[i] = type2Code(anyFunc.Children[len(obj.(*core.EmbedObject).Params)+i].GetResult(), out)
 					// we don't need call structOffset here because it doesn't matter type of struct
 				}
 				callFunc(count, ptypes...)
@@ -812,55 +815,88 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 									return err
 								}
 							}*/
-			/*		case StackLocal:
-					case StackCallLocal:
-						for i := 1; i < len(cmdStack.Children); i++ {
-							if err = rt.runCmd(cmdStack.Children[i]); err != nil {
-								return err
-							}
-						}
-						if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-							return err
-						}
-						if rt.Command == RcLocal {
-							rt.Stack = rt.Stack[:lenStack]
-							rt.Stack = append(rt.Stack, rt.Result)
-							lenStack++
-							rt.Result = nil
-							rt.Command = 0
-						}
-					case StackLocret:
-						if cmdStack.Children != nil {
-							if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-								return err
-							}
-							rt.Result = rt.Stack[len(rt.Stack)-1]
-						} else { // return from the function without result value
-							rt.Result = true
-						}
-						rt.Command = RcLocal
-					case StackTry:
-						for {
-							if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-								if _, ok := err.(*RuntimeError); !ok {
-									err = runtimeError(rt, cmdStack.Children[0], err)
-								}
-								rt.Stack = append(rt.Stack, err)
-								if errCatch := rt.runCmd(cmdStack.Children[1]); errCatch != nil {
-									err = errCatch
-								}
-								if rt.Catch == RcRecover || rt.Catch == RcRetry {
-									rt.Command = 0
-									err = nil
-									if rt.Catch == RcRetry {
-										rt.Catch = 0
-										continue
+		case core.StackLocal:
+			linker.Blocks = append(linker.Blocks, BlockInfo{
+				Block: cmdStack.Children[0].(*core.CmdBlock),
+			})
+			push(core.JMP, core.Bcode(save(cmdStack.Children[0]))+3)
+			out.Locals = append(out.Locals, core.Local{
+				Cmd:    cmdStack.Children[0].(*core.CmdBlock),
+				Offset: len(out.Code),
+			})
+			pushSaved(out, &cmds[0])
+			push(core.END)
+			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
+			cmds = cmds[:0]
+		case core.StackCallLocal:
+			offset := -1
+			for _, local := range out.Locals {
+				if cmdStack.Children[0].(*core.CmdBlock) == local.Cmd {
+					offset = local.Offset
+					break
+				}
+			}
+			if offset < 0 {
+				fmt.Println(`STACK CALL LOCAL ERROR`)
+			}
+			for i := 1; i < len(cmdStack.Children); i++ {
+				cmd2Code(linker, cmdStack.Children[i], out)
+			}
+			push(core.Bcode((len(cmdStack.Children)-1)<<16)|core.LOCAL,
+				core.Bcode(offset-len(out.Code)-1))
+			/*						for i := 1; i < len(cmdStack.Children); i++ {
+										if err = rt.runCmd(cmdStack.Children[i]); err != nil {
+											return err
+										}
 									}
-									rt.Catch = 0
-								}
-							}
-							break
-						}*/
+									if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+										return err
+									}
+									if rt.Command == RcLocal {
+										rt.Stack = rt.Stack[:lenStack]
+										rt.Stack = append(rt.Stack, rt.Result)
+										lenStack++
+										rt.Result = nil
+										rt.Command = 0
+									}*/
+		case core.StackLocret:
+			cmd2Code(linker, cmdStack.Children[0], out)
+			retType := type2Code(cmdStack.Children[0].GetResult(), out)
+			push((retType << 16) | core.RET)
+			if retType >= core.TYPESTRUCT {
+				structOffset(out, -len(out.Code)+1)
+			}
+			/*						if cmdStack.Children != nil {
+										if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+											return err
+										}
+										rt.Result = rt.Stack[len(rt.Stack)-1]
+									} else { // return from the function without result value
+										rt.Result = true
+									}
+									rt.Command = RcLocal*/
+			/*					case StackTry:
+								for {
+									if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+										if _, ok := err.(*RuntimeError); !ok {
+											err = runtimeError(rt, cmdStack.Children[0], err)
+										}
+										rt.Stack = append(rt.Stack, err)
+										if errCatch := rt.runCmd(cmdStack.Children[1]); errCatch != nil {
+											err = errCatch
+										}
+										if rt.Catch == RcRecover || rt.Catch == RcRetry {
+											rt.Command = 0
+											err = nil
+											if rt.Catch == RcRetry {
+												rt.Catch = 0
+												continue
+											}
+											rt.Catch = 0
+										}
+									}
+									break
+								}*/
 		}
 		//		rt.Stack = rt.Stack[:lenStack]
 	}

@@ -16,7 +16,7 @@ func InitRuntime(ws *core.Workspace) {
 		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
 	})
 	for _, item := range []embedInfo{
-		{errorºIntStr, `int,str`, ``},    // error( int, str )
+		{core.Link{errorºIntStr, 1009<<16 | core.EMBED}, `int,str`, ``}, // error( int, str )
 		{ErrID, `error`, `int`},          // ErrID( error ) int
 		{ErrText, `error`, `str`},        // ErrText( error ) str
 		{ErrTrace, `error`, `arr.trace`}, // ErrTrace( error ) arr.trace

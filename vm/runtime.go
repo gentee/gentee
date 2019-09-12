@@ -8,9 +8,15 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"time"
 
 	"github.com/gentee/gentee/core"
 	stdlib "github.com/gentee/gentee/stdlibvm"
+)
+
+const (
+	// SleepStep is a tick in sleep
+	SleepStep = int64(100)
 )
 
 type indexObj struct {
@@ -684,11 +690,14 @@ main:
 			if rt.ParCount > 0 {
 				prevTop = rt.Calls[len(rt.Calls)-1] //top
 			}
-			//			fmt.Println(`INITVARS`, rt.ParCount, rt.SInt[:top.Int], rt.SAny[:top.Any])
+			//fmt.Println(`INITVARS`, rt.Optional, rt.ParCount, rt.SInt[:top.Int], rt.SAny[:top.Any])
 			if flags&core.BlVars != 0 {
 				var optional *[]OptValue
 				if len(rt.Calls) > 0 {
 					optional = rt.Calls[len(rt.Calls)-1].Optional
+				} else {
+					optional = rt.Optional
+					rt.Optional = nil
 				}
 				i++
 				varCount := int32(code[i] & 0xffff)
@@ -757,7 +766,7 @@ main:
 			})
 
 			//			fmt.Println(`INIT OK`, rt.SInt[:top.Int], rt.SAny[:top.Any])
-			//			fmt.Println(`INITVARS`, rt.SStr[:top.Str])
+			// fmt.Println(`INITVARS`, rt.Calls)
 		case core.DELVARS:
 			curTop := top
 			top = rt.Calls[len(rt.Calls)-1]
@@ -765,7 +774,7 @@ main:
 			for j := top.Any; j < curTop.Any; j++ {
 				rt.SAny[j] = nil
 			}
-			//			fmt.Println(`DELVARS`, rt.Calls)
+			// fmt.Println(`DELVARS`, rt.Calls)
 		case core.OPTPARS:
 			count := int64(code[i] >> 16)
 			optional := make([]OptValue, count)
@@ -1005,7 +1014,7 @@ main:
 			retType := code[i] >> 16
 			k := len(rt.Calls) - 1
 			for ; k >= 0; k-- {
-				if rt.Calls[k].IsFunc {
+				if rt.Calls[k].IsFunc || rt.Calls[k].IsLocal {
 					break
 				}
 			}
@@ -1101,11 +1110,19 @@ main:
 			i = int64(rt.Owner.Exec.Funcs[id])
 			continue
 		case core.GOBYID:
-			//		rt.ParCount = int32(code[i]) >> 16
+			var pars []int32
+			rt.ParCount = int32(code[i]) >> 16
 			i++
 			id := int32(code[i])
-			//			fmt.Println(`GOBYID`, id, rt.Owner.Exec.Funcs[id], int32(code[i])>>16)
-			threadID := rt.GoThread(int64(rt.Owner.Exec.Funcs[id]))
+			if rt.ParCount > 0 {
+				pars = make([]int32, rt.ParCount)
+				for k := int32(0); k < rt.ParCount; k++ {
+					i++
+					pars[k] = int32(code[i] & 0xffff)
+				}
+				rt.ParCount = 0
+			}
+			threadID := rt.GoThread(int64(rt.Owner.Exec.Funcs[id]), pars, &top)
 			rt.SInt[top.Int] = threadID
 			top.Int++
 			/*			if id == 0 {
@@ -1143,8 +1160,9 @@ main:
 			if embed.Variadic {
 				i++
 				vCount = int(code[i])
-				count--
+				//				count--
 			}
+			//			fmt.Println(`CALL`, embed.Variadic, count, vCount)
 			pars := make([]reflect.Value, count+vCount)
 			if vCount > 0 {
 				for i := vCount - 1; i >= 0; i-- {
@@ -1212,6 +1230,23 @@ main:
 					top.Int++
 				}
 			}
+		case core.LOCAL:
+			rt.ParCount = int32(code[i]) >> 16
+			i++
+			shift := int32(code[i])
+			rt.Calls = append(rt.Calls, Call{
+				IsLocal: true,
+				Offset:  int32(i),
+				Int:     top.Int,
+				Float:   top.Float,
+				Str:     top.Str,
+				Any:     top.Any,
+			})
+			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
+				return nil, runtimeError(rt, i, ErrDepth)
+			}
+			i += int64(shift)
+			continue
 		case core.IOTA:
 			rt.Owner.Consts[rt.Owner.Exec.Init[0]] = Const{
 				Type:  core.TYPEINT,
@@ -1219,6 +1254,65 @@ main:
 			}
 		}
 		i++
+		/*		if i&0x8 != 0x8 {
+				continue
+			}*/
+		step := SleepStep
+		check := len(rt.Owner.Runtimes) > 1
+		for check || rt.Thread.Status == ThPaused || rt.Thread.Status == ThWait ||
+			rt.Thread.Sleep > 0 {
+			var x int
+			if rt.ThreadID == 0 {
+				select {
+				case err = <-rt.Owner.ChError:
+					return nil, err
+				default:
+				}
+			} else {
+				select {
+				case x = <-rt.Thread.Chan:
+					switch x {
+					case ThCmdResume, ThCmdContinue:
+						rt.setStatus(ThWork)
+					case ThCmdClose:
+						rt.setStatus(ThClosed)
+					}
+				default:
+				}
+				if rt.Thread.Status == ThClosed {
+					return nil, runtimeError(rt, i, ErrThreadClosed)
+				}
+			}
+			if rt.Thread.Sleep > 0 {
+				if step > rt.Thread.Sleep {
+					step = rt.Thread.Sleep
+				}
+				time.Sleep(time.Duration(step) * time.Millisecond)
+				rt.Thread.Sleep -= step
+			} else if rt.Thread.Status == ThPaused || rt.Thread.Status == ThWait {
+				if rt.ThreadID == 0 {
+					select {
+					case err = <-rt.Owner.ChError:
+						return nil, err
+					case x = <-rt.Thread.Chan:
+						if x == ThCmdContinue {
+							rt.setStatus(ThWork)
+						}
+					}
+				} else {
+					select {
+					case x = <-rt.Thread.Chan:
+						switch x {
+						case ThCmdResume, ThCmdContinue:
+							rt.setStatus(ThWork)
+						case ThCmdClose:
+							rt.setStatus(ThClosed)
+						}
+					}
+				}
+			}
+			check = false
+		}
 	}
 	return
 }

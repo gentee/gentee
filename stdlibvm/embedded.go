@@ -52,6 +52,8 @@ var Embedded = []core.Embed{
 	{Func: LessºFloatInt, Return: core.TYPEBOOL, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
 	{Func: TrimSpaceºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
 	{Func: LinesºStr, Return: core.TYPEARR, Params: []uint16{core.TYPESTR}},
+	{Func: MaxºIntInt, Return: core.TYPEINT, Params: []uint16{core.TYPEINT, core.TYPEINT}},
+	{Func: MinºIntInt, Return: core.TYPEINT, Params: []uint16{core.TYPEINT, core.TYPEINT}},
 }
 
 var EmbedInt = []core.AssignIntFunc{

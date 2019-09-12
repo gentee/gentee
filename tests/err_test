@@ -115,6 +115,11 @@ run str {
 } 
 ===== [3:15] function returns wrong type
 run {
+  local loc1 : 
+  local loc1(int i) : 
+} 
+===== [3:9] loc1 local function has already been defined
+run {
   local loc : 
   for i in 1..10 {
     local loc : i+= 2
@@ -206,7 +211,7 @@ run {
   go { 
     error(200, `This is a thread error`)
   }
-  sleep(2000)
+  sleep(4000)
 }
 ===== [3:5] This is a thread error
 run {

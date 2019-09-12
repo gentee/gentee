@@ -16,10 +16,10 @@ func InitThread(ws *core.Workspace) {
 		{core.Link{AssignºThreadThread, core.ASSIGN}, `thread,thread`, `thread`}, // thread = thread
 		{core.Link{AssignAddºArrInt, core.ASSIGN + 1}, `arr.thread,thread`, `arr.thread`},
 		// arr += thread
-		{terminateºThread, `thread`, ``}, // close( thread )
-		{resumeºThread, `thread`, ``},    // resume( thread )
-		{suspendºThread, `thread`, ``},   // suspend( thread )
-		{waitºThread, `thread`, ``},      // wait( thread )
+		{core.Link{terminateºThread, 1010<<16 | core.EMBED}, `thread`, ``}, // close( thread )
+		{resumeºThread, `thread`, ``},                                      // resume( thread )
+		{suspendºThread, `thread`, ``},                                     // suspend( thread )
+		{core.Link{waitºThread, 1011<<16 | core.EMBED}, `thread`, ``},      // wait( thread )
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

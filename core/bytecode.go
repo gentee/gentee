@@ -6,6 +6,11 @@ package core
 
 type Bcode int32
 
+type Local struct {
+	Cmd    *CmdBlock
+	Offset int
+}
+
 // Bytecode contains bytecode information
 type Bytecode struct {
 	Code          []Bcode
@@ -16,6 +21,7 @@ type Bytecode struct {
 	Structs       map[string]uint16
 	StructsList   []StructInfo
 	StructsOffset []int32 // offsets of struct types
+	Locals        []Local
 	BlockFlags    int16
 	Pos           []CodePos
 }
@@ -148,10 +154,11 @@ const (
 	END       // end of the function
 	CONSTBYID // + int32 id of the object
 	CALLBYID  // & (par count<<16) + int32 id of the object
-	GOBYID    // & (par count<<16) + int32 id of the object new thread
+	GOBYID    // & (par count<<16) + int32 id of the object new thread + int32 type of pars
 	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
-	IOTA // & (iota<<16)
+	LOCAL // & (par count << 16)+ int32 offset
+	IOTA  // & (iota<<16)
 
 	INDEX        // & (int32 count) + {(type input<<16) + result type}
 	ASSIGNPTR    // & (int16 type << 16)

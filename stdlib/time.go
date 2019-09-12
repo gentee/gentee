@@ -20,22 +20,22 @@ func InitTime(ws *core.Workspace) {
 	})
 
 	for _, item := range []embedInfo{
-		{intºTime, `time`, `int`},                          // int( time )
-		{timeºInt, `int`, `time`},                          // time( int, time )
-		{AddHoursºTimeInt, `time,int`, `time`},             // AddHours(time,int) time
-		{DateºInts, `int,int,int`, `time`},                 // Date(day, month, year)
-		{DateTimeºInts, `int,int,int,int,int,int`, `time`}, // DateTime()
-		{DaysºTime, `time`, `int`},                         // Days(time)
-		{EqualºTimeTime, `time,time`, `bool`},              // binary ==
-		{FormatºTimeStr, `str,time`, `str`},                // Format(time,str)
-		{ParseTimeºStrStr, `str,str`, `time`},              // ParseTime(str,str) time
-		{GreaterºTimeTime, `time,time`, `bool`},            // binary >
-		{LessºTimeTime, `time,time`, `bool`},               // binary <
-		{Now, ``, `time`},                                  // Now()
-		{sleepºInt, `int`, ``},                             // sleep(int)
-		{UTCºTime, `time`, `time`},                         // UTC()
-		{WeekdayºTime, `time`, `int`},                      // Weekday(time)
-		{YearDayºTime, `time`, `int`},                      // YearDay(time) int
+		{intºTime, `time`, `int`},                                // int( time )
+		{timeºInt, `int`, `time`},                                // time( int, time )
+		{AddHoursºTimeInt, `time,int`, `time`},                   // AddHours(time,int) time
+		{DateºInts, `int,int,int`, `time`},                       // Date(day, month, year)
+		{DateTimeºInts, `int,int,int,int,int,int`, `time`},       // DateTime()
+		{DaysºTime, `time`, `int`},                               // Days(time)
+		{EqualºTimeTime, `time,time`, `bool`},                    // binary ==
+		{FormatºTimeStr, `str,time`, `str`},                      // Format(time,str)
+		{ParseTimeºStrStr, `str,str`, `time`},                    // ParseTime(str,str) time
+		{GreaterºTimeTime, `time,time`, `bool`},                  // binary >
+		{LessºTimeTime, `time,time`, `bool`},                     // binary <
+		{Now, ``, `time`},                                        // Now()
+		{core.Link{sleepºInt, 1008<<16 | core.EMBED}, `int`, ``}, // sleep(int)
+		{UTCºTime, `time`, `time`},                               // UTC()
+		{WeekdayºTime, `time`, `int`},                            // Weekday(time)
+		{YearDayºTime, `time`, `int`},                            // YearDay(time) int
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

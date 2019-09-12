@@ -45,8 +45,8 @@ func InitInt(ws *core.Workspace) {
 		core.Link{AssignSubºIntInt, core.ASSIGN + 2},     // int -= int
 		core.Link{AssignLShiftºIntInt, core.ASSIGN + 9},  // int <<= int
 		core.Link{AssignRShiftºIntInt, core.ASSIGN + 10}, // int >>= int
-		MaxºIntInt, // Max(int, int)
-		MinºIntInt, // Min(int, int)
+		core.Link{MaxºIntInt, 37<<16 | core.EMBED},       // Max(int, int)
+		core.Link{MinºIntInt, 38<<16 | core.EMBED},       // Min(int, int)
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

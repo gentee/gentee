@@ -4,6 +4,12 @@
 
 package vm
 
+import (
+	"fmt"
+
+	"github.com/gentee/gentee/core"
+)
+
 const (
 	// ThQueue means that the thread is in the queue to start
 	ThQueue = iota
@@ -92,14 +98,12 @@ func (rt *RunTime) newThread(status byte) bool {
 	}
 	return true
 }
-
-func (rt *RunTime) setStatus(status byte) {
-	root := rt.Root.Threads
-	root.ThreadMutex.Lock()
-	rt.Thread.Status = status
-	root.ThreadMutex.Unlock()
-}
 */
+func (rt *Runtime) setStatus(status byte) {
+	rt.Owner.ThreadMutex.Lock()
+	rt.Thread.Status = status
+	rt.Owner.ThreadMutex.Unlock()
+}
 
 func (vm *VM) newThread(status byte) *Runtime {
 	if len(vm.Runtimes) > 0 && vm.Runtimes[0].Thread.Status >= ThFinished {
@@ -133,16 +137,36 @@ func (vm *VM) closeAll() {
 }
 
 // GoThread executes a new thread
-func (rt *Runtime) GoThread(offset int64) int64 {
-	/*	for i := 0; i < funcObj.Block.ParCount; i++ {
-		var par interface{}
-		CopyVar(&par, rt.Stack[len(rt.Stack)-funcObj.Block.ParCount+i])
-		thread.Stack = append(thread.Stack, par)
-	}*/
+func (rt *Runtime) GoThread(offset int64, pars []int32, top *Call) int64 {
 	thread := rt.Owner.newThread(ThQueue)
 	if thread == nil {
 		return -1
 	}
+	optional := make([]OptValue, len(pars))
+	for i := len(pars) - 1; i >= 0; i-- {
+		var value interface{}
+		switch pars[i] & 0xf {
+		case core.STACKINT:
+			top.Int--
+			value = rt.SInt[top.Int]
+		case core.STACKSTR:
+			top.Str--
+			value = rt.SStr[top.Str]
+		case core.STACKFLOAT:
+			top.Float--
+			value = rt.SFloat[top.Float]
+		case core.STACKANY:
+			top.Any--
+			CopyVar(rt, &value, rt.SAny[top.Any])
+		}
+		optional[i] = OptValue{
+			Var:   int32(i),
+			Type:  int(pars[i]),
+			Value: value,
+		}
+	}
+	thread.Optional = &optional
+
 	go func() {
 		thread.Thread.Status = ThWork
 
@@ -166,4 +190,41 @@ func (rt *Runtime) GoThread(offset int64) int64 {
 		rt.Owner.ChCount <- 1
 	}()
 	return thread.ThreadID
+}
+
+// sleepºInt pauses the current script for at least the specified duration in milliseconds.
+func sleepºInt(rt *Runtime, d int64) {
+	rt.Thread.Sleep = d
+}
+
+type threadFunc func(vm *VM)
+
+func changeStatus(rt *Runtime, threadID int64, todo threadFunc) error {
+	rt.Owner.ThreadMutex.Lock()
+	defer rt.Owner.ThreadMutex.Unlock()
+	if threadID <= 0 || int64(len(rt.Owner.Runtimes)) <= threadID {
+		return fmt.Errorf(ErrorText(ErrThreadIndex))
+	}
+	todo(rt.Owner)
+	return nil
+}
+
+// terminateºThread closes the thread
+func terminateºThread(rt *Runtime, threadID int64) error {
+	return changeStatus(rt, threadID, func(vm *VM) {
+		if vm.Runtimes[threadID].Thread.Status < ThFinished {
+			vm.Runtimes[threadID].Thread.Chan <- ThCmdClose
+		}
+	})
+}
+
+// waitºThread waits for the finish of the thread
+func waitºThread(rt *Runtime, threadID int64) error {
+	return changeStatus(rt, threadID, func(vm *VM) {
+		if vm.Runtimes[threadID].Thread.Status < ThFinished {
+			vm.Runtimes[threadID].Thread.Notify = append(vm.Runtimes[threadID].Thread.Notify,
+				rt.ThreadID)
+			rt.Thread.Status = core.ThWait
+		}
+	})
 }

@@ -68,6 +68,7 @@ type Runtime struct {
 // Call stores stack of blocks
 type Call struct {
 	IsFunc   bool
+	IsLocal  bool
 	Cycle    uint64
 	Offset   int32
 	Int      int32
