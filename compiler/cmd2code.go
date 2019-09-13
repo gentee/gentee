@@ -20,6 +20,10 @@ func pushSaved(dest *core.Bytecode, src *core.Bytecode) {
 	for _, strOffset := range src.StrOffset {
 		dest.StrOffset = append(dest.StrOffset, ldest+strOffset)
 	}
+	for i := range src.Pos {
+		src.Pos[i].Offset += ldest
+	}
+	dest.Pos = append(dest.Pos, src.Pos...)
 }
 
 func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
@@ -149,7 +153,7 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		}
 		if canError {
 			getPos(linker, cmd, out)
-			//			fmt.Println(`POS`, obj.GetName(), out.Pos, out.Code)
+			//			fmt.Println(`POS`, obj.GetName(), out.Pos)
 		}
 	}
 	switch cmd.GetType() {
@@ -160,6 +164,10 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			push(core.BREAK)
 		case core.RcContinue:
 			push(core.CONTINUE)
+		case core.RcRecover:
+			push(core.RECOVER)
+		case core.RcRetry:
+			push(core.RETRY)
 			/*	case RcRecover, RcRetry:
 					rt.Catch = v
 					rt.Command = RcBreak
@@ -866,37 +874,49 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			if retType >= core.TYPESTRUCT {
 				structOffset(out, -len(out.Code)+1)
 			}
-			/*						if cmdStack.Children != nil {
-										if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-											return err
-										}
-										rt.Result = rt.Stack[len(rt.Stack)-1]
-									} else { // return from the function without result value
-										rt.Result = true
-									}
-									rt.Command = RcLocal*/
-			/*					case StackTry:
-								for {
+		/*						if cmdStack.Children != nil {
 									if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-										if _, ok := err.(*RuntimeError); !ok {
-											err = runtimeError(rt, cmdStack.Children[0], err)
-										}
-										rt.Stack = append(rt.Stack, err)
-										if errCatch := rt.runCmd(cmdStack.Children[1]); errCatch != nil {
-											err = errCatch
-										}
-										if rt.Catch == RcRecover || rt.Catch == RcRetry {
-											rt.Command = 0
-											err = nil
-											if rt.Catch == RcRetry {
-												rt.Catch = 0
-												continue
-											}
-											rt.Catch = 0
-										}
+										return err
 									}
-									break
-								}*/
+									rt.Result = rt.Stack[len(rt.Stack)-1]
+								} else { // return from the function without result value
+									rt.Result = true
+								}
+								rt.Command = RcLocal*/
+		case core.StackTry:
+			out.BlockFlags = core.BlTry
+			blockTry := len(out.Code)
+			cmd2Code(linker, cmdStack.Children[0], out)
+			pos := len(out.Code)
+			push(core.JMP, 0)
+			out.Code[blockTry+1] = core.Bcode(len(out.Code) - blockTry)
+			blockCatch := len(out.Code)
+			out.BlockFlags = core.BlRecover | core.BlRetry
+			cmd2Code(linker, cmdStack.Children[1], out)
+			out.Code[pos+1] = core.Bcode(len(out.Code) - pos)
+			out.Code[blockCatch+1] = core.Bcode(len(out.Code) - blockCatch) // recover jump
+			out.Code[blockCatch+2] = core.Bcode(blockTry - blockCatch)      // retry jump
+			/*					for {
+								if err = rt.runCmd(cmdStack.Children[0]); err != nil {
+									if _, ok := err.(*RuntimeError); !ok {
+										err = runtimeError(rt, cmdStack.Children[0], err)
+									}
+									rt.Stack = append(rt.Stack, err)
+									if errCatch := rt.runCmd(cmdStack.Children[1]); errCatch != nil {
+										err = errCatch
+									}
+									if rt.Catch == RcRecover || rt.Catch == RcRetry {
+										rt.Command = 0
+										err = nil
+										if rt.Catch == RcRetry {
+											rt.Catch = 0
+											continue
+										}
+										rt.Catch = 0
+									}
+								}
+								break
+							}*/
 		}
 		//		rt.Stack = rt.Stack[:lenStack]
 	}

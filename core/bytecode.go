@@ -78,12 +78,17 @@ const (
 	TYPEMAP    = 0x034
 	TYPEBUF    = 0x044
 	TYPEFUNC   = 0x054
+	TYPEERROR  = 0x064
+	TYPESET    = 0x074
 	TYPESTRUCT = 0x104
 
 	BlBreak    = 0x0001
 	BlContinue = 0x0002
 	BlVars     = 0x0004
 	BlPars     = 0x0008
+	BlTry      = 0x0010
+	BlRecover  = 0x0020
+	BlRetry    = 0x0040
 )
 
 const (
@@ -150,6 +155,8 @@ const (
 	FORINC    // & (index<<16) increment counter
 	BREAK     // break
 	CONTINUE  // continue
+	RECOVER   // recover
+	RETRY     // retry
 	RET       // & (type<<16) return from function
 	END       // end of the function
 	CONSTBYID // + int32 id of the object

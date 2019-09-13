@@ -24,13 +24,6 @@ run {
 run {
   try { 10/0 }
   catch err {
-     error(100, Format("#%d %s %v", ErrID(err), ErrText(err), ErrTrace(err)))
-  }
-} 
-===== [4:6] #254 divided by zero [trace[Path: Entry:run Func:Div Line:2 Pos:11]]
-run {
-  try { 10/0 }
-  catch err {
      ReadFile(`qwert`)
   }
 } 

@@ -126,7 +126,7 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 		exec.Strings[ikey] = key
 	}
 	//fmt.Println(`Structs`, exec.Structs)
-	//	fmt.Println(`NAMES`, exec.Paths, exec.Names, exec.Pos)
+	//fmt.Println(`NAMES`, exec.Pos)
 	//	fmt.Println(`USED`, exec.Funcs, exec.Code)
 	return exec, nil
 }
@@ -168,6 +168,15 @@ func initBlock(linker *Linker, cmd *core.CmdBlock, out *core.Bytecode) (BlockInf
 		push(0)
 	}
 	if flags&core.BlContinue != 0 {
+		push(0)
+	}
+	if flags&core.BlTry != 0 {
+		push(0)
+	}
+	if flags&core.BlRecover != 0 {
+		push(0)
+	}
+	if flags&core.BlRetry != 0 {
 		push(0)
 	}
 	if cmd.ParCount > 0 || flags&core.BlVars != 0 {
@@ -227,6 +236,10 @@ func type2Code(itype *core.TypeObject, out *core.Bytecode) (retType core.Bcode) 
 		retType = core.TYPEBUF
 	case reflect.TypeOf(core.Fn{}):
 		retType = core.TYPEFUNC
+	case reflect.TypeOf(core.RuntimeError{}):
+		retType = core.TYPEERROR
+	case reflect.TypeOf(core.Set{}):
+		retType = core.TYPESET
 	case reflect.TypeOf(core.Struct{}):
 		typeName := itype.GetName()
 		var (
@@ -319,6 +332,10 @@ func genBytecode(ws *core.Workspace, idObj int32) *core.Bytecode {
 		}
 		isConst = true
 	}
+	type2Code(ws.StdLib().FindType(`trace`).(*core.TypeObject), bcode)
+	type2Code(ws.StdLib().FindType(`time`).(*core.TypeObject), bcode)
+	type2Code(ws.StdLib().FindType(`finfo`).(*core.TypeObject), bcode)
+
 	cmd2Code(&Linker{Lex: ws.Objects[idObj].GetLex()}, block, bcode)
 	if isConst {
 		resType := type2Code(block.GetResult(), bcode)

@@ -33,7 +33,7 @@ func InitFloat(ws *core.Workspace) {
 		core.Link{EqualºFloatInt, 32<<16 | core.EMBED},   // binary ==
 		core.Link{GreaterºFloatInt, 33<<16 | core.EMBED}, // binary >
 		core.Link{LessºFloatInt, 34<<16 | core.EMBED},    // binary <
-		boolºFloat, // bool( float )
+		core.Link{boolºFloat, 88<<16 | core.EMBED},       // bool( float )
 		core.Link{intºFloat, 23<<16 | core.EMBED},        // int( float )
 		core.Link{SignºFloat, core.SIGNFLOAT},            // unary sign -*/
 		core.Link{strºFloat, 24<<16 | core.EMBED},        // str( float )
@@ -43,12 +43,12 @@ func InitFloat(ws *core.Workspace) {
 		core.Link{AssignDivºFloatFloat, core.ASSIGN + 4}, // float /= float
 		core.Link{AssignMulºFloatFloat, core.ASSIGN + 3}, // float *= float
 		core.Link{AssignSubºFloatFloat, core.ASSIGN + 2}, // float -= float
-		RoundºFloat,    // Round( float ) int
-		FloorºFloat,    // Floor( float ) int
-		CeilºFloat,     // Ceil( float ) int
-		RoundºFloatInt, // Round( float, int ) float
-		MinºFloatFloat, // Min(float, float)
-		MaxºFloatFloat, // Max(float, float)
+		core.Link{CeilºFloat, 89<<16 | core.EMBED},       // Ceil( float ) int
+		core.Link{FloorºFloat, 90<<16 | core.EMBED},      // Floor( float ) int
+		core.Link{MaxºFloatFloat, 91<<16 | core.EMBED},   // Max(float, float)
+		core.Link{MinºFloatFloat, 92<<16 | core.EMBED},   // Min(float, float)
+		core.Link{RoundºFloat, 93<<16 | core.EMBED},      // Round( float ) int
+		core.Link{RoundºFloatInt, 94<<16 | core.EMBED},   // Round( float, int ) float
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

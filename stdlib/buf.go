@@ -15,23 +15,25 @@ import (
 // InitBuffer appends stdlib buffer functions to the virtual machine
 func InitBuffer(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{bufºStr, `str`, `buf`}, // buf( str ) buf
-		{strºBuf, `buf`, `str`}, // str( buf ) str
-		{core.Link{LenºBuf, core.Bcode(core.TYPEBUF<<16) | core.LEN}, `buf`, `int`}, // the length of the buffer
-		{AddºBufBuf, `buf,buf`, `buf`},                                              // buf + buf
-		{core.Link{AssignºBufBuf, core.ASSIGN}, `buf,buf`, `buf`},                   // buf = buf
-		{core.Link{AssignAddºBufInt, core.ASSIGN + 4}, `buf,int`, `buf`},            // buf += int
-		{core.Link{AssignAddºBufStr, core.ASSIGN + 6}, `buf,str`, `buf`},            // buf += str
-		{core.Link{AssignAddºBufChar, core.ASSIGN + 3}, `buf,char`, `buf`},          // buf += char
-		{core.Link{AssignAddºBufBuf, core.ASSIGN + 5}, `buf,buf`, `buf`},            // buf += buf
-		{AssignBitAndºBufBuf, `buf,buf`, `buf`},                                     // buf &= buf
-		{Base64ºBuf, `buf`, `str`},                                                  // Base64( buf ) str
-		{DelºBufIntInt, `buf,int,int`, `buf`},                                       // Del( buf, int, int ) buf
-		{HexºBuf, `buf`, `str`},                                                     // Hex( buf ) str
-		{InsertºBufIntBuf, `buf,int,buf`, `buf`},                                    // Insert( buf, int, buf ) buf
-		{UnBase64ºStr, `str`, `buf`},                                                // UnBase64( str ) buf
-		{UnHexºStr, `str`, `buf`},                                                   // UnHex( str ) buf
-		{sysBufNil, ``, `buf`},                                                      // sysBufNil() buf
+		{core.Link{bufºStr, 44<<16 | core.EMBED}, `str`, `buf`}, // buf( str ) buf
+		{core.Link{strºBuf, 45<<16 | core.EMBED}, `buf`, `str`}, // str( buf ) str
+		{core.Link{LenºBuf, core.Bcode(core.TYPEBUF<<16) | core.LEN},
+			`buf`, `int`}, // the length of the buffer
+		{core.Link{AddºBufBuf, 50<<16 | core.EMBED}, `buf,buf`, `buf`},        // buf + buf
+		{core.Link{AssignºBufBuf, core.ASSIGN}, `buf,buf`, `buf`},             // buf = buf
+		{core.Link{AssignAddºBufInt, core.ASSIGN + 4}, `buf,int`, `buf`},      // buf += int
+		{core.Link{AssignAddºBufStr, core.ASSIGN + 6}, `buf,str`, `buf`},      // buf += str
+		{core.Link{AssignAddºBufChar, core.ASSIGN + 3}, `buf,char`, `buf`},    // buf += char
+		{core.Link{AssignAddºBufBuf, core.ASSIGN + 5}, `buf,buf`, `buf`},      // buf += buf
+		{core.Link{AssignBitAndºBufBuf, core.ASSIGNPTR}, `buf,buf`, `buf`},    // buf &= buf
+		{core.Link{Base64ºBuf, 51<<16 | core.EMBED}, `buf`, `str`},            // Base64( buf ) str
+		{core.Link{DelºBufIntInt, 52<<16 | core.EMBED}, `buf,int,int`, `buf`}, // Del( buf, int, int ) buf
+		{core.Link{HexºBuf, 46<<16 | core.EMBED}, `buf`, `str`},               // Hex( buf ) str
+		{core.Link{InsertºBufIntBuf, 47<<16 | core.EMBED},
+			`buf,int,buf`, `buf`}, // Insert( buf, int, buf ) buf
+		{core.Link{UnBase64ºStr, 48<<16 | core.EMBED}, `str`, `buf`}, // UnBase64( str ) buf
+		{core.Link{UnHexºStr, 49<<16 | core.EMBED}, `str`, `buf`},    // UnHex( str ) buf
+		{core.Link{sysBufNil, 53<<16 | core.EMBED}, ``, `buf`},       // sysBufNil() buf
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

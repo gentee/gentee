@@ -6,10 +6,19 @@ package stdlibvm
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/gentee/gentee/core"
 )
+
+// boolºFloat converts integer value to boolean 0->false, not 0 -> true
+func boolºFloat(val float64) int64 {
+	if val != 0.0 {
+		return 1
+	}
+	return 0
+}
 
 // AddºFloatInt adds float and int
 func AddºFloatInt(left float64, right int64) float64 {
@@ -127,4 +136,44 @@ func intºFloat(val float64) int64 {
 // StrºFloat converts float value to string
 func StrºFloat(val float64) string {
 	return strconv.FormatFloat(val, 'f', -1, 64)
+}
+
+// CeilºFloat returns the least integer value greater than or equal to val.
+func CeilºFloat(val float64) int64 {
+	return int64(math.Ceil(val))
+}
+
+// FloorºFloat returns the greatest integer value less than or equal to val.
+func FloorºFloat(val float64) int64 {
+	return int64(math.Floor(val))
+}
+
+// MaxºFloatFloat returns the maximum of two float numbers
+func MaxºFloatFloat(left, right float64) float64 {
+	if left < right {
+		return right
+	}
+	return left
+}
+
+// MinºFloatFloat returns the minimum of two float numbers
+func MinºFloatFloat(left, right float64) float64 {
+	if left > right {
+		return right
+	}
+	return left
+}
+
+// RoundºFloat returns the nearest integer, rounding half away from zero.
+func RoundºFloat(val float64) int64 {
+	return int64(math.Round(val))
+}
+
+// RoundºFloatInt returns a number with the specified number of decimal places.
+func RoundºFloatInt(val float64, digits int64) float64 {
+	dec := float64(1)
+	for ; digits > 0; digits-- {
+		dec *= 10
+	}
+	return math.Round(val*dec) / dec
 }

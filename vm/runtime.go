@@ -42,6 +42,28 @@ func (rt *Runtime) Run(i int64) (result interface{}, err error) {
 	code := rt.Owner.Exec.Code
 	end := int64(len(code))
 
+	errHandle := func(pos int64, errPar interface{}, pars ...interface{}) {
+		k := len(rt.Calls) - 1
+		for ; k > 0; k-- {
+			if rt.Calls[k].Flags&core.BlTry != 0 {
+				break
+			}
+		}
+		//fmt.Println(`errHandle`, pos, rt.Owner.Exec.Pos)
+		err = runtimeError(rt, pos, errPar, pars...)
+		if k <= 0 {
+			i = end + 1
+			return
+		}
+		top = rt.Calls[k]
+		rt.Calls = rt.Calls[:k]
+		i = int64(top.Offset + top.Try)
+		rt.SAny[top.Any] = err
+		rt.Calls[len(rt.Calls)-1].Any++
+		top.Any++
+		rt.ParCount = 1
+	}
+
 main:
 	for i < end {
 		switch code[i] & 0x0fff {
@@ -77,13 +99,15 @@ main:
 		case core.DIV:
 			top.Int--
 			if rt.SInt[top.Int] == 0 {
-				return nil, runtimeError(rt, i, ErrDivZero)
+				errHandle(i, ErrDivZero)
+				continue
 			}
 			rt.SInt[top.Int-1] /= rt.SInt[top.Int]
 		case core.MOD:
 			top.Int--
 			if rt.SInt[top.Int] == 0 {
-				return nil, runtimeError(rt, i, ErrDivZero)
+				errHandle(i, ErrDivZero)
+				continue
 			}
 			rt.SInt[top.Int-1] %= rt.SInt[top.Int]
 		case core.BITOR:
@@ -98,13 +122,15 @@ main:
 		case core.LSHIFT:
 			top.Int--
 			if rt.SInt[top.Int] < 0 {
-				return nil, runtimeError(rt, i, ErrShift)
+				errHandle(i, ErrShift)
+				continue
 			}
 			rt.SInt[top.Int-1] <<= uint32(rt.SInt[top.Int])
 		case core.RSHIFT:
 			top.Int--
 			if rt.SInt[top.Int] < 0 {
-				return nil, runtimeError(rt, i, ErrShift)
+				errHandle(i, ErrShift)
+				continue
 			}
 			rt.SInt[top.Int-1] >>= uint32(rt.SInt[top.Int])
 		case core.BITNOT:
@@ -150,7 +176,8 @@ main:
 		case core.DIVFLOAT:
 			top.Float--
 			if rt.SFloat[top.Float] == 0.0 {
-				return nil, runtimeError(rt, i, ErrDivZero)
+				errHandle(i, ErrDivZero)
+				continue
 			}
 			rt.SFloat[top.Float-1] /= rt.SFloat[top.Float]
 		case core.SIGNFLOAT:
@@ -286,22 +313,28 @@ main:
 				case core.STACKSTR:
 					runes := []rune(*ptr.(*string))
 					if int(index.(int64)) < 0 || len(runes) <= int(index.(int64)) {
-						err = runtimeError(rt, i, ErrIndexOut)
-						return
+						errHandle(i, ErrIndexOut)
+						continue main
+						//						err = runtimeError(rt, i, ErrIndexOut)
+						//						return
 					}
 					value = int64(runes[index.(int64)])
 				case core.STACKANY:
 					value, ok = ptr.(core.Indexer).GetIndex(index)
 					if !ok {
 						if key, ok := index.(string); ok {
-							err = runtimeError(rt, i, ErrMapIndex, key)
+							errHandle(i, ErrMapIndex, key)
+							//err = runtimeError(rt, i, ErrMapIndex, key)
 						} else {
-							err = runtimeError(rt, i, ErrIndexOut)
+							errHandle(i, ErrIndexOut)
+							//err = runtimeError(rt, i, ErrIndexOut)
 						}
-						return
+						continue main
 					}
 					if value == nil {
-						return nil, runtimeError(rt, i, ErrUndefined)
+						errHandle(i, ErrUndefined)
+						continue main
+						//						return nil, runtimeError(rt, i, ErrUndefined)
 					}
 				default:
 					fmt.Printf("INDEX ANY %x\n", typeVar)
@@ -388,7 +421,9 @@ main:
 					case core.STACKSTR:
 						runes := []rune(*ptr.(*string))
 						if int(obj.Index.(int64)) < 0 || len(runes) <= int(obj.Index.(int64)) {
-							return nil, runtimeError(rt, i, ErrIndexOut)
+							errHandle(i, ErrIndexOut)
+							continue main
+							//							return nil, runtimeError(rt, i, ErrIndexOut)
 						}
 						tmpInt = int64(runes[obj.Index.(int64)])
 						ptr = &tmpInt
@@ -402,10 +437,14 @@ main:
 							if key, ok := obj.Index.(string); ok {
 								value = newValue(rt, typeRet)
 								if ptr.(core.Indexer).SetIndex(key, value) != 0 {
-									return nil, runtimeError(rt, i, ErrIndexOut)
+									errHandle(i, ErrIndexOut)
+									continue main
+									//return nil, runtimeError(rt, i, ErrIndexOut)
 								}
 							} else {
-								return nil, runtimeError(rt, i, ErrIndexOut)
+								errHandle(i, ErrIndexOut)
+								continue main
+								//return nil, runtimeError(rt, i, ErrIndexOut)
 							}
 						}
 						switch typeRet & 0xf {
@@ -442,7 +481,9 @@ main:
 					rt.SStr[root] = rt.SStr[top.Str-1]
 				default:
 					if rt.SAny[root] == rt.SAny[top.Any-1] {
-						return nil, runtimeError(rt, i, ErrAssignment)
+						errHandle(i, ErrAssignment)
+						continue main
+						//return nil, runtimeError(rt, i, ErrAssignment)
 					}
 					if assign == core.ASSIGN {
 						CopyVar(rt, &rt.SAny[root], rt.SAny[top.Any-1])
@@ -482,7 +523,9 @@ main:
 					*v = iValue.(string)
 				default:
 					if ptr == iValue {
-						return nil, runtimeError(rt, i, ErrAssignment)
+						errHandle(i, ErrAssignment)
+						continue main
+						//return nil, runtimeError(rt, i, ErrAssignment)
 					}
 					if assign == core.ASSIGN {
 						CopyVar(rt, &ptr, iValue)
@@ -507,7 +550,9 @@ main:
 					//					fmt.Println(`Embed Assign`, rightType)
 				}
 				if err != nil {
-					return nil, runtimeError(rt, i, err)
+					errHandle(i, err)
+					continue main
+					//return nil, runtimeError(rt, i, err)
 				}
 			}
 			//			typeVar = (int(code[i]) >> 16) & 0xf
@@ -530,7 +575,9 @@ main:
 						rt.SStr[obj.Index.(int64)] = dest
 					} else {
 						if errID := obj.Obj.(core.Indexer).SetIndex(obj.Index, dest); errID != 0 {
-							return nil, runtimeError(rt, i, errID)
+							errHandle(i, errID)
+							continue main
+							//return nil, runtimeError(rt, i, errID)
 						}
 					}
 				} else {
@@ -554,10 +601,14 @@ main:
 							iValue = tmpStr
 						}
 						if obj.Obj == iValue {
-							return nil, runtimeError(rt, i, ErrAssignment)
+							errHandle(i, ErrAssignment)
+							continue main
+							//return nil, runtimeError(rt, i, ErrAssignment)
 						}
 						if errID := obj.Obj.(core.Indexer).SetIndex(obj.Index, iValue); errID != 0 {
-							return nil, runtimeError(rt, i, errID)
+							errHandle(i, errID)
+							continue main
+							//return nil, runtimeError(rt, i, errID)
 						}
 					}
 				}
@@ -612,7 +663,9 @@ main:
 			rt.Calls[lenCalls].Cycle--
 			//			fmt.Println(`CYCLE`, rt.Calls[lenCalls].Cycle, rt.SInt[:top.Int], rt.SStr[:top.Str], rt.SAny[:top.Any])
 			if rt.Calls[lenCalls].Cycle == 0 {
-				return nil, runtimeError(rt, i, ErrCycle)
+				errHandle(i, ErrCycle)
+				continue main
+				//return nil, runtimeError(rt, i, ErrCycle)
 			}
 		case core.JMP:
 			i += int64(int16(code[i+1]))
@@ -672,7 +725,7 @@ main:
 			i++
 		case core.INITVARS:
 			var (
-				breakJmp, continueJmp int32
+				breakJmp, continueJmp, tryJmp, recoverJmp, retryJmp int32
 			)
 			flags := int16(code[i] >> 16)
 			pos := i
@@ -684,6 +737,18 @@ main:
 			if flags&core.BlContinue != 0 {
 				i++
 				continueJmp = int32(code[i])
+			}
+			if flags&core.BlTry != 0 {
+				i++
+				tryJmp = int32(code[i])
+			}
+			if flags&core.BlRecover != 0 {
+				i++
+				recoverJmp = int32(code[i])
+			}
+			if flags&core.BlRetry != 0 {
+				i++
+				retryJmp = int32(code[i])
 			}
 			var prevTop Call
 			curTop := top
@@ -704,7 +769,7 @@ main:
 				for k := int32(0); k < varCount; k++ {
 					i++
 					varType := int(code[i])
-					//					fmt.Printf("%d %d %x %x \n", i, k, varCount, varType)
+					//					fmt.Printf("VAR %d %d %x %x \n", i, k, varCount, varType)
 					if rt.ParCount > k {
 						switch varType & 0xf {
 						case core.STACKFLOAT:
@@ -763,10 +828,13 @@ main:
 				Flags:    flags,
 				Break:    breakJmp,
 				Continue: continueJmp,
+				Try:      tryJmp,
+				Recover:  recoverJmp,
+				Retry:    retryJmp,
 			})
 
 			//			fmt.Println(`INIT OK`, rt.SInt[:top.Int], rt.SAny[:top.Any])
-			// fmt.Println(`INITVARS`, rt.Calls)
+			//			fmt.Println(`INITVARS`, rt.Calls)
 		case core.DELVARS:
 			curTop := top
 			top = rt.Calls[len(rt.Calls)-1]
@@ -875,7 +943,9 @@ main:
 						top.Int--
 						ind := rt.SInt[top.Int]
 						if uint64(ind) > 255 {
-							return nil, runtimeError(rt, pos, ErrByteOut)
+							errHandle(pos, ErrByteOut)
+							continue main
+							//return nil, runtimeError(rt, pos, ErrByteOut)
 						}
 						tmp[j] = []byte{byte(ind)}
 					case core.TYPECHAR:
@@ -888,7 +958,9 @@ main:
 						top.Any--
 						tmp[j] = append(tmp[j], rt.SAny[top.Any].(*core.Buffer).Data...)
 					default:
-						return nil, runtimeError(rt, i, ErrRuntime, `init buf`)
+						errHandle(i, ErrRuntime, `init buf`)
+						continue main
+						//return nil, runtimeError(rt, i, ErrRuntime, `init buf`)
 					}
 				}
 				for j := len(tmp) - 1; j >= 0; j-- {
@@ -984,16 +1056,12 @@ main:
 					break
 				}
 			}
-			//			if k < len(rt.Calls)-1 {
 			for j := rt.Calls[k].Any; j < top.Any; j++ {
 				rt.SAny[j] = nil
 			}
 			i = int64(rt.Calls[k].Offset + rt.Calls[k].Break)
 			top = rt.Calls[k]
 			rt.Calls = rt.Calls[:k]
-			//			}
-			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
-			//			fmt.Println(`BREAK COMMAND`, rt.Calls, i)
 			continue
 		case core.CONTINUE:
 			k := len(rt.Calls) - 1
@@ -1009,6 +1077,27 @@ main:
 			top = rt.Calls[k]
 			rt.Calls = rt.Calls[:k]
 			//			fmt.Println(`RET`, k, rt.SInt[:top.Int])
+			continue
+		case core.RECOVER, core.RETRY:
+			isRecover := code[i]&0xffff == core.RECOVER
+			err = nil
+			k := len(rt.Calls) - 1
+			for ; k >= 0; k-- {
+				if rt.Calls[k].Flags&core.BlRecover != 0 { // BlRecover & BlRetry in catch
+					break
+				}
+			}
+			for j := rt.Calls[k].Any; j < top.Any; j++ {
+				rt.SAny[j] = nil
+			}
+			i = int64(rt.Calls[k].Offset)
+			if isRecover {
+				i += int64(rt.Calls[k].Recover)
+			} else {
+				i += int64(rt.Calls[k].Retry)
+			}
+			top = rt.Calls[k]
+			rt.Calls = rt.Calls[:k]
 			continue
 		case core.RET:
 			retType := code[i] >> 16
@@ -1091,7 +1180,9 @@ main:
 				top.Any--
 				id = rt.SAny[top.Any].(*Fn).Func
 				if id == 0 {
-					return nil, runtimeError(rt, i, ErrFnEmpty)
+					errHandle(i, ErrFnEmpty)
+					continue main
+					//return nil, runtimeError(rt, i, ErrFnEmpty)
 				}
 			}
 			rt.Calls = append(rt.Calls, Call{
@@ -1105,7 +1196,9 @@ main:
 			})
 			rt.Optional = nil
 			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
-				return nil, runtimeError(rt, i, ErrDepth)
+				errHandle(i, ErrDepth)
+				continue main
+				//return nil, runtimeError(rt, i, ErrDepth)
 			}
 			i = int64(rt.Owner.Exec.Funcs[id])
 			continue
@@ -1125,26 +1218,6 @@ main:
 			threadID := rt.GoThread(int64(rt.Owner.Exec.Funcs[id]), pars, &top)
 			rt.SInt[top.Int] = threadID
 			top.Int++
-			/*			if id == 0 {
-							top.Any--
-							id = rt.SAny[top.Any].(*Fn).Func
-							if id == 0 {
-								return nil, runtimeError(rt, i, ErrFnEmpty)
-							}
-						}
-						rt.Calls = append(rt.Calls, Call{
-							IsFunc: true,
-							Offset: int32(i),
-							Int:    top.Int,
-							Float:  top.Float,
-							Str:    top.Str,
-							Any:    top.Any,
-						})
-						if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
-							return nil, runtimeError(rt, i, ErrDepth)
-						}
-						i = int64(rt.Owner.Exec.Funcs[id])
-						continue*/
 		case core.EMBED:
 			var (
 				vCount int
@@ -1165,23 +1238,23 @@ main:
 			//			fmt.Println(`CALL`, embed.Variadic, count, vCount)
 			pars := make([]reflect.Value, count+vCount)
 			if vCount > 0 {
-				for i := vCount - 1; i >= 0; i-- {
-					i++
-					switch code[i] & 0xf {
+				for j := vCount - 1; j >= 0; j-- {
+					switch code[i+int64(j)+1] & 0xf {
 					case core.STACKFLOAT:
 						top.Float--
-						pars[count+i] = reflect.ValueOf(rt.SFloat[top.Float])
+						pars[count+j] = reflect.ValueOf(rt.SFloat[top.Float])
 					case core.STACKSTR:
 						top.Str--
-						pars[count+i] = reflect.ValueOf(rt.SStr[top.Str])
+						pars[count+j] = reflect.ValueOf(rt.SStr[top.Str])
 					case core.STACKANY:
 						top.Any--
-						pars[count+i] = reflect.ValueOf(rt.SAny[top.Any])
+						pars[count+j] = reflect.ValueOf(rt.SAny[top.Any])
 					default:
 						top.Int--
-						pars[count+i] = reflect.ValueOf(rt.SInt[top.Int])
+						pars[count+j] = reflect.ValueOf(rt.SInt[top.Int])
 					}
 				}
+				i += int64(vCount)
 			}
 			for i := count - 1; i >= 0; i-- {
 				switch embed.Params[i] & 0xf {
@@ -1202,16 +1275,13 @@ main:
 			if embed.Runtime {
 				pars = append([]reflect.Value{reflect.ValueOf(rt)}, pars...)
 			}
-			/*			for i := lenStack; i < len(rt.Stack); i++ {
-							pars = append(pars, reflect.ValueOf(rt.Stack[i]))
-						}
-						rt.Stack = rt.Stack[:lenStack]*/
 			result := reflect.ValueOf(embed.Func).Call(pars)
 			if len(result) > 0 {
 				last := result[len(result)-1].Interface()
 				if last != nil {
 					if _, isError := last.(error); isError {
-						return nil, runtimeError(rt, i, result[len(result)-1].Interface().(error))
+						errHandle(i, result[len(result)-1].Interface().(error))
+						continue
 					}
 				}
 				switch embed.Return & 0xf {
@@ -1243,7 +1313,9 @@ main:
 				Any:     top.Any,
 			})
 			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
-				return nil, runtimeError(rt, i, ErrDepth)
+				errHandle(i, ErrDepth)
+				continue main
+				//return nil, runtimeError(rt, i, ErrDepth)
 			}
 			i += int64(shift)
 			continue
@@ -1280,7 +1352,9 @@ main:
 				default:
 				}
 				if rt.Thread.Status == ThClosed {
-					return nil, runtimeError(rt, i, ErrThreadClosed)
+					errHandle(i, ErrThreadClosed)
+					continue main
+					//return nil, runtimeError(rt, i, ErrThreadClosed)
 				}
 			}
 			if rt.Thread.Sleep > 0 {

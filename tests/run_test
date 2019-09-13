@@ -60,19 +60,6 @@ run int {
   return i
 } 
 ===== 5
-run str {
-  int i
-  str s = `ok`
-  try {
-    10/i
-  }
-  catch err {
-    s = Format("#%d %s", ErrID(err), ErrText(err))
-    recover
-  }
-  return s
-} 
-===== #254 divided by zero
 run int {
   int i
   try {} catch err {}
@@ -85,7 +72,7 @@ run int {
   return i
 } 
 ===== 100
-run int {
+run int { 
   thread th0 = go { int j = 1 }
   go { int j = 1 }
   thread th1

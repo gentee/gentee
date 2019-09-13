@@ -5,6 +5,9 @@
 package stdlibvm
 
 import (
+	"sort"
+	"strings"
+
 	"github.com/gentee/gentee/core"
 )
 
@@ -20,6 +23,15 @@ func AssignAddºArrAny(arr interface{}, value interface{}) (interface{}, error) 
 	return arr, nil
 }
 
+// JoinºArrStr concatenates the elements of a to create a single string.
+func JoinºArrStr(value *core.Array, sep string) string {
+	tmp := make([]string, len(value.Data))
+	for i, item := range value.Data {
+		tmp[i] = item.(string)
+	}
+	return strings.Join(tmp, sep)
+}
+
 // ReverseºArr reverses an array
 func ReverseºArr(arr interface{}) interface{} {
 	data := arr.(*core.Array).Data
@@ -28,4 +40,10 @@ func ReverseºArr(arr interface{}) interface{} {
 	}
 	arr.(*core.Array).Data = data
 	return arr
+}
+
+// SortºArr sorts an array of strings
+func SortºArr(value *core.Array) *core.Array {
+	sort.Sort(value)
+	return value
 }

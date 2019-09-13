@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package stdlibvm
 
 import (
 	"fmt"
@@ -10,28 +10,7 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-// InitSet appends stdlib buffer functions to the virtual machine
-func InitSet(ws *core.Workspace) {
-	for _, item := range []embedInfo{
-		{core.Link{setºStr, 66<<16 | core.EMBED}, `str`, `set`},            // set( str ) set
-		{strºSet, `set`, `str`},                                            // str( set ) str
-		{arrºSet, `set`, `arr.int`},                                        // arr( set ) arr.int
-		{core.Link{setºArr, 68<<16 | core.EMBED}, `arr.int`, `set`},        // set( arr.int ) set
-		{LenºSet, `set`, `int`},                                            // the length of the buffer
-		{SetºSet, `set,int`, `set`},                                        // Set(set, index)
-		{core.Link{UnSetºSet, 67<<16 | core.EMBED}, `set,int`, `set`},      // UnSet(set, index)
-		{core.Link{AssignºSetSet, core.ASSIGN}, `set,set`, `set`},          // set = set
-		{core.Link{AssignBitAndºSetSet, core.ASSIGNPTR}, `set,set`, `set`}, // set &= set
-		{AssignAddºSetSet, `set,set`, `set`},                               // set += set
-		{BitAndºSetSet, `set,set`, `set`},                                  // set &= set
-		{BitOrºSetSet, `set,set`, `set`},                                   // set |= set
-		{BitNotºSet, `set`, `set`},                                         // ^set  toggle set
-		{ToggleºSetInt, `set,int`, `bool`},                                 // Toggle(set, int) bool
-	} {
-		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
-	}
-}
-
+/*
 // AssignºSetSet copies one set to another one
 func AssignºSetSet(ptr *interface{}, value *core.Set) *core.Set {
 	core.CopyVar(ptr, value)
@@ -60,7 +39,7 @@ func AssignAddºSetSet(ptr *interface{}, value *core.Set) *core.Set {
 func LenºSet(set *core.Set) int64 {
 	return int64(len(set.Data) << 6)
 }
-
+*/
 func checkIndex(set *core.Set, index int64) error {
 	if index < 0 || index >= core.MaxSet {
 		return fmt.Errorf(core.ErrorText(core.ErrIndexOut))
@@ -68,6 +47,7 @@ func checkIndex(set *core.Set, index int64) error {
 	return nil
 }
 
+/*
 func bitSet(left *core.Set, right *core.Set, and bool) *core.Set {
 	ret := core.NewSet()
 	if len(left.Data) < len(right.Data) {
@@ -124,7 +104,7 @@ func ToggleºSetInt(set *core.Set, index int64) (prev bool, err error) {
 	}
 	return
 }
-
+*/
 // UnSetºSet sets the item in the set
 func UnSetºSet(set *core.Set, index int64) (*core.Set, error) {
 	var err error
@@ -149,6 +129,7 @@ func setºStr(value string) (*core.Set, error) {
 	return s, nil
 }
 
+/*
 // arrºSet converts set to array of integers
 func arrºSet(set *core.Set) *core.Array {
 	ret := core.NewArray()
@@ -161,7 +142,7 @@ func arrºSet(set *core.Set) *core.Array {
 	}
 	return ret
 }
-
+*/
 // setºArr converts array of integers to set
 func setºArr(arr *core.Array) (set *core.Set, err error) {
 	var ind int64
@@ -175,7 +156,9 @@ func setºArr(arr *core.Array) (set *core.Set, err error) {
 	return
 }
 
+/*
 // strºSet converts set to string
 func strºSet(set *core.Set) string {
 	return set.String()
 }
+*/

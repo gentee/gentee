@@ -31,6 +31,21 @@ var Embedded = []core.Embed{
 	// 10
 	{Func: terminateºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
 	{Func: waitºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
+	{Func: ErrID, Return: core.TYPEINT, Params: []uint16{core.TYPEERROR}},
+	{Func: ErrText, Return: core.TYPESTR, Params: []uint16{core.TYPEERROR}},
+	{Func: ErrTrace, Return: core.TYPEARR, Params: []uint16{core.TYPEERROR}, Runtime: true},
+	{Func: ParseTimeºStrStr, Return: core.TYPESTRUCT, Params: []uint16{core.TYPESTR, core.TYPESTR},
+		Runtime: true, CanError: true},
+	{Func: FileInfoºStr, Return: core.TYPESTRUCT, Params: []uint16{core.TYPESTR},
+		Runtime: true, CanError: true},
+	{Func: ReadDirºStr, Return: core.TYPEARR, Params: []uint16{core.TYPESTR},
+		Runtime: true, CanError: true},
+	{Func: SetFileTimeºStrTime, Params: []uint16{core.TYPESTR, core.TYPESTRUCT}, CanError: true},
+	{Func: EqualºTimeTime, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTRUCT, core.TYPESTRUCT}},
+	// 20
+	{Func: FormatºTimeStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPESTRUCT}},
+	{Func: GreaterºTimeTime, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTRUCT, core.TYPESTRUCT}},
+	{Func: LessºTimeTime, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTRUCT, core.TYPESTRUCT}},
 }
 
 // Fn is used for custom func types
@@ -133,6 +148,10 @@ func newValue(rt *Runtime, vtype int) interface{} {
 		return core.NewBuffer()
 	case core.TYPEFUNC:
 		return &Fn{}
+	case core.TYPEERROR:
+		return &RuntimeError{}
+	case core.TYPESET:
+		return core.NewSet()
 	default:
 		if vtype >= core.TYPESTRUCT {
 			return NewStruct(rt, &rt.Owner.Exec.Structs[(vtype-core.TYPESTRUCT)>>8])

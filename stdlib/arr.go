@@ -28,8 +28,8 @@ func InitArray(ws *core.Workspace) {
 		{core.Link{AssignAddºArrMap, core.ASSIGN + 1}, `arr.map*,map*`, `arr.map*`},  // arr.map += map
 		{core.Link{AssignºArrArr, core.ASSIGN}, `arr*,arr*`, `arr*`},                 // arr = arr
 		{core.Link{AssignBitAndºArrArr, core.ASSIGNPTR}, `arr*,arr*`, `arr*`},        // arr &= arr
-		{JoinºArrStr, `arr.str,str`, `str`},                                          // Join( arr.str, str )
-		{SortºArr, `arr.str`, `arr.str`},                                             // Sort( arr.str )
+		{core.Link{JoinºArrStr, 41<<16 | core.EMBED}, `arr.str,str`, `str`},          // Join( arr.str, str )
+		{core.Link{SortºArr, 42<<16 | core.EMBED}, `arr.str`, `arr.str`},             // Sort( arr.str )
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

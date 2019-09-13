@@ -277,6 +277,35 @@ func (set *Set) Set(index int64, b bool) bool {
 	return b
 }
 
+// Len is part of sort.Interface.
+func (set *Set) Len() int {
+	return len(set.Data) << 6
+}
+
+// GetIndex is part of Indexer interface.
+func (set *Set) GetIndex(index interface{}) (interface{}, bool) {
+	sindex := int(index.(int64))
+	shift := sindex >> 6
+	if sindex < 0 || len(set.Data) <= shift {
+		return nil, false
+	}
+	pos := uint64(sindex % 64)
+	if set.Data[shift]&(1<<pos) == 0 {
+		return int64(0), true
+	}
+	return int64(1), true
+}
+
+// SetIndex is part of Indexer interface.
+func (set *Set) SetIndex(index, value interface{}) int {
+	sindex := int64(index.(int64))
+	if sindex < 0 {
+		return ErrIndexOut
+	}
+	set.Set(sindex, value.(int64) == 1)
+	return 0
+}
+
 // NewSet creates a new set object
 func NewSet() *Set {
 	return &Set{

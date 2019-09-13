@@ -11,6 +11,12 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+const (
+	TRACESTRUCT = iota
+	TIMESTRUCT
+	FINFOSTRUCT
+)
+
 // Struct is used for custom struct types
 type Struct struct {
 	Type   *core.StructInfo

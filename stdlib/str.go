@@ -29,17 +29,17 @@ func InitStr(ws *core.Workspace) {
 		core.Link{AssignAddºStrStr, core.ASSIGN + 1},                       // str += str
 		core.Link{AssignºStrBool, core.ASSIGN + 2 /*12<<16 | core.EMBED*/}, // str = bool
 		core.Link{AssignºStrInt, core.ASSIGN + 3 /*13<<16 | core.EMBED*/},  // str = int
-		FindºStrStr,       // Find( str, str ) int
-		FormatºStr,        // Format( str, ... ) str
-		HasPrefixºStrStr,  // HasPrefix( str, str ) bool
-		HasSuffixºStrStr,  // HasSuffix( str, str ) bool
+		FindºStrStr, // Find( str, str ) int
+		core.Link{FormatºStr, 39<<16 | core.EMBED},       // Format( str, ... ) str
+		core.Link{HasPrefixºStrStr, 86<<16 | core.EMBED}, // HasPrefix( str, str ) bool
+		core.Link{HasSuffixºStrStr, 87<<16 | core.EMBED}, // HasSuffix( str, str ) bool
 		LeftºStrInt,       // Left( str, int ) str
 		LowerºStr,         // Lower( str ) str
 		RepeatºStrInt,     // Repeat( str, int )
 		ReplaceºStrStrStr, // Replace( str, str, str )
 		ShiftºStr,         // unary bitwise OR
-		SubstrºStrIntInt,  // Substr( str, int, int ) str
-		core.Link{TrimSpaceºStr, 35<<16 | core.EMBED}, // TrimSpace( str ) str
+		core.Link{SubstrºStrIntInt, 62<<16 | core.EMBED}, // Substr( str, int, int ) str
+		core.Link{TrimSpaceºStr, 35<<16 | core.EMBED},    // TrimSpace( str ) str
 		TrimRightºStr, // TrimRight( str, str ) str
 		UpperºStr,     // Upper( str ) str
 	} {
@@ -47,8 +47,8 @@ func InitStr(ws *core.Workspace) {
 	}
 
 	for _, item := range []embedInfo{
-		{core.Link{LinesºStr, 36<<16 | core.EMBED}, `str`, `arr.str`}, // Lines( str ) arr
-		{SplitºStrStr, `str,str`, `arr.str`},                          // Split( str, str ) arr
+		{core.Link{LinesºStr, 36<<16 | core.EMBED}, `str`, `arr.str`},        // Lines( str ) arr
+		{core.Link{SplitºStrStr, 43<<16 | core.EMBED}, `str,str`, `arr.str`}, // Split( str, str ) arr
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

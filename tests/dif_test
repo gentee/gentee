@@ -11,3 +11,26 @@ run arr.bool {
   return mb
 }
 ===== [true false true]
+run str {
+  int i
+  str s = `ok`
+  try {
+    10/i
+  }
+  catch err {
+    s = Format("#%d %s", ErrID(err), ErrText(err))
+    recover
+    s += `---`
+  }
+  s += `+++`
+  return s
+} 
+===== #3 divided by zero+++
+run {
+  try { 10/0 }
+  catch err {
+     error(100, Format("#%d %s %v", ErrID(err), ErrText(err), ErrTrace(err)))
+  }
+} 
+===== [4:6] #3 divided by zero [trace[Path: Entry: Func:Div Line:2 Pos:11]]
+

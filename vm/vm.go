@@ -81,6 +81,9 @@ type Call struct {
 	Start    int32
 	Continue int32 // shift for continue
 	Break    int32 // shift for break
+	Try      int32 // shift for try
+	Recover  int32 // shift for recover
+	Retry    int32 // shift for retry
 }
 
 func (vm *VM) runConsts(offset int64) (interface{}, error) {

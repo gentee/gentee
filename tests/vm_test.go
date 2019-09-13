@@ -72,7 +72,7 @@ func TestVM(t *testing.T) {
 			testErr := func(err error) error {
 				return fmt.Errorf(`[%d] of %s  %v`, src[i].Line, filename, err)
 			}
-			fmt.Println(`LINE START`, src[i].Line)
+			fmt.Println(`LINE START`, src[i].Line, filename)
 			unitID, err := workspace.Compile(src[i].Src, ``)
 			if err != nil && err.Error() != src[i].Want {
 				return testErr(err)
@@ -97,8 +97,7 @@ func TestVM(t *testing.T) {
 		}
 		return nil
 	}
-	return // temporary
-	for _, name := range []string{ /*`err_test`,*/ `run_test`, `err_test`} {
+	for _, name := range []string{`run_test`, `err_test`} {
 		if err := testFile(name); err != nil {
 			t.Error(err)
 			return
@@ -113,6 +112,7 @@ func TestVM(t *testing.T) {
 		t.Error(`stdlib tests cannot be found`)
 		return
 	}
+	return
 	for _, file := range files {
 		if err := testFile(filepath.Join(`stdlib`, file.Name())); err != nil {
 			t.Error(err)

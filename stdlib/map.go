@@ -11,11 +11,12 @@ import (
 // InitMap appends stdlib map functions to the virtual machine
 func InitMap(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{LenºMap, `map*`, `int`},                                              // the length of map
-		{core.Link{AssignºMapMap, core.ASSIGN}, `map*,map*`, `map*`},          // map = map
-		{core.Link{AssignBitAndºMapMap, core.ASSIGNPTR}, `map*,map*`, `map*`}, // map &= map
-		{DelºMapStrAuto, `map*,str`, `map*`},                                  // Delete(map, str)
-		{IsKeyºMapStrAuto, `map*,str`, `bool`},                                // IsKey(map, str)
+		{core.Link{LenºMap, core.Bcode(core.TYPEMAP<<16) | core.LEN},
+			`map*`, `int`}, // the length of map
+		{core.Link{AssignºMapMap, core.ASSIGN}, `map*,map*`, `map*`},           // map = map
+		{core.Link{AssignBitAndºMapMap, core.ASSIGNPTR}, `map*,map*`, `map*`},  // map &= map
+		{core.Link{DelºMapStrAuto, 95<<16 | core.EMBED}, `map*,str`, `map*`},   // Delete(map, str)
+		{core.Link{IsKeyºMapStrAuto, 96<<16 | core.EMBED}, `map*,str`, `bool`}, // IsKey(map, str)
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

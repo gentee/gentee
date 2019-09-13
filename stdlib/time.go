@@ -20,18 +20,18 @@ func InitTime(ws *core.Workspace) {
 	})
 
 	for _, item := range []embedInfo{
-		{intºTime, `time`, `int`},                                // int( time )
-		{timeºInt, `int`, `time`},                                // time( int, time )
-		{AddHoursºTimeInt, `time,int`, `time`},                   // AddHours(time,int) time
-		{DateºInts, `int,int,int`, `time`},                       // Date(day, month, year)
-		{DateTimeºInts, `int,int,int,int,int,int`, `time`},       // DateTime()
-		{DaysºTime, `time`, `int`},                               // Days(time)
-		{EqualºTimeTime, `time,time`, `bool`},                    // binary ==
-		{FormatºTimeStr, `str,time`, `str`},                      // Format(time,str)
-		{ParseTimeºStrStr, `str,str`, `time`},                    // ParseTime(str,str) time
-		{GreaterºTimeTime, `time,time`, `bool`},                  // binary >
-		{LessºTimeTime, `time,time`, `bool`},                     // binary <
-		{Now, ``, `time`},                                        // Now()
+		{intºTime, `time`, `int`},                                                 // int( time )
+		{timeºInt, `int`, `time`},                                                 // time( int, time )
+		{AddHoursºTimeInt, `time,int`, `time`},                                    // AddHours(time,int) time
+		{DateºInts, `int,int,int`, `time`},                                        // Date(day, month, year)
+		{DateTimeºInts, `int,int,int,int,int,int`, `time`},                        // DateTime()
+		{DaysºTime, `time`, `int`},                                                // Days(time)
+		{core.Link{EqualºTimeTime, 1019<<16 | core.EMBED}, `time,time`, `bool`},   // binary ==
+		{core.Link{FormatºTimeStr, 1020<<16 | core.EMBED}, `str,time`, `str`},     // Format(time,str)
+		{core.Link{ParseTimeºStrStr, 1015<<16 | core.EMBED}, `str,str`, `time`},   // ParseTime(str,str) time
+		{core.Link{GreaterºTimeTime, 1021<<16 | core.EMBED}, `time,time`, `bool`}, // binary >
+		{core.Link{LessºTimeTime, 1022<<16 | core.EMBED}, `time,time`, `bool`},    // binary <
+		{Now, ``, `time`}, // Now()
 		{core.Link{sleepºInt, 1008<<16 | core.EMBED}, `int`, ``}, // sleep(int)
 		{UTCºTime, `time`, `time`},                               // UTC()
 		{WeekdayºTime, `time`, `int`},                            // Weekday(time)

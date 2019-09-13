@@ -16,11 +16,11 @@ func InitRuntime(ws *core.Workspace) {
 		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
 	})
 	for _, item := range []embedInfo{
-		{core.Link{errorºIntStr, 1009<<16 | core.EMBED}, `int,str`, ``}, // error( int, str )
-		{ErrID, `error`, `int`},          // ErrID( error ) int
-		{ErrText, `error`, `str`},        // ErrText( error ) str
-		{ErrTrace, `error`, `arr.trace`}, // ErrTrace( error ) arr.trace
-		{Trace, ``, `arr.trace`},         // Trace() arr.trace
+		{core.Link{errorºIntStr, 1009<<16 | core.EMBED}, `int,str`, ``},    // error( int, str )
+		{core.Link{ErrID, 1012<<16 | core.EMBED}, `error`, `int`},          // ErrID( error ) int
+		{core.Link{ErrText, 1013<<16 | core.EMBED}, `error`, `str`},        // ErrText( error ) str
+		{core.Link{ErrTrace, 1014<<16 | core.EMBED}, `error`, `arr.trace`}, // ErrTrace( error ) arr.trace
+		{Trace, ``, `arr.trace`}, // Trace() arr.trace
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

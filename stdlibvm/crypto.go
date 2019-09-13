@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package stdlibvm
 
 import (
 	"crypto/md5"
@@ -10,18 +10,6 @@ import (
 
 	"github.com/gentee/gentee/core"
 )
-
-// InitCrypto appends stdlib crypto functions to the virtual machine
-func InitCrypto(ws *core.Workspace) {
-	for _, item := range []embedInfo{
-		{core.Link{Md5ºBuf, 58<<16 | core.EMBED}, `buf`, `buf`},    // Md5( buf ) buf
-		{core.Link{Md5ºStr, 59<<16 | core.EMBED}, `str`, `buf`},    // Md5( str ) buf
-		{core.Link{Sha256ºBuf, 60<<16 | core.EMBED}, `buf`, `buf`}, // Sha256( buf ) buf
-		{core.Link{Sha256ºStr, 61<<16 | core.EMBED}, `str`, `buf`}, // Sha256( str ) buf
-	} {
-		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
-	}
-}
 
 func md5Hash(in []byte) (out *core.Buffer) {
 	out = core.NewBuffer()
