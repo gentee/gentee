@@ -20,22 +20,23 @@ func InitTime(ws *core.Workspace) {
 	})
 
 	for _, item := range []embedInfo{
-		{intºTime, `time`, `int`},                                                 // int( time )
-		{timeºInt, `int`, `time`},                                                 // time( int, time )
-		{AddHoursºTimeInt, `time,int`, `time`},                                    // AddHours(time,int) time
-		{DateºInts, `int,int,int`, `time`},                                        // Date(day, month, year)
-		{DateTimeºInts, `int,int,int,int,int,int`, `time`},                        // DateTime()
-		{DaysºTime, `time`, `int`},                                                // Days(time)
+		{core.Link{intºTime, 1041<<16 | core.EMBED}, `time`, `int`},              // int( time )
+		{core.Link{timeºInt, 1042<<16 | core.EMBED}, `int`, `time`},              // time( int, time )
+		{core.Link{AddHoursºTimeInt, 1043<<16 | core.EMBED}, `time,int`, `time`}, // AddHours(time,int) time
+		{core.Link{DateºInts, 1044<<16 | core.EMBED}, `int,int,int`, `time`},     // Date(day, month, year)
+		{core.Link{DateTimeºInts, 1045<<16 | core.EMBED},
+			`int,int,int,int,int,int`, `time`}, // DateTime()
+		{core.Link{DaysºTime, 1046<<16 | core.EMBED}, `time`, `int`},              // Days(time)
 		{core.Link{EqualºTimeTime, 1019<<16 | core.EMBED}, `time,time`, `bool`},   // binary ==
 		{core.Link{FormatºTimeStr, 1020<<16 | core.EMBED}, `str,time`, `str`},     // Format(time,str)
 		{core.Link{ParseTimeºStrStr, 1015<<16 | core.EMBED}, `str,str`, `time`},   // ParseTime(str,str) time
 		{core.Link{GreaterºTimeTime, 1021<<16 | core.EMBED}, `time,time`, `bool`}, // binary >
 		{core.Link{LessºTimeTime, 1022<<16 | core.EMBED}, `time,time`, `bool`},    // binary <
-		{Now, ``, `time`}, // Now()
-		{core.Link{sleepºInt, 1008<<16 | core.EMBED}, `int`, ``}, // sleep(int)
-		{UTCºTime, `time`, `time`},                               // UTC()
-		{WeekdayºTime, `time`, `int`},                            // Weekday(time)
-		{YearDayºTime, `time`, `int`},                            // YearDay(time) int
+		{core.Link{Now, 1037<<16 | core.EMBED}, ``, `time`},                       // Now()
+		{core.Link{sleepºInt, 1008<<16 | core.EMBED}, `int`, ``},                  // sleep(int)
+		{core.Link{UTCºTime, 1038<<16 | core.EMBED}, `time`, `time`},              // UTC()
+		{core.Link{WeekdayºTime, 1039<<16 | core.EMBED}, `time`, `int`},           // Weekday(time)
+		{core.Link{YearDayºTime, 1040<<16 | core.EMBED}, `time`, `int`},           // YearDay(time) int
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

@@ -13,20 +13,21 @@ import (
 // InitSet appends stdlib buffer functions to the virtual machine
 func InitSet(ws *core.Workspace) {
 	for _, item := range []embedInfo{
-		{core.Link{setºStr, 66<<16 | core.EMBED}, `str`, `set`},            // set( str ) set
-		{strºSet, `set`, `str`},                                            // str( set ) str
-		{arrºSet, `set`, `arr.int`},                                        // arr( set ) arr.int
-		{core.Link{setºArr, 68<<16 | core.EMBED}, `arr.int`, `set`},        // set( arr.int ) set
-		{LenºSet, `set`, `int`},                                            // the length of the buffer
-		{SetºSet, `set,int`, `set`},                                        // Set(set, index)
-		{core.Link{UnSetºSet, 67<<16 | core.EMBED}, `set,int`, `set`},      // UnSet(set, index)
-		{core.Link{AssignºSetSet, core.ASSIGN}, `set,set`, `set`},          // set = set
-		{core.Link{AssignBitAndºSetSet, core.ASSIGNPTR}, `set,set`, `set`}, // set &= set
-		{AssignAddºSetSet, `set,set`, `set`},                               // set += set
-		{BitAndºSetSet, `set,set`, `set`},                                  // set &= set
-		{BitOrºSetSet, `set,set`, `set`},                                   // set |= set
-		{BitNotºSet, `set`, `set`},                                         // ^set  toggle set
-		{ToggleºSetInt, `set,int`, `bool`},                                 // Toggle(set, int) bool
+		{core.Link{setºStr, 66<<16 | core.EMBED}, `str`, `set`},      // set( str ) set
+		{core.Link{strºSet, 105<<16 | core.EMBED}, `set`, `str`},     // str( set ) str
+		{core.Link{arrºSet, 106<<16 | core.EMBED}, `set`, `arr.int`}, // arr( set ) arr.int
+		{core.Link{setºArr, 68<<16 | core.EMBED}, `arr.int`, `set`},  // set( arr.int ) set
+		{core.Link{LenºSet, core.Bcode(core.TYPESET<<16) | core.LEN},
+			`set`, `int`}, // the length of the buffer
+		{core.Link{SetºSet, 103<<16 | core.EMBED}, `set,int`, `set`},        // Set(set, index)
+		{core.Link{UnSetºSet, 67<<16 | core.EMBED}, `set,int`, `set`},       // UnSet(set, index)
+		{core.Link{AssignºSetSet, core.ASSIGN}, `set,set`, `set`},           // set = set
+		{core.Link{AssignBitAndºSetSet, core.ASSIGNPTR}, `set,set`, `set`},  // set &= set
+		{core.Link{AssignAddºSetSet, core.ASSIGN + 8}, `set,set`, `set`},    // set += set
+		{core.Link{BitAndºSetSet, 109<<16 | core.EMBED}, `set,set`, `set`},  // set & set
+		{core.Link{BitOrºSetSet, 110<<16 | core.EMBED}, `set,set`, `set`},   // set | set
+		{core.Link{BitNotºSet, 111<<16 | core.EMBED}, `set`, `set`},         // ^set  toggle set
+		{core.Link{ToggleºSetInt, 104<<16 | core.EMBED}, `set,int`, `bool`}, // Toggle(set, int) bool
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}

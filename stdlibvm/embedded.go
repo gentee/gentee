@@ -131,6 +131,39 @@ var Embedded = []core.Embed{
 	{Func: RoundºFloatInt, Return: core.TYPEFLOAT, Params: []uint16{core.TYPEFLOAT, core.TYPEINT}},
 	{Func: DelºMapStrAuto, Return: core.TYPEMAP, Params: []uint16{core.TYPEMAP, core.TYPESTR}},
 	{Func: IsKeyºMapStrAuto, Return: core.TYPEBOOL, Params: []uint16{core.TYPEMAP, core.TYPESTR}},
+	{Func: AbsPath, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, CanError: true},
+	{Func: BaseName, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
+	{Func: Dir, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
+	// 100
+	{Func: Ext, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
+	{Func: JoinPath, Return: core.TYPESTR, Variadic: true},
+	{Func: MatchPath, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTR, core.TYPESTR},
+		CanError: true},
+	{Func: SetºSet, Return: core.TYPESET, Params: []uint16{core.TYPESET, core.TYPEINT},
+		CanError: true},
+	{Func: ToggleºSetInt, Return: core.TYPEBOOL, Params: []uint16{core.TYPESET, core.TYPEINT},
+		CanError: true},
+	{Func: strºSet, Return: core.TYPESTR, Params: []uint16{core.TYPESET}},
+	{Func: arrºSet, Return: core.TYPEARR, Params: []uint16{core.TYPESET}},
+	{Func: TrimRightºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPESTR}},
+	{Func: UpperºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
+	{Func: BitAndºSetSet, Return: core.TYPESET, Params: []uint16{core.TYPESET, core.TYPESET}},
+	// 110
+	{Func: BitOrºSetSet, Return: core.TYPESET, Params: []uint16{core.TYPESET, core.TYPESET}},
+	{Func: BitNotºSet, Return: core.TYPESET, Params: []uint16{core.TYPESET}},
+	{Func: boolºStr, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTR}},
+	{Func: FindºStrStr, Return: core.TYPEINT, Params: []uint16{core.TYPESTR, core.TYPESTR}},
+	{Func: LeftºStrInt, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEINT}},
+	{Func: LowerºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
+	{Func: RepeatºStrInt, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEINT}},
+	{Func: ReplaceºStrStrStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR,
+		core.TYPESTR, core.TYPESTR}},
+	{Func: ShiftºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}},
+	{Func: Download, Return: core.TYPEINT, Params: []uint16{core.TYPESTR, core.TYPESTR},
+		CanError: true},
+	// 120
+	{Func: HTTPGet, Return: core.TYPEBUF, Params: []uint16{core.TYPESTR}, CanError: true},
+	{Func: HTTPPage, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, CanError: true},
 }
 
 var EmbedInt = []core.AssignIntFunc{
@@ -173,4 +206,5 @@ var EmbedAny = []core.AssignAnyFunc{
 	AssignAddºBufBuf,
 	AssignAddºBufStr,
 	AssignºFnFn,
+	AssignAddºSetSet,
 }

@@ -133,8 +133,12 @@ func GetTrace(rt *Runtime, pos int64) []TraceInfo {
 	var (
 		entry string
 	)
-
 	ret := make([]TraceInfo, 0, 16)
+	if rt.ThreadID == 0 {
+		entry = `run`
+	} else {
+		entry = `thread`
+	}
 	newTrace := func(offset int32) {
 		for _, ipos := range rt.Owner.Exec.Pos {
 			if ipos.Offset >= offset {
@@ -145,6 +149,7 @@ func GetTrace(rt *Runtime, pos int64) []TraceInfo {
 					Line:  int64(ipos.Line),
 					Pos:   int64(ipos.Column),
 				})
+				entry = rt.Owner.Exec.Strings[ipos.Name]
 				break
 			}
 		}
@@ -155,7 +160,9 @@ func GetTrace(rt *Runtime, pos int64) []TraceInfo {
 		}
 		newTrace(call.Offset)
 	}
-	newTrace(int32(pos))
+	if pos >= 0 {
+		newTrace(int32(pos))
+	}
 
 	/*	for _, cmd := range rt.Calls {
 		if cmd == nil {
@@ -256,4 +263,9 @@ func getTrace(rt *Runtime, list []TraceInfo, it *core.Array) *core.Array {
 // ErrTrace returns the trace of the error
 func ErrTrace(rt *Runtime, err *RuntimeError) *core.Array {
 	return getTrace(rt, err.Trace, core.NewArray())
+}
+
+// Trace gets trace information
+func Trace(rt *Runtime) *core.Array {
+	return getTrace(rt, GetTrace(rt, -1), core.NewArray())
 }

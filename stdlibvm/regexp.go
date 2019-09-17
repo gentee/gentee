@@ -29,12 +29,15 @@ func FindRegExpºStrStr(src, rePattern string) (*core.Array, error) {
 }
 
 // MatchºStrStr reports whether the string s contains any match of the regular expression
-func MatchºStrStr(s string, rePattern string) (bool, error) {
+func MatchºStrStr(s string, rePattern string) (int64, error) {
 	re, err := regexp.Compile(rePattern)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
-	return re.MatchString(s), nil
+	if re.MatchString(s) {
+		return 1, nil
+	}
+	return 0, nil
 }
 
 // ReplaceRegExpºStrStr returns a copy of src, replacing matches of the Regexp with the replacement string

@@ -12,7 +12,7 @@ import (
 func InitBool(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		core.Link{strºBool /*(0 << 16) |*/, core.EMBED}, // str( bool )
-		intºBool,                                        // int( bool )
+		core.Link{intºBool, core.NOP},                   // int( bool )
 		core.Link{Not, core.NOT},                        // unary boolean not
 		core.Link{ExpStrºBool, (5 << 16) | core.EMBED},  // expression in string
 		core.Link{AssignºBoolBool, core.ASSIGN},         // bool = bool

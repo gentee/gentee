@@ -20,8 +20,8 @@ func InitChar(ws *core.Workspace) {
 		core.Link{EqualºCharChar, core.EQ},               // binary ==
 		core.Link{GreaterºCharChar, 16<<16 | core.EMBED}, // binary >
 		core.Link{LessºCharChar, 17<<16 | core.EMBED},    // binary <
-		intºChar, // int( char )
-		core.Link{strºChar, 18<<16 | core.EMBED}, // str( char )
+		core.Link{intºChar, core.NOP},                    // int( char )
+		core.Link{strºChar, 18<<16 | core.EMBED},         // str( char )
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

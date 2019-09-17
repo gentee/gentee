@@ -14,6 +14,7 @@ import (
 
 	workspace "github.com/gentee/gentee"
 	"github.com/gentee/gentee/core"
+	"github.com/gentee/gentee/vm"
 )
 
 const (
@@ -50,7 +51,7 @@ func main() {
 	isError := func(code int) {
 		if err != nil {
 			fmt.Print(`ERROR`)
-			if errTrace, ok := err.(*core.RuntimeError); ok {
+			if errTrace, ok := err.(*vm.RuntimeError); ok {
 				fmt.Printf(" #%d: %s\n", errTrace.ID, err.Error())
 				for _, trace := range errTrace.Trace {
 					path := trace.Path
@@ -71,11 +72,13 @@ func main() {
 	var (
 		result interface{}
 		unitID int
+		exec   *core.Exec
 	)
-	unitID, err = workspace.CompileFile(script)
+	exec, unitID, err = workspace.CompileFile(script)
 	isError(errCompile)
-	workspace.CmdLine(files[1:]...)
-	result, err = workspace.Run(unitID)
+	result, err = vm.Run(exec, vm.Settings{CmdLine: files[1:]})
+	//	workspace.CmdLine(files[1:]...)
+	//	result, err = workspace.Run(unitID)
 	isError(errRun)
 	resultStr := fmt.Sprint(result)
 	if testMode {

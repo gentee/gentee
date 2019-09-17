@@ -2,29 +2,13 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package stdlibvm
 
 import (
 	"fmt"
 	"path/filepath"
 	"strings"
-
-	"github.com/gentee/gentee/core"
 )
-
-// InitPath appends stdlib filepath functions to the virtual machine
-func InitPath(ws *core.Workspace) {
-	for _, item := range []interface{}{
-		core.Link{AbsPath, 97<<16 | core.EMBED},    // AbsPath(str) str
-		core.Link{BaseName, 98<<16 | core.EMBED},   // BaseName(str) str
-		core.Link{Dir, 99<<16 | core.EMBED},        // Dir(str) str
-		core.Link{Ext, 100<<16 | core.EMBED},       // Ext(str) str
-		core.Link{JoinPath, 101<<16 | core.EMBED},  // JoinPath(str pars...) str
-		core.Link{MatchPath, 102<<16 | core.EMBED}, // MatchPath(str, str) bool
-	} {
-		ws.StdLib().NewEmbed(item)
-	}
-}
 
 // AbsPath returns an absolute representation of path.
 func AbsPath(fname string) (string, error) {
@@ -56,6 +40,10 @@ func JoinPath(pars ...interface{}) string {
 }
 
 // MatchPath reports whether name matches the specified file name pattern.
-func MatchPath(pattern, fname string) (bool, error) {
-	return filepath.Match(pattern, fname)
+func MatchPath(pattern, fname string) (int64, error) {
+	ok, err := filepath.Match(pattern, fname)
+	if ok {
+		return 1, err
+	}
+	return 0, err
 }

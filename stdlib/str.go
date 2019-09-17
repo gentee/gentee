@@ -16,32 +16,33 @@ import (
 // InitStr appends stdlib string functions to the virtual machine
 func InitStr(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		core.Link{AddºStrStr, core.Bcode(core.TYPESTR<<16) | core.ADDSTR}, // binary +
-		core.Link{EqualºStrStr, core.EQSTR},                               // binary ==
-		core.Link{GreaterºStrStr, core.GTSTR},                             // binary >
-		core.Link{LenºStr, core.Bcode(core.TYPESTR<<16) | core.LEN},       // the length of str
-		core.Link{LessºStrStr, core.LTSTR},                                // binary <
-		core.Link{intºStr, 2<<16 | core.EMBED},                            // int( str )
-		core.Link{floatºStr, 20<<16 | core.EMBED},                         // float( str )
-		boolºStr,                                                           // bool( str )
-		core.Link{ExpStrºStr, core.ADDSTR},                                 // expression in string
-		core.Link{AssignºStrStr, core.ASSIGN},                              // str = str
-		core.Link{AssignAddºStrStr, core.ASSIGN + 1},                       // str += str
-		core.Link{AssignºStrBool, core.ASSIGN + 2 /*12<<16 | core.EMBED*/}, // str = bool
-		core.Link{AssignºStrInt, core.ASSIGN + 3 /*13<<16 | core.EMBED*/},  // str = int
-		FindºStrStr, // Find( str, str ) int
-		core.Link{FormatºStr, 39<<16 | core.EMBED},       // Format( str, ... ) str
-		core.Link{HasPrefixºStrStr, 86<<16 | core.EMBED}, // HasPrefix( str, str ) bool
-		core.Link{HasSuffixºStrStr, 87<<16 | core.EMBED}, // HasSuffix( str, str ) bool
-		LeftºStrInt,       // Left( str, int ) str
-		LowerºStr,         // Lower( str ) str
-		RepeatºStrInt,     // Repeat( str, int )
-		ReplaceºStrStrStr, // Replace( str, str, str )
-		ShiftºStr,         // unary bitwise OR
-		core.Link{SubstrºStrIntInt, 62<<16 | core.EMBED}, // Substr( str, int, int ) str
-		core.Link{TrimSpaceºStr, 35<<16 | core.EMBED},    // TrimSpace( str ) str
-		TrimRightºStr, // TrimRight( str, str ) str
-		UpperºStr,     // Upper( str ) str
+		core.Link{AddºStrStr,
+			core.Bcode(core.TYPESTR<<16) | core.ADDSTR}, // binary +
+		core.Link{EqualºStrStr, core.EQSTR},                         // binary ==
+		core.Link{GreaterºStrStr, core.GTSTR},                       // binary >
+		core.Link{LenºStr, core.Bcode(core.TYPESTR<<16) | core.LEN}, // the length of str
+		core.Link{LessºStrStr, core.LTSTR},                          // binary <
+		core.Link{intºStr, 2<<16 | core.EMBED},                      // int( str )
+		core.Link{floatºStr, 20<<16 | core.EMBED},                   // float( str )
+		core.Link{boolºStr, 112<<16 | core.EMBED},                   // bool( str )
+		core.Link{ExpStrºStr, core.ADDSTR},                          // expression in string
+		core.Link{AssignºStrStr, core.ASSIGN},                       // str = str
+		core.Link{AssignAddºStrStr, core.ASSIGN + 1},                // str += str
+		core.Link{AssignºStrBool, core.ASSIGN + 2},                  // str = bool
+		core.Link{AssignºStrInt, core.ASSIGN + 3},                   // str = int
+		core.Link{FindºStrStr, 113<<16 | core.EMBED},                // Find( str, str ) int
+		core.Link{FormatºStr, 39<<16 | core.EMBED},                  // Format( str, ... ) str
+		core.Link{HasPrefixºStrStr, 86<<16 | core.EMBED},            // HasPrefix( str, str ) bool
+		core.Link{HasSuffixºStrStr, 87<<16 | core.EMBED},            // HasSuffix( str, str ) bool
+		core.Link{LeftºStrInt, 114<<16 | core.EMBED},                // Left( str, int ) str
+		core.Link{LowerºStr, 115<<16 | core.EMBED},                  // Lower( str ) str
+		core.Link{RepeatºStrInt, 116<<16 | core.EMBED},              // Repeat( str, int )
+		core.Link{ReplaceºStrStrStr, 117<<16 | core.EMBED},          // Replace( str, str, str )
+		core.Link{ShiftºStr, 118<<16 | core.EMBED},                  // unary bitwise OR
+		core.Link{SubstrºStrIntInt, 62<<16 | core.EMBED},            // Substr( str, int, int ) str
+		core.Link{TrimSpaceºStr, 35<<16 | core.EMBED},               // TrimSpace( str ) str
+		core.Link{TrimRightºStr, 107<<16 | core.EMBED},              // TrimRight( str, str ) str
+		core.Link{UpperºStr, 108<<16 | core.EMBED},                  // Upper( str ) str
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

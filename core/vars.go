@@ -286,8 +286,11 @@ func (set *Set) Len() int {
 func (set *Set) GetIndex(index interface{}) (interface{}, bool) {
 	sindex := int(index.(int64))
 	shift := sindex >> 6
-	if sindex < 0 || len(set.Data) <= shift {
+	if sindex < 0 || sindex >= int(MaxSet) { //len(set.Data) <= shift {
 		return nil, false
+	}
+	if shift >= len(set.Data) {
+		return int64(0), true
 	}
 	pos := uint64(sindex % 64)
 	if set.Data[shift]&(1<<pos) == 0 {

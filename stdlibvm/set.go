@@ -22,19 +22,21 @@ func AssignBitAndºSetSet(ptr *interface{}, value *core.Set) *core.Set {
 	*ptr = value
 	return (*ptr).(*core.Set)
 }
+*/
 
 // AssignAddºSetSet appends set to set
-func AssignAddºSetSet(ptr *interface{}, value *core.Set) *core.Set {
-	for i, v := range value.Data {
+func AssignAddºSetSet(set interface{}, value interface{}) (interface{}, error) {
+	for i, v := range value.(*core.Set).Data {
 		for pos := uint64(0); pos < 64; pos++ {
 			if v&(1<<pos) != 0 {
-				(*ptr).(*core.Set).Set(int64(i<<6)+int64(pos), true)
+				set.(*core.Set).Set(int64(i<<6)+int64(pos), true)
 			}
 		}
 	}
-	return (*ptr).(*core.Set)
+	return set, nil
 }
 
+/*
 // LenºSet returns the length of the set size
 func LenºSet(set *core.Set) int64 {
 	return int64(len(set.Data) << 6)
@@ -47,7 +49,6 @@ func checkIndex(set *core.Set, index int64) error {
 	return nil
 }
 
-/*
 func bitSet(left *core.Set, right *core.Set, and bool) *core.Set {
 	ret := core.NewSet()
 	if len(left.Data) < len(right.Data) {
@@ -87,6 +88,16 @@ func BitNotºSet(set *core.Set) *core.Set {
 	return ret
 }
 
+// IsSet returns the value of set[index]
+func IsSet(set *core.Set, index int64) int64 {
+	shift := int(index >> 6)
+	pos := uint64(index % 64)
+	if len(set.Data) <= shift || set.Data[shift]&(1<<pos) == 0 {
+		return 0
+	}
+	return 1
+}
+
 // SetºSet sets the item in the set
 func SetºSet(set *core.Set, index int64) (*core.Set, error) {
 	var err error
@@ -97,14 +108,14 @@ func SetºSet(set *core.Set, index int64) (*core.Set, error) {
 }
 
 // ToggleºSetInt changes the value of the set
-func ToggleºSetInt(set *core.Set, index int64) (prev bool, err error) {
+func ToggleºSetInt(set *core.Set, index int64) (prev int64, err error) {
 	if err = checkIndex(set, index); err == nil {
-		prev = set.IsSet(index)
-		set.Set(index, !prev)
+		prev = IsSet(set, index)
+		set.Set(index, prev == 0)
 	}
 	return
 }
-*/
+
 // UnSetºSet sets the item in the set
 func UnSetºSet(set *core.Set, index int64) (*core.Set, error) {
 	var err error
@@ -129,7 +140,6 @@ func setºStr(value string) (*core.Set, error) {
 	return s, nil
 }
 
-/*
 // arrºSet converts set to array of integers
 func arrºSet(set *core.Set) *core.Array {
 	ret := core.NewArray()
@@ -142,7 +152,7 @@ func arrºSet(set *core.Set) *core.Array {
 	}
 	return ret
 }
-*/
+
 // setºArr converts array of integers to set
 func setºArr(arr *core.Array) (set *core.Set, err error) {
 	var ind int64
@@ -156,9 +166,7 @@ func setºArr(arr *core.Array) (set *core.Set, err error) {
 	return
 }
 
-/*
 // strºSet converts set to string
 func strºSet(set *core.Set) string {
 	return set.String()
 }
-*/

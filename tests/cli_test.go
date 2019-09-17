@@ -88,7 +88,7 @@ func TestCli(t *testing.T) {
 		{core.Version, []string{`-ver`}},
 		{``, []string{`nothing.g`}},
 		{core.Version, []string{`const.g`}},
-		{"ERROR #254: .../tests/scripts/traceerror.g [2:13] divided by zero\n" +
+		{"ERROR #3: .../tests/scripts/traceerror.g [2:13] divided by zero\n" +
 			".../tests/scripts/traceerror.g [5:5] run -> myfunc\n" +
 			".../tests/scripts/traceerror.g [2:13] myfunc -> Div", []string{`traceerror.g`}},
 		{"ERROR #300: .../tests/scripts/customerror.g [3:24] Σ custom error №5\n" +
@@ -109,8 +109,7 @@ func TestCli(t *testing.T) {
 			[]string{`err-e.g`}},
 		{"ERROR: .../tests/scripts/err-f.g [6:5] unknown identifier myf",
 			[]string{`err-f.g`}},
-		{"ERROR #254: .../tests/scripts/err_thread.g [2:14] divided by zero\n" +
-			".../tests/scripts/err_thread.g [7:15] thread -> Assign\n" +
+		{"ERROR #3: .../tests/scripts/err_thread.g [2:14] divided by zero\n" +
 			".../tests/scripts/err_thread.g [7:17] thread -> divZero\n" +
 			".../tests/scripts/err_thread.g [2:14] divZero -> Div",
 			[]string{`thread1.g`}},

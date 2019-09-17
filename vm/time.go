@@ -17,7 +17,7 @@ func newTime(rt *Runtime) *Struct {
 
 func toTime(it *Struct) time.Time {
 	utc := time.Local
-	if it.Values[6].(bool) {
+	if it.Values[6].(int64) == 1 {
 		utc = time.UTC
 	}
 	return time.Date(int(it.Values[0].(int64)), time.Month(it.Values[1].(int64)),
@@ -32,7 +32,11 @@ func fromTime(it *Struct, in time.Time) *Struct {
 	it.Values[3] = int64(in.Hour())
 	it.Values[4] = int64(in.Minute())
 	it.Values[5] = int64(in.Second())
-	it.Values[6] = in.Location() == time.UTC
+	if in.Location() == time.UTC {
+		it.Values[6] = int64(1)
+	} else {
+		it.Values[6] = int64(0)
+	}
 	return it
 }
 
@@ -44,6 +48,39 @@ func layout2go(layout string) string {
 		`2006`, `06`, `January`, `Jan`, `01`, `1`, `02`, `2`, `Monday`, `Mon`,
 		`15`, `03`, `3`, `PM`, `pm`, `04`, `4`, `05`, `5`, `MST`, `-0700`, `-07:00`,
 	})
+}
+
+// intºTime converts time to Unix time
+func intºTime(it *Struct) int64 {
+	return toTime(it).Unix()
+}
+
+// timeºInt converts Unix time to time
+func timeºInt(rt *Runtime, unix int64) *Struct {
+	return fromTime(newTime(rt), time.Unix(unix, 0))
+}
+
+// AddHoursºTimeInt adds/subtract hours
+func AddHoursºTimeInt(rt *Runtime, it *Struct, hours int64) *Struct {
+	return fromTime(newTime(rt), toTime(it).Add(time.Duration(hours)*time.Hour))
+}
+
+// DateºInts returns time
+func DateºInts(rt *Runtime, year, month, day int64) *Struct {
+	return DateTimeºInts(rt, year, month, day, 0, 0, 0)
+}
+
+// DateTimeºInts returns time
+func DateTimeºInts(rt *Runtime, year, month, day, hour, minute, second int64) *Struct {
+	return fromTime(newTime(rt), time.Date(int(year), time.Month(month), int(day), int(hour), int(minute),
+		int(second), 0, time.Local))
+}
+
+// DaysºTime returns the days of the month
+func DaysºTime(it *Struct) int64 {
+	next := time.Date(int(it.Values[0].(int64)), time.Month(it.Values[1].(int64))+1, 0, 0, 0, 0, 0, time.UTC)
+	next.Add(time.Duration(-24 * time.Hour))
+	return int64(next.Day())
 }
 
 // EqualºTimeTime returns true if time structures are equal
@@ -84,4 +121,24 @@ func ParseTimeºStrStr(rt *Runtime, layout, value string) (*Struct, error) {
 	}
 	fmt.Println(`T`, t.Location(), time.UTC, t)
 	return fromTime(ret, t.Local()), nil
+}
+
+// Now returns the current time
+func Now(rt *Runtime) *Struct {
+	return fromTime(newTime(rt), time.Now())
+}
+
+// UTCºTime converts time to UTC time.
+func UTCºTime(rt *Runtime, local *Struct) *Struct {
+	return fromTime(newTime(rt), toTime(local).UTC())
+}
+
+// WeekdayºTime returns the day of the week specified by t.
+func WeekdayºTime(rt *Runtime, t *Struct) int64 {
+	return int64(toTime(t).Weekday())
+}
+
+// YearDayºTime returns the day of the year specified by t.
+func YearDayºTime(t *Struct) int64 {
+	return int64(toTime(t).YearDay())
 }

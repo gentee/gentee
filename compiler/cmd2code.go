@@ -14,7 +14,7 @@ import (
 	"github.com/gentee/gentee/vm"
 )
 
-func pushSaved(dest *core.Bytecode, src *core.Bytecode) {
+/*func pushSaved(dest *core.Bytecode, src *core.Bytecode) {
 	ldest := int32(len(dest.Code))
 	dest.Code = append(dest.Code, src.Code...)
 	for _, strOffset := range src.StrOffset {
@@ -24,27 +24,27 @@ func pushSaved(dest *core.Bytecode, src *core.Bytecode) {
 		src.Pos[i].Offset += ldest
 	}
 	dest.Pos = append(dest.Pos, src.Pos...)
-}
+}*/
 
 func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 
 	var (
 		cmds []core.Bytecode
 	)
-
-	save := func(icmd core.ICmd) int {
-		code := core.Bytecode{
-			Code:       make([]core.Bcode, 0, 16),
-			Strings:    out.Strings,
-			Locals:     out.Locals,
-			BlockFlags: out.BlockFlags,
-		}
-		cmd2Code(linker, icmd, &code)
-		copyUsed(&code, out)
-		cmds = append(cmds, code)
-		out.BlockFlags = 0
-		return len(code.Code)
-	}
+	/*
+		save := func(icmd core.ICmd) int {
+			code := core.Bytecode{
+				Code:       make([]core.Bcode, 0, 16),
+				Strings:    out.Strings,
+				Locals:     out.Locals,
+				BlockFlags: out.BlockFlags,
+			}
+			cmd2Code(linker, icmd, &code)
+			copyUsed(&code, out)
+			cmds = append(cmds, code)
+			out.BlockFlags = 0
+			return len(code.Code)
+		}*/
 	push := func(pars ...core.Bcode) {
 		out.Code = append(out.Code, pars...)
 	}
@@ -97,7 +97,9 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			embed := obj.(*core.EmbedObject)
 			if embed.BCode.Code != nil {
 				code := embed.BCode.Code[0]
-				push(code) //...)
+				if code != core.NOP {
+					push(code) //...)
+				}
 				if (code & 0xffff) == core.EMBED {
 					var variadic bool
 					if code>>16 < 1000 {
@@ -112,6 +114,8 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 						}
 					}
 				}
+			} else {
+				fmt.Println(`EMBED obj`, obj)
 			}
 			canError = embed.CanError
 		case core.ObjFunc:
@@ -324,20 +328,21 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 						cases = append(cases, len(out.Code))
 						push(core.Bcode(cmpType<<16)|core.JEQ, 0)
 					}
-					out.BlockFlags = core.BlBreak
-					push(core.JMP, core.Bcode(save(
-						caseStack.Children[len(caseStack.Children)-1])+4))
+					pos := len(out.Code)
+					push(core.JMP, 0) //core.Bcode(save(
+					//						caseStack.Children[len(caseStack.Children)-1])+4))
 					for _, icase := range cases {
 						out.Code[icase+1] = core.Bcode(len(out.Code) - icase)
 					}
 					offsets = append(offsets, len(out.Code))
-					pushSaved(out, &cmds[0])
-					//					out.Code = append(out.Code, cmds[0].Code...)
+					out.BlockFlags = core.BlBreak
+					cmd2Code(linker, caseStack.Children[len(caseStack.Children)-1], out)
+					//					pushSaved(out, &cmds[0])
 					offsets = append(offsets, len(out.Code))
 					push(core.JMP, 0)
+					out.Code[pos+1] = core.Bcode(len(out.Code) - pos)
 					cmds = cmds[:0]
 				}
-				//cmd2Code(linker, caseStack.Children[len(caseStack.Children)-1], out)
 			}
 			for _, ioff := range offsets {
 				out.Code[ioff+1] = core.Bcode(len(out.Code) - ioff)
@@ -425,6 +430,11 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 					push(core.PUSH32, retType)
 				}
 				push(core.Bcode(len(cmdStack.Children)<<16|core.INITOBJ), core.TYPEBUF)
+			case reflect.TypeOf(core.Set{}):
+				for _, icmd := range cmdStack.Children {
+					cmd2Code(linker, icmd, out)
+				}
+				push(core.Bcode(len(cmdStack.Children)<<16|core.INITOBJ), core.TYPESET)
 			case reflect.TypeOf(core.Struct{}):
 				for _, item := range cmdStack.Children {
 					cmd2Code(linker, item.(*core.CmdBinary).Right, out)
@@ -449,43 +459,43 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 												} else {
 													rt.Stack[lenStack] = parr
 												}*/
-				/*					case reflect.TypeOf(Set{}):
-										pset := NewSet()
-										for _, icmd := range cmdStack.Children {
-											if err = rt.runCmd(icmd); err != nil {
-												return err
-											}
-											switch v := rt.Stack[len(rt.Stack)-1].(type) {
-											case int64:
-												pset.Set(v, true)
-											default:
-												return runtimeError(rt, icmd, ErrRuntime, `init set`)
-											}
+				/*	case reflect.TypeOf(Set{}):
+					pset := NewSet()
+					for _, icmd := range cmdStack.Children {
+						if err = rt.runCmd(icmd); err != nil {
+							return err
+						}
+						switch v := rt.Stack[len(rt.Stack)-1].(type) {
+						case int64:
+							pset.Set(v, true)
+						default:
+							return runtimeError(rt, icmd, ErrRuntime, `init set`)
+						}
+					}
+					rt.Stack[lenStack] = pset*/
+				/*					case reflect.TypeOf(Buffer{}):
+									pbuf := NewBuffer()
+									for _, icmd := range cmdStack.Children {
+										if err = rt.runCmd(icmd); err != nil {
+											return err
 										}
-										rt.Stack[lenStack] = pset
-									case reflect.TypeOf(Buffer{}):
-										pbuf := NewBuffer()
-										for _, icmd := range cmdStack.Children {
-											if err = rt.runCmd(icmd); err != nil {
-												return err
+										switch v := rt.Stack[len(rt.Stack)-1].(type) {
+										case int64:
+											if uint64(v) > 255 {
+												return runtimeError(rt, icmd, ErrByteOut)
 											}
-											switch v := rt.Stack[len(rt.Stack)-1].(type) {
-											case int64:
-												if uint64(v) > 255 {
-													return runtimeError(rt, icmd, ErrByteOut)
-												}
-												pbuf.Data = append(pbuf.Data, byte(v))
-											case string:
-												pbuf.Data = append(pbuf.Data, []byte(v)...)
-											case rune:
-												pbuf.Data = append(pbuf.Data, []byte(string([]rune{v}))...)
-											case *Buffer:
-												pbuf.Data = append(pbuf.Data, v.Data...)
-											default:
-												return runtimeError(rt, icmd, ErrRuntime, `init buf`)
-											}
+											pbuf.Data = append(pbuf.Data, byte(v))
+										case string:
+											pbuf.Data = append(pbuf.Data, []byte(v)...)
+										case rune:
+											pbuf.Data = append(pbuf.Data, []byte(string([]rune{v}))...)
+										case *Buffer:
+											pbuf.Data = append(pbuf.Data, v.Data...)
+										default:
+											return runtimeError(rt, icmd, ErrRuntime, `init buf`)
 										}
-										rt.Stack[lenStack] = pbuf*/
+									}
+									rt.Stack[lenStack] = pbuf*/
 				/*									case reflect.TypeOf(Map{}):
 														pmap := NewMap()
 														for _, icmd := range cmdStack.Children {
@@ -548,22 +558,32 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 								vars[cmdVar.Index] = rt.Stack[len(rt.Stack)-1]*/
 		case core.StackQuestion:
 			cmd2Code(linker, cmdStack.Children[0], out)
-			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+2))
-			pushSaved(out, &cmds[0])
-			push(core.JMP, core.Bcode(save(cmdStack.Children[2])+2))
-			pushSaved(out, &cmds[1])
-			cmds = cmds[:0]
+			pos := len(out.Code)
+			push(core.JZE, 0)
+			cmd2Code(linker, cmdStack.Children[1], out)
+			out.Code[pos+1] = core.Bcode(len(out.Code) - pos + 2)
+			pos = len(out.Code)
+			push(core.JMP, 0)
+			cmd2Code(linker, cmdStack.Children[2], out)
+			out.Code[pos+1] = core.Bcode(len(out.Code) - pos)
+			/*			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+2))
+						pushSaved(out, &cmds[0])
+						push(core.JMP, core.Bcode(save(cmdStack.Children[2])+2))
+						pushSaved(out, &cmds[1])
+						cmds = cmds[:0]*/
 		case core.StackAnd, core.StackOr:
 			cmd2Code(linker, cmdStack.Children[0], out)
-			size := save(cmdStack.Children[1])
+			//			size := save(cmdStack.Children[1])
 			logic := core.Bcode(core.JZE)
 			if cmd.(*core.CmdBlock).ID == core.StackOr {
 				logic = core.JNZ
 			}
-			push(core.DUP, logic, core.Bcode(size))
-			pushSaved(out, &cmds[0])
-			//			out.Code = append(out.Code, cmds[0].Code...)
-			cmds = cmds[:0]
+			pos := len(out.Code)
+			push(core.DUP, logic, 0) //core.Bcode(size))
+			cmd2Code(linker, cmdStack.Children[1], out)
+			out.Code[pos+2] = core.Bcode(len(out.Code) - pos - 3 + 2)
+			//			pushSaved(out, &cmds[0])
+			//			cmds = cmds[:0]
 		case core.StackAssign, core.StackIncDec:
 			rightType := core.Bcode(core.TYPEINT)
 			if cmdStack.ID == core.StackAssign {
@@ -613,50 +633,64 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			}
 			lenStack++*/
 		case core.StackIf:
-			var (
-				k, size int
-				isElse  bool
-			)
+			var k int
 			lenIf := len(cmdStack.Children) >> 1
-			for k = 0; k < lenIf; k++ {
-				size += save(cmdStack.Children[k<<1]) + 2
-				size += save(cmdStack.Children[(k<<1)+1]) + 2
-			}
+			/*			for k = 0; k < lenIf; k++ {
+						size += save(cmdStack.Children[k<<1]) + 2
+						size += save(cmdStack.Children[(k<<1)+1]) + 2
+					}*/
 			// Calling else
-			if /*k == lenIf &&*/ len(cmdStack.Children)&1 == 1 {
-				size += save(cmdStack.Children[len(cmdStack.Children)-1]) + 2
-				isElse = true
+			/*			if len(cmdStack.Children)&1 == 1 {
+						//				size += save(cmdStack.Children[len(cmdStack.Children)-1]) + 2
+						isElse = true
+					}*/
+			//			for k, code := range cmds {
+			//				size -= len(code.Code) + 2
+			jumps := make([]int, lenIf)
+			for k = 0; k < lenIf; k++ {
+				cmd2Code(linker, cmdStack.Children[k<<1], out)
+				pos := len(out.Code)
+				push(core.JZE, 0)
+				cmd2Code(linker, cmdStack.Children[(k<<1)+1], out)
+				jumps[k] = len(out.Code)
+				push(core.JMP, core.Bcode(jumps[k]))
+				out.Code[pos+1] = core.Bcode(len(out.Code) - pos)
 			}
-			for k, code := range cmds {
-				size -= len(code.Code) + 2
-				pushSaved(out, &code)
-				//				out.Code = append(out.Code, code.Code...)
-				if k&1 == 0 && k < len(cmds)-1 {
-					more := 2
-					if !isElse && k == len(cmds)-2 {
-						more = 0
-					}
-					push(core.JZE, core.Bcode(len(cmds[k+1].Code)+more))
-				} else if size > 0 {
-					push(core.JMP, core.Bcode(size))
-				}
+			if len(cmdStack.Children)&1 == 1 {
+				cmd2Code(linker, cmdStack.Children[len(cmdStack.Children)-1], out)
 			}
-			cmds = cmds[:0]
+			for _, off := range jumps {
+				out.Code[off+1] = core.Bcode(len(out.Code) - off)
+			}
+			//pushSaved(out, &code)
+			/*				if k&1 == 0 && k < len(cmds)-1 {
+								more := 2
+								if !isElse && k == len(cmds)-2 {
+									more = 0
+								}
+								push(core.JZE, core.Bcode(len(cmds[k+1].Code)+more))
+							} else if size > 0 {
+								push(core.JMP, core.Bcode(size))
+							}
+						}*/
+			//			cmds = cmds[:0]
 		case core.StackWhile:
 			//			push(core.Bcode((core.BlBreak|core.BlContinue)<<16|core.BLOCK), 0, 0)
 			pos := len(out.Code)
 			push(core.CYCLE)
 			getPos(linker, cmdStack, out)
 			cmd2Code(linker, cmdStack.Children[0], out)
-			out.BlockFlags = core.BlContinue | core.BlBreak
-			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+2))
+			push(core.JZE, 0) // core.Bcode(save(cmdStack.Children[1])+2))
 			blockStart := len(out.Code)
-			pushSaved(out, &cmds[0])
+			out.BlockFlags = core.BlContinue | core.BlBreak
+			cmd2Code(linker, cmdStack.Children[1], out)
+			out.Code[blockStart-1] = core.Bcode(len(out.Code) - blockStart + 4)
+			//pushSaved(out, &cmds[0])
 			//			out.Code = append(out.Code, cmds[0].Code...)
 			push(core.JMP, core.Bcode(pos-len(out.Code)))
 			out.Code[blockStart+1] = core.Bcode(len(out.Code) - blockStart) // set break of BLOCK
 			out.Code[blockStart+2] = core.Bcode(pos - blockStart)           // set continue of BLOCK
-			cmds = cmds[:0]
+			//cmds = cmds[:0]
 			//			out.Code[pos-1] = core.Bcode(len(out.Code) - pos) // set size of BLOCK
 			//			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
 			/*					cycle := rt.Cycle
@@ -703,21 +737,24 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			getPos(linker, cmdStack, out)
 			push(core.GETVAR, core.Bcode(int(core.TYPEINT)<<16|bInfo.Vars[1]),
 				(srcType<<16)|core.DUP, (srcType<<16)|core.LEN, core.LT)
-			out.BlockFlags = core.BlContinue | core.BlBreak
-			push(core.JZE, core.Bcode(save(cmdStack.Children[1])+12))
+			posJmp := len(out.Code)
+			push(core.JZE, 0)                                                  //core.Bcode(save(cmdStack.Children[1])+12))
 			push(core.GETVAR, core.Bcode(int(core.TYPEINT)<<16|bInfo.Vars[1])) // set index
 			push(core.GETVAR, core.Bcode(int(srcType)<<16|indcur),             // get cur value
 				core.Bcode(1<<16|core.INDEX), core.Bcode(int(srcType)<<16)|curType)
 			push(core.SETVAR, core.Bcode(int(curType)<<16|bInfo.Vars[0]),
 				core.Bcode(int(curType)<<16|core.ASSIGNPTR), core.Bcode(int(curType)<<16|core.POP))
 			blockStart := len(out.Code)
-			pushSaved(out, &cmds[0])
+			out.BlockFlags = core.BlContinue | core.BlBreak
+			cmd2Code(linker, cmdStack.Children[1], out)
+			//			pushSaved(out, &cmds[0])
 			//			out.Code = append(out.Code, cmds[0].Code...)
 			out.Code[blockStart+2] = core.Bcode(len(out.Code) - blockStart) // set continue of BLOCK
 			push(core.Bcode(bInfo.Vars[1]<<16) | core.FORINC)
 			push(core.JMP, core.Bcode(pos-len(out.Code)))
-			cmds = cmds[:0]
+			//			cmds = cmds[:0]
 			out.Code[blockStart+1] = core.Bcode(len(out.Code) - blockStart) // set break of BLOCK
+			out.Code[posJmp+1] = core.Bcode(len(out.Code) - posJmp)
 			push(core.DELVARS)
 			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
 
@@ -804,38 +841,31 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 						rt.Result = true
 					}*/
 		case core.StackOptional:
+			pos := len(out.Code)
 			// assigns value if the variable has not yet been assigned as optional
-			push(core.Bcode(cmdStack.ParCount<<16)|core.JMPOPT, core.Bcode(save(
-				cmdStack.Children[0])+2))
-			pushSaved(out, &cmds[0])
-			//			out.Code = append(out.Code, cmds[0].Code...)
-			cmds = cmds[:0]
-			/*				block := rt.Blocks[len(rt.Blocks)-1]
-							var defined bool
-							for _, v := range block.Optional {
-								if cmdStack.ParCount == v {
-									defined = true
-									break
-								}
-							}
-							if !defined {
-								if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-									return err
-								}
-							}*/
+			push(core.Bcode(cmdStack.ParCount<<16)|core.JMPOPT, 0)
+			cmd2Code(linker, cmdStack.Children[0], out)
+			out.Code[pos+1] = core.Bcode(len(out.Code) - pos)
+			//core.Bcode(save(cmdStack.Children[0])+2))
+			//			pushSaved(out, &cmds[0])
+			//			cmds = cmds[:0]
+
 		case core.StackLocal:
 			linker.Blocks = append(linker.Blocks, BlockInfo{
 				Block: cmdStack.Children[0].(*core.CmdBlock),
 			})
-			push(core.JMP, core.Bcode(save(cmdStack.Children[0]))+3)
+			pos := len(out.Code)
+			push(core.JMP, 0) //core.Bcode(save(cmdStack.Children[0]))+3)
 			out.Locals = append(out.Locals, core.Local{
 				Cmd:    cmdStack.Children[0].(*core.CmdBlock),
 				Offset: len(out.Code),
 			})
-			pushSaved(out, &cmds[0])
+			cmd2Code(linker, cmdStack.Children[0], out)
+			//			pushSaved(out, &cmds[0])
 			push(core.END)
+			out.Code[pos+1] = core.Bcode(len(out.Code) - pos)
 			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
-			cmds = cmds[:0]
+			//			cmds = cmds[:0]
 		case core.StackCallLocal:
 			offset := -1
 			for _, local := range out.Locals {
@@ -852,21 +882,6 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			}
 			push(core.Bcode((len(cmdStack.Children)-1)<<16)|core.LOCAL,
 				core.Bcode(offset-len(out.Code)-1))
-			/*						for i := 1; i < len(cmdStack.Children); i++ {
-										if err = rt.runCmd(cmdStack.Children[i]); err != nil {
-											return err
-										}
-									}
-									if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-										return err
-									}
-									if rt.Command == RcLocal {
-										rt.Stack = rt.Stack[:lenStack]
-										rt.Stack = append(rt.Stack, rt.Result)
-										lenStack++
-										rt.Result = nil
-										rt.Command = 0
-									}*/
 		case core.StackLocret:
 			cmd2Code(linker, cmdStack.Children[0], out)
 			retType := type2Code(cmdStack.Children[0].GetResult(), out)
@@ -874,15 +889,6 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			if retType >= core.TYPESTRUCT {
 				structOffset(out, -len(out.Code)+1)
 			}
-		/*						if cmdStack.Children != nil {
-									if err = rt.runCmd(cmdStack.Children[0]); err != nil {
-										return err
-									}
-									rt.Result = rt.Stack[len(rt.Stack)-1]
-								} else { // return from the function without result value
-									rt.Result = true
-								}
-								rt.Command = RcLocal*/
 		case core.StackTry:
 			out.BlockFlags = core.BlTry
 			blockTry := len(out.Code)

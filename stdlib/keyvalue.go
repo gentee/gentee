@@ -12,7 +12,7 @@ import (
 func InitKeyValue(ws *core.Workspace) {
 	for _, item := range []interface{}{
 		//		core.Link{NewKeyValue, core.KEYVALUE}, // binary :
-		NewKeyValue, // binary :
+		core.Link{NewKeyValue, core.NOP}, // binary :
 	} {
 		ws.StdLib().NewEmbed(item)
 	}

@@ -674,14 +674,14 @@ main:
 		case core.JZE:
 			top.Int--
 			if rt.SInt[top.Int] == 0 {
-				i += int64(int16(code[i+1])) + 2
+				i += int64(int16(code[i+1])) // + 2
 				continue
 			}
 			i++
 		case core.JNZ:
 			top.Int--
 			if rt.SInt[top.Int] != 0 {
-				i += int64(int16(code[i+1])) + 2
+				i += int64(int16(code[i+1])) //+ 2
 				continue
 			}
 			i++
@@ -967,6 +967,13 @@ main:
 					pbuf.Data = append(pbuf.Data, tmp[j]...)
 				}
 				rt.SAny[top.Any] = pbuf
+			case core.TYPESET:
+				pset := core.NewSet()
+				for j := 0; j < count; j++ {
+					top.Int--
+					pset.Set(rt.SInt[top.Int], true)
+				}
+				rt.SAny[top.Any] = pset
 			default:
 				if typeVar >= core.TYPESTRUCT {
 					pstruct := NewStruct(rt,
@@ -978,6 +985,12 @@ main:
 						switch pstruct.Type.Fields[ind] & 0xf {
 						case core.STACKINT:
 							top.Int--
+							/*						switch pstruct.Type.Fields[ind] {
+													case core.TYPEBOOL:
+														value = rt.SInt[top.Int] == 1
+													case core.TYPECHAR:
+														value = rune(rt.SInt[top.Int])
+													default:*/
 							value = rt.SInt[top.Int]
 						case core.STACKFLOAT:
 							top.Float--

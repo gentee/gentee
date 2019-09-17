@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package stdlibvm
 
 import (
 	"io"
@@ -12,17 +12,6 @@ import (
 
 	"github.com/gentee/gentee/core"
 )
-
-// InitNetwork appends stdlib network functions to the virtual machine
-func InitNetwork(ws *core.Workspace) {
-	for _, item := range []interface{}{
-		core.Link{Download, 119<<16 | core.EMBED}, // Download(str, str) int
-		core.Link{HTTPGet, 120<<16 | core.EMBED},  // HTTPGet(str) buf
-		core.Link{HTTPPage, 121<<16 | core.EMBED}, // HTTPPage(str) str
-	} {
-		ws.StdLib().NewEmbed(item)
-	}
-}
 
 // Download downloads and saves the file by url.
 func Download(url, filename string) (int64, error) {

@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/gentee/gentee/vm"
 )
 
 // Source contains source code and result value
@@ -81,14 +83,15 @@ func TestGentee(t *testing.T) {
 			testErr := func(err error) error {
 				return fmt.Errorf(`[%d] of %s  %v`, src[i].Line, filename, err)
 			}
-			unitID, err := workspace.Compile(src[i].Src, ``)
+			exec, _, err := workspace.Compile(src[i].Src, ``)
 			if err != nil && err.Error() != src[i].Want {
 				return testErr(err)
 			}
 			if err != nil {
 				continue
 			}
-			result, err := workspace.Run(unitID)
+			result, err := vm.Run(exec, vm.Settings{})
+			//			result, err := workspace.Run(unitID)
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {
 					return testErr(err)
@@ -99,7 +102,7 @@ func TestGentee(t *testing.T) {
 		}
 		return nil
 	}
-	for _, name := range []string{`run_test`, `err_test`} {
+	for _, name := range []string{`run_test`, `err_test`, `dif_test`} {
 		if err := testFile(name); err != nil {
 			t.Error(err)
 			return
@@ -129,12 +132,13 @@ func TestGentee(t *testing.T) {
 		}
 	}
 	scriptName := filepath.Join(`tests`, filepath.Join(`scripts`, `const.g`))
-	unitID, err := workspace.CompileFile(scriptName)
+	exec, unitID, err := workspace.CompileFile(scriptName)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := workspace.Run(unitID)
+	result, err := vm.Run(exec, vm.Settings{})
+	//result, err := workspace.Run(unitID)
 	if err != nil {
 		t.Error(err)
 		return

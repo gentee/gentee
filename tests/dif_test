@@ -5,12 +5,12 @@ run arr.bool {
   bib += !false
   return bib
 }
-===== [true false true]
+===== [1 0 1]
 run arr.bool {
   arr.bool mb = : true, false, true
   return mb
 }
-===== [true false true]
+===== [1 0 1]
 run str {
   int i
   str s = `ok`
@@ -32,5 +32,24 @@ run {
      error(100, Format("#%d %s %v", ErrID(err), ErrText(err), ErrTrace(err)))
   }
 } 
-===== [4:6] #3 divided by zero [trace[Path: Entry: Func:Div Line:2 Pos:11]]
-
+===== [4:6] #3 divided by zero [trace[Path: Entry:run Func:Div Line:2 Pos:11]]
+func first(int i) str {
+    return str(i) + Format(`%v`, Trace())
+}
+func Runtime(int i) str {
+    return first(i+2)
+}
+run str {
+    return Runtime(10)
+}
+===== 12[trace[Path: Entry:run Func:Runtime Line:8 Pos:12] trace[Path: Entry:Runtime Func:first Line:5 Pos:12]]
+run arr.time {
+  arr.time at = {Now(), Now()}
+  time t 
+  t &= at[1]
+  t = DateTime(2019, 2, 14, 9, 10, 11)
+  at[0] &= at[1]
+  t.Second = 12
+  return at
+}
+===== [time[Year:2019 Month:2 Day:14 Hour:9 Minute:10 Second:12 UTC:0] time[Year:2019 Month:2 Day:14 Hour:9 Minute:10 Second:12 UTC:0]]

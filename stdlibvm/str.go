@@ -55,6 +55,23 @@ func AssignAddºStrStr(ptr *string, value interface{}) (string, error) {
 	return *ptr, nil
 }
 
+// boolºStr converts string value to bool
+func boolºStr(val string) int64 {
+	if len(val) != 0 && val != `0` && strings.ToLower(val) != `false` {
+		return 1
+	}
+	return 0
+}
+
+// FindºStrStr returns the index of the first instance of substr
+func FindºStrStr(s, substr string) (off int64) {
+	off = int64(strings.Index(s, substr))
+	if off > 0 {
+		off = int64(len([]rune(s[:off])))
+	}
+	return
+}
+
 // FormatºStr formats according to a format specifier and returns the resulting string
 func FormatºStr(pattern string, pars ...interface{}) string {
 	return fmt.Sprintf(pattern, pars...)
@@ -84,6 +101,63 @@ func LinesºStr(in string) *core.Array {
 		out.Data = append(out.Data, strings.Trim(item, "\r"))
 	}
 	return out
+}
+
+// LeftºStrInt cuts the string.
+func LeftºStrInt(s string, count int64) string {
+	r := []rune(s)
+	if int(count) > len(r) {
+		count = int64(len(r))
+	}
+	return string(r[:count])
+}
+
+// LowerºStr converts a copy of the string to their lower case and returns it.
+func LowerºStr(s string) string {
+	return strings.ToLower(s)
+}
+
+// RepeatºStrInt returns a new string consisting of count copies of the specified string.
+func RepeatºStrInt(input string, count int64) string {
+	return strings.Repeat(input, int(count))
+}
+
+// ReplaceºStrStrStr replaces strings in a string
+func ReplaceºStrStrStr(in, old, new string) string {
+	return strings.Replace(in, old, new, -1)
+}
+
+func replaceArr(in string, old, new []string) string {
+	input := []rune(in)
+	out := make([]rune, 0, len(input))
+	lin := len(input)
+	for i := 0; i < lin; i++ {
+		eq := -1
+		maxLen := lin - i
+		for k, item := range old {
+			litem := len([]rune(item))
+			if maxLen >= litem && string(input[i:i+litem]) == item {
+				eq = k
+				break
+			}
+		}
+		if eq >= 0 {
+			out = append(out, []rune(new[eq])...)
+			i += len([]rune(old[eq])) - 1
+		} else {
+			out = append(out, input[i])
+		}
+	}
+	return string(out)
+}
+
+// ShiftºStr trims white spaces characters in the each line of the string.
+func ShiftºStr(par string) string {
+	lines := strings.Split(par, "\n")
+	for i, v := range lines {
+		lines[i] = strings.TrimSpace(v)
+	}
+	return strings.Join(lines, "\n")
 }
 
 // SplitºStrStr splits a string to a array of strings
@@ -141,4 +215,14 @@ func ReplaceArr(in string, old, new []string) string {
 		}
 	}
 	return string(out)
+}
+
+// TrimRightºStr trims white space in a string
+func TrimRightºStr(in string, set string) string {
+	return strings.TrimRight(in, set)
+}
+
+// UpperºStr converts a copy of the string to their upper case and returns it.
+func UpperºStr(s string) string {
+	return strings.ToUpper(s)
 }

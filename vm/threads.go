@@ -209,6 +209,24 @@ func changeStatus(rt *Runtime, threadID int64, todo threadFunc) error {
 	return nil
 }
 
+// resumeºThread resumes the thread
+func resumeºThread(rt *Runtime, threadID int64) error {
+	return changeStatus(rt, threadID, func(vm *VM) {
+		if vm.Runtimes[threadID].Thread.Status == ThPaused {
+			vm.Runtimes[threadID].Thread.Chan <- ThCmdResume
+		}
+	})
+}
+
+// suspendºThread suspends the thread
+func suspendºThread(rt *Runtime, threadID int64) error {
+	return changeStatus(rt, threadID, func(vm *VM) {
+		if vm.Runtimes[threadID].Thread.Status < core.ThFinished {
+			vm.Runtimes[threadID].Thread.Status = core.ThPaused
+		}
+	})
+}
+
 // terminateºThread closes the thread
 func terminateºThread(rt *Runtime, threadID int64) error {
 	return changeStatus(rt, threadID, func(vm *VM) {

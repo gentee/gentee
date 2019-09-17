@@ -10,18 +10,19 @@ import (
 	"testing"
 
 	ws "github.com/gentee/gentee"
+	"github.com/gentee/gentee/vm"
 )
 
 func TestNetwork(t *testing.T) {
 	workspace := ws.New()
 
 	scriptName := filepath.Join(`scripts`, `network.g`)
-	unitID, err := workspace.CompileFile(scriptName)
+	exec, _, err := workspace.CompileFile(scriptName)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := workspace.Run(unitID)
+	result, err := vm.Run(exec, vm.Settings{})
 	if err != nil {
 		t.Error(err)
 		return

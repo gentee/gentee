@@ -20,7 +20,7 @@ func InitRuntime(ws *core.Workspace) {
 		{core.Link{ErrID, 1012<<16 | core.EMBED}, `error`, `int`},          // ErrID( error ) int
 		{core.Link{ErrText, 1013<<16 | core.EMBED}, `error`, `str`},        // ErrText( error ) str
 		{core.Link{ErrTrace, 1014<<16 | core.EMBED}, `error`, `arr.trace`}, // ErrTrace( error ) arr.trace
-		{Trace, ``, `arr.trace`}, // Trace() arr.trace
+		{core.Link{Trace, 1034<<16 | core.EMBED}, ``, `arr.trace`},         // Trace() arr.trace
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
