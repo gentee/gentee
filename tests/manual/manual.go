@@ -15,12 +15,12 @@ import (
 func main() {
 	workspace := gentee.New()
 
-	unitID, err := workspace.CompileFile(`tests/manual/readinput.g`)
+	exec, _, err := workspace.CompileFile(`tests/manual/readinput.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return
 	}
-	result, err := workspace.Run(unitID)
+	result, err := workspace.Run(exec)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return
