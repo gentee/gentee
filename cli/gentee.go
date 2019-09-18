@@ -12,8 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	workspace "github.com/gentee/gentee"
-	"github.com/gentee/gentee/core"
+	gentee "github.com/gentee/gentee"
 	"github.com/gentee/gentee/vm"
 )
 
@@ -36,7 +35,7 @@ func main() {
 	flag.BoolVar(&ver, "ver", false, "compare with #result")
 	flag.Parse()
 
-	workspace := workspace.New()
+	workspace := gentee.New()
 	if ver {
 		fmt.Println(workspace.Version())
 		return
@@ -70,15 +69,15 @@ func main() {
 	}
 	script := files[0]
 	var (
-		result interface{}
-		unitID int
-		exec   *core.Exec
+		result   interface{}
+		unitID   int
+		exec     *gentee.Exec
+		settings gentee.Settings
 	)
 	exec, unitID, err = workspace.CompileFile(script)
 	isError(errCompile)
-	result, err = vm.Run(exec, vm.Settings{CmdLine: files[1:]})
-	//	workspace.CmdLine(files[1:]...)
-	//	result, err = workspace.Run(unitID)
+	settings.CmdLine = files[1:]
+	result, err = exec.Run(settings)
 	isError(errRun)
 	resultStr := fmt.Sprint(result)
 	if testMode {

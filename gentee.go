@@ -11,10 +11,24 @@ import (
 	"github.com/gentee/gentee/vm"
 )
 
+// Exec is a structure with a bytecode that is ready to run
+type Exec struct {
+	*core.Exec
+}
+
+// Unit is a structure describing source code unit
+type Unit struct {
+	*core.Unit
+}
+
+// Settings is a structure with parameters for running bytecode
+type Settings struct {
+	vm.Settings
+}
+
 // Gentee is a common structure for compiling and executing Gentee source code
 type Gentee struct {
 	*core.Workspace
-	cmdLine []string
 }
 
 // New creates a new Gentee workspace
@@ -27,48 +41,45 @@ func New() *Gentee {
 }
 
 // Compile compiles the Gentee source code.
-// The function returns id of the compiled unit and error code.
-func (g *Gentee) Compile(input, path string) (*core.Exec, int, error) {
+// The function returns bytecode, id of the compiled unit and error code.
+func (g *Gentee) Compile(input, path string) (*Exec, int, error) {
 	unitID, err := compiler.Compile(g.Workspace, input, path)
 	if err != nil {
 		return nil, 0, err
 	}
 	exec, err := compiler.Link(g.Workspace, unitID)
-	return exec, unitID, err
+	return &Exec{Exec: exec}, unitID, err
+}
+
+// CompileAndRun compiles the specified Gentee source file and run it.
+func (g *Gentee) CompileAndRun(filename string) (interface{}, error) {
+	exec, _, err := g.CompileFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return exec.Run(Settings{})
 }
 
 // CompileFile compiles the specified Gentee source file.
-// The function returns id of the compiled unit and error code.
-func (g *Gentee) CompileFile(filename string) (*core.Exec, int, error) {
+// The function returns bytecode, id of the compiled unit and error code.
+func (g *Gentee) CompileFile(filename string) (*Exec, int, error) {
 	unitID, err := compiler.CompileFile(g.Workspace, filename)
 	if err != nil {
 		return nil, 0, err
 	}
 	exec, err := compiler.Link(g.Workspace, unitID)
-	return exec, unitID, err
+	return &Exec{Exec: exec}, unitID, err
 }
 
 // Unit returns the unit structure by its index.
-func (g *Gentee) Unit(unitID int) *core.Unit {
-	return g.Units[unitID]
-}
-
-// CmdLine sets command-line parameters.
-func (g *Gentee) CmdLine(args ...string) {
-	g.cmdLine = make([]string, 0, len(args))
-	if len(args) > 0 {
-		g.cmdLine = append(g.cmdLine, args...)
-	}
+func (g *Gentee) Unit(unitID int) Unit {
+	return Unit{Unit: g.Units[unitID]}
 }
 
 // Run executes the bytecode.
-func (g *Gentee) Run(exec *core.Exec) (interface{}, error) {
-	return vm.Run(exec, vm.Settings{CmdLine: g.cmdLine})
+func (exec *Exec) Run(settings Settings) (interface{}, error) {
+	return vm.Run(exec.Exec, settings.Settings)
 }
-
-/*func (g *Gentee) Run(unitID int) (interface{}, error) {
-	return g.Workspace.Run(unitID, g.cmdLine)
-}*/
 
 // Version returns the current version of the Gentee compiler.
 func (g *Gentee) Version() string {

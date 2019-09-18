@@ -20,7 +20,7 @@ func main() {
 		fmt.Println(`ERROR:`, err)
 		return
 	}
-	result, err := workspace.Run(exec)
+	result, err := exec.Run(gentee.Settings{})
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return

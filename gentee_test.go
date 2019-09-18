@@ -11,8 +11,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-
-	"github.com/gentee/gentee/vm"
 )
 
 // Source contains source code and result value
@@ -90,7 +88,7 @@ func TestGentee(t *testing.T) {
 			if err != nil {
 				continue
 			}
-			result, err := vm.Run(exec, vm.Settings{})
+			result, err := exec.Run(Settings{})
 			//			result, err := workspace.Run(unitID)
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {
@@ -137,7 +135,7 @@ func TestGentee(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	result, err := vm.Run(exec, vm.Settings{})
+	result, err := exec.Run(Settings{})
 	//result, err := workspace.Run(unitID)
 	if err != nil {
 		t.Error(err)
