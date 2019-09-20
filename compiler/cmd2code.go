@@ -49,23 +49,32 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		out.Code = append(out.Code, pars...)
 	}
 	getIndex := func(cmdVar *core.CmdVar, command core.Bcode) {
-		var shift int
+		var (
+			shift  int
+			locOut bool
+		)
 		block := cmdVar.Block
 		for shift = len(linker.Blocks) - 1; shift >= 0; shift-- {
 			if linker.Blocks[shift].Block == block {
 				break
+			}
+			if linker.Blocks[shift].IsLocal {
+				locOut = true
 			}
 		}
 		for i := len(cmdVar.Indexes) - 1; i >= 0; i-- {
 			cmd2Code(linker, cmdVar.Indexes[i].Cmd, out)
 		}
 		inType := int(type2Code(block.Vars[cmdVar.Index], out))
-		push(core.Bcode((len(linker.Blocks)-1-shift)<<16)|command,
+		blockShift := len(linker.Blocks) - 1 - shift
+		if locOut {
+			blockShift = 0x0f00 + shift
+		}
+		push(core.Bcode(blockShift<<16)|command,
 			core.Bcode(inType<<16|linker.Blocks[shift].Vars[cmdVar.Index]))
 		if inType >= core.TYPESTRUCT {
 			structOffset(out, -len(out.Code)+1)
 		}
-		//		getPos(linker, cmdVar, out)
 		if len(cmdVar.Indexes) > 0 {
 			push(core.Bcode(len(cmdVar.Indexes)<<16) | core.INDEX)
 			for _, ival := range cmdVar.Indexes {
@@ -852,7 +861,8 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 
 		case core.StackLocal:
 			linker.Blocks = append(linker.Blocks, BlockInfo{
-				Block: cmdStack.Children[0].(*core.CmdBlock),
+				Block:   cmdStack.Children[0].(*core.CmdBlock),
+				IsLocal: true,
 			})
 			pos := len(out.Code)
 			push(core.JMP, 0) //core.Bcode(save(cmdStack.Children[0]))+3)

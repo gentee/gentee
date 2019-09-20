@@ -243,7 +243,19 @@ main:
 			} else {
 				count = 0
 			}
-			blockOff := rt.Calls[int32(len(rt.Calls)-1-(int(code[i])>>16))]
+			base := int(code[i]) >> 16
+			if base >= 0x0f00 {
+				next := base - 0x0f00
+				for base = len(rt.Calls) - 1; base > 0; base-- {
+					if rt.Calls[base].IsFunc {
+						break
+					}
+				}
+				base += next
+			} else {
+				base = len(rt.Calls) - 1 - base
+			}
+			blockOff := rt.Calls[int32(base)]
 			i++
 			typeVar := int(code[i]) >> 16
 			root := int64(int(code[i]) & 0xffff)
@@ -363,18 +375,30 @@ main:
 				fmt.Printf("GET TYPE %T\n", ptr)
 			}
 		case core.SETVAR:
-			var ptr interface{}
-			var err error
+			var (
+				ptr interface{}
+				err error
+			)
 
 			if code[i+2]&0xffff == core.INDEX {
 				count = int(code[i+2] >> 16)
 			} else {
 				count = 0
 			}
-
-			blockOff := rt.Calls[int32(len(rt.Calls)-1-(int(code[i])>>16))]
+			base := int(code[i]) >> 16
+			if base >= 0x0f00 {
+				next := base - 0x0f00
+				for base = len(rt.Calls) - 1; base > 0; base-- {
+					if rt.Calls[base].IsFunc {
+						break
+					}
+				}
+				base += next
+			} else {
+				base = len(rt.Calls) - 1 - base
+			}
+			blockOff := rt.Calls[int32(base)]
 			i++
-			//lastObj := 0
 			typeVar := int(code[i]) >> 16
 			typeRet := typeVar
 			obj := &iInfo.Objects[0]
@@ -397,16 +421,13 @@ main:
 				fmt.Println(`root index`, typeVar)
 			}
 			obj.Index = root
-			//fmt.Println(`ROOT`, iInfo.Objects[:iInfo.Count+1], ptr, rt.SAny[:top.Any])
 			if count > 0 {
 				i++
 				for ind := 0; ind < count; ind++ {
 					i++
 					typeVar = int(code[i]) >> 16
 					typeRet = int(code[i]) & 0x7fff
-					//					iInfo.Count++
 					obj = &iInfo.Objects[ind+1]
-					//				fmt.Printf("IND %d %x %x\n", ind, typeVar, typeRet)
 					if int(code[i])&0x8000 != 0 {
 						top.Str--
 						obj.Index = rt.SStr[top.Str]
@@ -416,14 +437,12 @@ main:
 					}
 					obj.Obj = ptr
 					obj.Type = typeRet
-					//		fmt.Println(`OBJ`, iInfo.Objects[:iInfo.Count+1])
 					switch typeVar & 0xf {
 					case core.STACKSTR:
 						runes := []rune(*ptr.(*string))
 						if int(obj.Index.(int64)) < 0 || len(runes) <= int(obj.Index.(int64)) {
 							errHandle(i, ErrIndexOut)
 							continue main
-							//							return nil, runtimeError(rt, i, ErrIndexOut)
 						}
 						tmpInt = int64(runes[obj.Index.(int64)])
 						ptr = &tmpInt

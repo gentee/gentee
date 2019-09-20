@@ -13,8 +13,9 @@ import (
 )
 
 type BlockInfo struct {
-	Block *core.CmdBlock
-	Vars  []int
+	Block   *core.CmdBlock
+	Vars    []int
+	IsLocal bool
 }
 
 type Linker struct {

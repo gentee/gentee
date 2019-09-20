@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	STACKSIZE = 128
+	STACKSIZE = 256
 	// CYCLE is the limit of loops
 	CYCLE = uint64(16000000)
 	// DEPTH is the maximum size of blocks stack

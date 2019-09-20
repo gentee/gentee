@@ -88,7 +88,9 @@ func TestGentee(t *testing.T) {
 			if err != nil {
 				continue
 			}
-			result, err := exec.Run(Settings{})
+			var settings Settings
+			//			settings.Cycle = 5
+			result, err := exec.Run(settings)
 			//			result, err := workspace.Run(unitID)
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {

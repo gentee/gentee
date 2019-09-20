@@ -30,10 +30,10 @@ run {
     ||`50th Fibonacci number = %{sum} (not recursive)
       50th Fibonacci number = %{fibonacci( 1, 1, 50)} (recursive)
     `
-
+    
     int fact = 1
     for i in 1..15 : fact *= i
-    |"15! = \{fact} (not recursive)
-      15! = %{factorial(15)} (recursive)
+    ||"15! = \{fact} (not recursive)
+      15! = \{factorial(15)} (recursive)
      "
 }

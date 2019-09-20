@@ -6,6 +6,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/gentee/gentee"
 )
@@ -15,15 +17,28 @@ import (
 func main() {
 	workspace := gentee.New()
 
-	exec, _, err := workspace.CompileFile(`tests/manual/readinput.g`)
-	if err != nil {
-		fmt.Println(`ERROR:`, err)
-		return
-	}
-	result, err := exec.Run(gentee.Settings{})
+	result, err := workspace.CompileAndRun(`tests/manual/readinput.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return
 	}
 	fmt.Println(`Result:`, result)
+	err = filepath.Walk(`examples`, func(script string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+		if filepath.Ext(script) == ".g" {
+
+			fmt.Println(`FILE`, script)
+			_, err := workspace.CompileAndRun(script)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		fmt.Println(`ERROR:`, err)
+		return
+	}
 }
