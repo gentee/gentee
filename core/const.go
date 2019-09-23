@@ -22,7 +22,7 @@ const (
 	NotIota = -1
 
 	// Version is the current version of the compiler
-	Version = `1.5.0+1`
+	Version = `1.6.0+1`
 )
 
 // NewConst adds a new ConstObject to Unit
