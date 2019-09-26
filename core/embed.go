@@ -182,3 +182,50 @@ func (unit *Unit) NameToType(name string) IObject {
 	}
 	return obj
 }
+
+// ImportEmbed imports Embed funcs to Unit
+func (unit *Unit) ImportEmbed(embed Embed) {
+	var (
+		code     []Bcode
+		retType  *TypeObject
+		parTypes []*TypeObject
+	)
+	if embed.Func == nil {
+		code = []Bcode{Bcode(embed.Code)}
+	}
+	if len(embed.Ret) > 0 {
+		retType = unit.NameToType(embed.Ret).(*TypeObject)
+	}
+	if len(embed.Pars) > 0 {
+		pars := strings.Split(embed.Pars, `,`)
+		parTypes = make([]*TypeObject, len(pars))
+		for i, item := range pars {
+			parTypes[i] = unit.NameToType(strings.TrimSpace(item)).(*TypeObject)
+		}
+	}
+	obj := unit.NewObject(&EmbedObject{
+		Object: Object{
+			Name: embed.Name,
+			Unit: unit,
+			BCode: Bytecode{
+				Code: code,
+			},
+		},
+		Func:     embed.Func,
+		Return:   retType,
+		Params:   parTypes,
+		Variadic: embed.Variadic,
+		Runtime:  embed.Runtime,
+		CanError: embed.CanError,
+	})
+	ind := len(unit.VM.Objects) - 1
+	/*	if defFuncs[originalName] {
+			unit.NameSpace[originalName] = uint32(ind) | NSPub
+			return
+		}
+		if strings.HasSuffix(originalName, `Auto`) {
+			unit.NameSpace[`?`+name] = uint32(ind) | NSPub
+			return
+		}*/
+	unit.AddFunc(ind, obj, true)
+}

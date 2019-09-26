@@ -11,6 +11,8 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+//go:generate go run generate/generate.go
+
 const (
 	STACKSIZE = 256
 	// CYCLE is the limit of loops

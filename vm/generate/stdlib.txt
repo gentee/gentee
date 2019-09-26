@@ -1,0 +1,15 @@
+Add(int,int) int;ADD                    // int + int
+BitAnd(int,int) int;BITAND              // int & int
+BitNot(int) int;BITNOT                  // ^int
+BitOr(int,int) int;BITOR                // int | int
+BitXor(int,int) int;BITXOR              // int ^ int
+Div(int,int) int;DIV;e                  // int / int
+Equal(int,int) bool;EQ                  // int == int
+Greater(int,int) bool;GT                // int > int
+Less(int,int) bool;LT                   // int < int
+LShift(int,int) int;LSHIFT;e            // int << int
+Mod(int,int) int;MOD;e                  // int % int
+Mul(int,int) int;MUL                    // int * int
+RShift(int,int) int;RSHIFT;e            // int >> int
+Sign(int) int;SIGN                      // -int
+Sub(int,int) int;SUB                    // int - int

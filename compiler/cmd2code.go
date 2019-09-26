@@ -31,20 +31,6 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 	var (
 		cmds []core.Bytecode
 	)
-	/*
-		save := func(icmd core.ICmd) int {
-			code := core.Bytecode{
-				Code:       make([]core.Bcode, 0, 16),
-				Strings:    out.Strings,
-				Locals:     out.Locals,
-				BlockFlags: out.BlockFlags,
-			}
-			cmd2Code(linker, icmd, &code)
-			copyUsed(&code, out)
-			cmds = append(cmds, code)
-			out.BlockFlags = 0
-			return len(code.Code)
-		}*/
 	push := func(pars ...core.Bcode) {
 		out.Code = append(out.Code, pars...)
 	}

@@ -51,6 +51,10 @@ type Exec struct {
 
 // Embed contains information about the golang function
 type Embed struct {
+	Name     string      // name of the function
+	Pars     string      // parameters with comma delimiter
+	Ret      string      // result type
+	Code     uint16      // Bytecode (if Func == nil) or function index
 	Func     interface{} // golang function
 	Return   uint16      // the type of the result
 	Params   []uint16    // the types of parameters
@@ -181,4 +185,6 @@ const (
 	ASSIGNLSHIFT // int <<= int
 	ASSIGNRSHIFT // int >>= int
 	INCDEC
+
+	EMBEDFUNC
 )

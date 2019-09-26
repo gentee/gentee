@@ -17,6 +17,7 @@ type Workspace struct {
 	Objects   []IObject
 	Linked    map[string]int // compiled files
 	IotaID    int32
+	Embedded  []Embed
 }
 
 const (
@@ -46,12 +47,13 @@ func init() {
 }
 
 // NewVM returns a new virtual machine
-func NewVM() *Workspace {
+func NewVM(Embedded []Embed) *Workspace {
 	ws := Workspace{
 		UnitNames: make(map[string]int),
 		Units:     make([]*Unit, 0, 32),
 		Objects:   make([]IObject, 0, 500),
 		Linked:    make(map[string]int),
+		Embedded:  Embedded,
 	}
 	return &ws
 }

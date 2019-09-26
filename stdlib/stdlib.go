@@ -16,6 +16,7 @@ func InitStdlib(ws *core.Workspace) {
 	ws.Units = append(ws.Units, stdlib)
 	ws.UnitNames[core.DefName] = len(ws.Units) - 1
 	InitTypes(ws)
+	InitEmbed(ws)
 	InitInt(ws)
 	InitFloat(ws)
 	InitBool(ws)
@@ -65,4 +66,10 @@ func InitStdlib(ws *core.Workspace) {
 	unitID, _ := compiler.Compile(ws, src, ``)
 	ws.Units[0].NameSpace[`?Run`] = ws.Units[unitID].NameSpace[`?Run`]
 	ws.Units[0].NameSpace[`?Start`] = ws.Units[unitID].NameSpace[`?Start`]
+}
+
+func InitEmbed(ws *core.Workspace) {
+	for _, embed := range ws.Embedded {
+		ws.StdLib().ImportEmbed(embed)
+	}
 }

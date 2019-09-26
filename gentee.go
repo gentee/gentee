@@ -34,7 +34,7 @@ type Gentee struct {
 // New creates a new Gentee workspace
 func New() *Gentee {
 	g := Gentee{
-		Workspace: core.NewVM(),
+		Workspace: core.NewVM(vm.EmbedFuncs),
 	}
 	stdlib.InitStdlib(g.Workspace)
 	return &g

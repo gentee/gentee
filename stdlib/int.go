@@ -14,21 +14,6 @@ import (
 // InitInt appends stdlib int functions to the virtual machine
 func InitInt(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		core.Link{AddºIntInt, core.ADD},                  // binary +
-		core.Link{DivºIntInt, core.DIV},                  // binary /
-		core.Link{EqualºIntInt, core.EQ},                 // binary ==
-		core.Link{GreaterºIntInt, core.GT},               // binary >
-		core.Link{LessºIntInt, core.LT},                  // binary <
-		core.Link{ModºIntInt, core.MOD},                  // binary %
-		core.Link{MulºIntInt, core.MUL},                  // binary *
-		core.Link{SignºInt, core.SIGN},                   // unary sign -
-		core.Link{SubºIntInt, core.SUB},                  // binary -
-		core.Link{BitOrºIntInt, core.BITOR},              // bitwise OR
-		core.Link{BitXorºIntInt, core.BITXOR},            // bitwise XOR
-		core.Link{BitAndºIntInt, core.BITAND},            // bitwise AND
-		core.Link{LShiftºIntInt, core.LSHIFT},            // binary <<
-		core.Link{RShiftºIntInt, core.RSHIFT},            // binary >>
-		core.Link{BitNotºInt, core.BITNOT},               // unary bitwise NOT
 		core.Link{floatºInt, 19<<16 | core.EMBED},        // float( int )
 		core.Link{strºInt, 1<<16 | core.EMBED},           // str( int )
 		core.Link{boolºInt, 3<<16 | core.EMBED},          // bool( int )
@@ -145,62 +130,6 @@ func AssignRShiftºIntInt(ptr *interface{}, value int64) (int64, error) {
 	return (*ptr).(int64), nil
 }
 
-// AddºIntInt add two integer value
-func AddºIntInt(left, right int64) int64 {
-	return left + right
-}
-
-// BitAndºIntInt is bitwise AND
-func BitAndºIntInt(left, right int64) int64 {
-	return left & right
-}
-
-// BitNotºInt is bitwise NOT
-func BitNotºInt(val int64) int64 {
-	return ^val
-}
-
-// BitOrºIntInt is bitwise OR
-func BitOrºIntInt(left, right int64) int64 {
-	return left | right
-}
-
-// BitXorºIntInt is bitwise XOR
-func BitXorºIntInt(left, right int64) int64 {
-	return left ^ right
-}
-
-// DivºIntInt divides one number by another
-func DivºIntInt(left, right int64) (int64, error) {
-	if right == 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
-	}
-	return left / right, nil
-}
-
-// EqualºIntInt returns true if left == right
-func EqualºIntInt(left, right int64) bool {
-	return left == right
-}
-
-// GreaterºIntInt returns true if left > right
-func GreaterºIntInt(left, right int64) bool {
-	return left > right
-}
-
-// LessºIntInt returns true if left < right
-func LessºIntInt(left, right int64) bool {
-	return left < right
-}
-
-// LShiftºIntInt returns left << right
-func LShiftºIntInt(left, right int64) (int64, error) {
-	if right < 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
-	}
-	return left << uint64(right), nil
-}
-
 // MaxºIntInt returns the maximum of two integers
 func MaxºIntInt(left, right int64) int64 {
 	if left < right {
@@ -215,37 +144,6 @@ func MinºIntInt(left, right int64) int64 {
 		return right
 	}
 	return left
-}
-
-// ModºIntInt returns the remainder after division of one number by another
-func ModºIntInt(left, right int64) (int64, error) {
-	if right == 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
-	}
-	return left % right, nil
-}
-
-// MulºIntInt multiplies one number by another
-func MulºIntInt(left, right int64) int64 {
-	return left * right
-}
-
-// RShiftºIntInt returns left >> right
-func RShiftºIntInt(left, right int64) (int64, error) {
-	if right < 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
-	}
-	return left >> uint64(right), nil
-}
-
-// SignºInt changes the sign of the integer value
-func SignºInt(val int64) int64 {
-	return -val
-}
-
-// SubºIntInt subtracts one number from another
-func SubºIntInt(left, right int64) int64 {
-	return left - right
 }
 
 // floatºInt converts integer value to float
