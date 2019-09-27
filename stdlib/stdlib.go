@@ -17,10 +17,6 @@ func InitStdlib(ws *core.Workspace) {
 	ws.UnitNames[core.DefName] = len(ws.Units) - 1
 	InitTypes(ws)
 	InitEmbed(ws)
-	InitInt(ws)
-	InitFloat(ws)
-	InitBool(ws)
-	InitChar(ws)
 	InitStr(ws)
 	InitKeyValue(ws)
 	InitRange(ws)

@@ -1,20 +1,13 @@
-// Copyright 2018 Alexey Krivonogov. All rights reserved.
+// Copyright 2019 Alexey Krivonogov. All rights reserved.
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlibvm
+package vm
 
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/gentee/gentee/core"
 )
-
-func AssignºIntInt(ptr *int64, value int64) (int64, error) {
-	*ptr = value
-	return *ptr, nil
-}
 
 // AssignAddºIntInt adds one integer to another
 func AssignAddºIntInt(ptr *int64, value int64) (int64, error) {
@@ -43,7 +36,7 @@ func AssignBitXorºIntInt(ptr *int64, value int64) (int64, error) {
 // AssignDivºIntInt does int /= int
 func AssignDivºIntInt(ptr *int64, value int64) (int64, error) {
 	if value == 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
+		return 0, fmt.Errorf(ErrorText(ErrDivZero))
 	}
 	*ptr /= value
 	return *ptr, nil
@@ -52,9 +45,18 @@ func AssignDivºIntInt(ptr *int64, value int64) (int64, error) {
 // AssignModºIntInt equals int %= int
 func AssignModºIntInt(ptr *int64, value int64) (int64, error) {
 	if value == 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrDivZero))
+		return 0, fmt.Errorf(ErrorText(ErrDivZero))
 	}
 	*ptr %= value
+	return *ptr, nil
+}
+
+// AssignLShiftºIntInt does int <<= int
+func AssignLShiftºIntInt(ptr *int64, value int64) (int64, error) {
+	if value < 0 {
+		return 0, fmt.Errorf(ErrorText(ErrShift))
+	}
+	*ptr <<= uint64(value)
 	return *ptr, nil
 }
 
@@ -64,19 +66,10 @@ func AssignMulºIntInt(ptr *int64, value int64) (int64, error) {
 	return *ptr, nil
 }
 
-// AssignLShiftºIntInt does int <<= int
-func AssignLShiftºIntInt(ptr *int64, value int64) (int64, error) {
-	if value < 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
-	}
-	*ptr <<= uint64(value)
-	return *ptr, nil
-}
-
 // AssignRShiftºIntInt does int >>= int
 func AssignRShiftºIntInt(ptr *int64, value int64) (int64, error) {
 	if value < 0 {
-		return 0, fmt.Errorf(core.ErrorText(core.ErrShift))
+		return 0, fmt.Errorf(ErrorText(ErrShift))
 	}
 	*ptr >>= uint64(value)
 	return *ptr, nil
@@ -86,6 +79,24 @@ func AssignRShiftºIntInt(ptr *int64, value int64) (int64, error) {
 func AssignSubºIntInt(ptr *int64, value int64) (int64, error) {
 	*ptr -= value
 	return *ptr, nil
+}
+
+// boolºInt converts integer value to boolean 0->false, not 0 -> true
+func boolºInt(val int64) int64 {
+	if val != 0 {
+		return 1
+	}
+	return 0
+}
+
+// ExpStrºInt adds string and integer in string expression
+func ExpStrºInt(left string, right int64) string {
+	return left + strºInt(right)
+}
+
+// floatºInt converts integer value to float
+func floatºInt(val int64) float64 {
+	return float64(val)
 }
 
 // IncDecºInt incriment and decriment
@@ -104,29 +115,6 @@ func IncDecºInt(ptr *int64, shift int64) (int64, error) {
 	return val, nil
 }
 
-// boolºInt converts integer value to boolean 0->false, not 0 -> true
-func boolºInt(val int64) int64 {
-	if val != 0 {
-		return 1
-	}
-	return 0
-}
-
-// floatºInt converts integer value to float
-func floatºInt(val int64) float64 {
-	return float64(val)
-}
-
-// StrºInt converts integer value to string
-func StrºInt(val int64) string {
-	return strconv.FormatInt(val, 10)
-}
-
-// ExpStrºInt adds string and integer in string expression
-func ExpStrºInt(left string, right int64) string {
-	return left + StrºInt(right)
-}
-
 // MaxºIntInt returns the maximum of two integers
 func MaxºIntInt(left, right int64) int64 {
 	if left < right {
@@ -141,4 +129,9 @@ func MinºIntInt(left, right int64) int64 {
 		return right
 	}
 	return left
+}
+
+// strºInt converts integer value to string
+func strºInt(val int64) string {
+	return strconv.FormatInt(val, 10)
 }

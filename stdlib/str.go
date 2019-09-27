@@ -5,9 +5,7 @@
 package stdlib
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/gentee/gentee/core"
@@ -16,33 +14,33 @@ import (
 // InitStr appends stdlib string functions to the virtual machine
 func InitStr(ws *core.Workspace) {
 	for _, item := range []interface{}{
-		core.Link{AddºStrStr,
-			core.Bcode(core.TYPESTR<<16) | core.ADDSTR}, // binary +
-		core.Link{EqualºStrStr, core.EQSTR},                         // binary ==
-		core.Link{GreaterºStrStr, core.GTSTR},                       // binary >
-		core.Link{LenºStr, core.Bcode(core.TYPESTR<<16) | core.LEN}, // the length of str
-		core.Link{LessºStrStr, core.LTSTR},                          // binary <
-		core.Link{intºStr, 2<<16 | core.EMBED},                      // int( str )
-		core.Link{floatºStr, 20<<16 | core.EMBED},                   // float( str )
-		core.Link{boolºStr, 112<<16 | core.EMBED},                   // bool( str )
-		core.Link{ExpStrºStr, core.ADDSTR},                          // expression in string
-		core.Link{AssignºStrStr, core.ASSIGN},                       // str = str
-		core.Link{AssignAddºStrStr, core.ASSIGN + 1},                // str += str
-		core.Link{AssignºStrBool, core.ASSIGN + 2},                  // str = bool
-		core.Link{AssignºStrInt, core.ASSIGN + 3},                   // str = int
-		core.Link{FindºStrStr, 113<<16 | core.EMBED},                // Find( str, str ) int
-		core.Link{FormatºStr, 39<<16 | core.EMBED},                  // Format( str, ... ) str
-		core.Link{HasPrefixºStrStr, 86<<16 | core.EMBED},            // HasPrefix( str, str ) bool
-		core.Link{HasSuffixºStrStr, 87<<16 | core.EMBED},            // HasSuffix( str, str ) bool
-		core.Link{LeftºStrInt, 114<<16 | core.EMBED},                // Left( str, int ) str
-		core.Link{LowerºStr, 115<<16 | core.EMBED},                  // Lower( str ) str
-		core.Link{RepeatºStrInt, 116<<16 | core.EMBED},              // Repeat( str, int )
-		core.Link{ReplaceºStrStrStr, 117<<16 | core.EMBED},          // Replace( str, str, str )
-		core.Link{ShiftºStr, 118<<16 | core.EMBED},                  // unary bitwise OR
-		core.Link{SubstrºStrIntInt, 62<<16 | core.EMBED},            // Substr( str, int, int ) str
-		core.Link{TrimSpaceºStr, 35<<16 | core.EMBED},               // TrimSpace( str ) str
-		core.Link{TrimRightºStr, 107<<16 | core.EMBED},              // TrimRight( str, str ) str
-		core.Link{UpperºStr, 108<<16 | core.EMBED},                  // Upper( str ) str
+		//		core.Link{AddºStrStr,
+		//			/*core.Bcode(core.TYPESTR<<16) |*/ core.ADDSTR}, // binary +
+		//core.Link{EqualºStrStr, core.EQSTR},                         // binary ==
+		//core.Link{GreaterºStrStr, core.GTSTR},                       // binary >
+		//core.Link{LenºStr, core.Bcode(core.TYPESTR<<16) | core.LEN}, // the length of str
+		//core.Link{LessºStrStr, core.LTSTR},                          // binary <
+		//core.Link{intºStr, 2<<16 | core.EMBED},    // int( str )
+		//core.Link{floatºStr, 20<<16 | core.EMBED}, // float( str )
+		//core.Link{boolºStr, 112<<16 | core.EMBED}, // bool( str )
+		//core.Link{ExpStrºStr, core.ADDSTR},                          // expression in string
+		//core.Link{AssignºStrStr, core.ASSIGN},              // str = str
+		core.Link{AssignAddºStrStr, core.ASSIGN + 1},       // str += str
+		core.Link{AssignºStrBool, core.ASSIGN + 2},         // str = bool
+		core.Link{AssignºStrInt, core.ASSIGN + 3},          // str = int
+		core.Link{FindºStrStr, 113<<16 | core.EMBED},       // Find( str, str ) int
+		core.Link{FormatºStr, 39<<16 | core.EMBED},         // Format( str, ... ) str
+		core.Link{HasPrefixºStrStr, 86<<16 | core.EMBED},   // HasPrefix( str, str ) bool
+		core.Link{HasSuffixºStrStr, 87<<16 | core.EMBED},   // HasSuffix( str, str ) bool
+		core.Link{LeftºStrInt, 114<<16 | core.EMBED},       // Left( str, int ) str
+		core.Link{LowerºStr, 115<<16 | core.EMBED},         // Lower( str ) str
+		core.Link{RepeatºStrInt, 116<<16 | core.EMBED},     // Repeat( str, int )
+		core.Link{ReplaceºStrStrStr, 117<<16 | core.EMBED}, // Replace( str, str, str )
+		core.Link{ShiftºStr, 118<<16 | core.EMBED},         // unary bitwise OR
+		core.Link{SubstrºStrIntInt, 62<<16 | core.EMBED},   // Substr( str, int, int ) str
+		core.Link{TrimSpaceºStr, 35<<16 | core.EMBED},      // TrimSpace( str ) str
+		core.Link{TrimRightºStr, 107<<16 | core.EMBED},     // TrimRight( str, str ) str
+		core.Link{UpperºStr, 108<<16 | core.EMBED},         // Upper( str ) str
 	} {
 		ws.StdLib().NewEmbed(item)
 	}
@@ -53,12 +51,6 @@ func InitStr(ws *core.Workspace) {
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
-}
-
-// AssignºStrStr assigns one string to another
-func AssignºStrStr(ptr *interface{}, value string) string {
-	*ptr = value
-	return (*ptr).(string)
 }
 
 // AssignAddºStrStr appends one string to another
@@ -77,59 +69,6 @@ func AssignºStrBool(ptr *interface{}, value bool) string {
 func AssignºStrInt(ptr *interface{}, value int64) string {
 	*ptr = fmt.Sprint(value)
 	return (*ptr).(string)
-}
-
-// ExpStrºStr adds two strings in string expression
-func ExpStrºStr(left, right string) string {
-	return left + right
-}
-
-// AddºStrStr adds two integer value
-func AddºStrStr(left, right string) string {
-	return left + right
-}
-
-// EqualºStrStr returns true if left == right
-func EqualºStrStr(left, right string) bool {
-	return left == right
-}
-
-// GreaterºStrStr returns true if left > right
-func GreaterºStrStr(left, right string) bool {
-	return left > right
-}
-
-// LenºStr returns the length of the string
-func LenºStr(param string) int64 {
-	return int64(len([]rune(param)))
-}
-
-// LessºStrStr returns true if left < right
-func LessºStrStr(left, right string) bool {
-	return left < right
-}
-
-// intºStr converts string value to int
-func intºStr(val string) (ret int64, err error) {
-	ret, err = strconv.ParseInt(val, 0, 64)
-	if err != nil {
-		err = errors.New(core.ErrorText(core.ErrStrToInt))
-	}
-	return
-}
-
-// floatºStr converts string value to float
-func floatºStr(val string) (ret float64, err error) {
-	ret, err = strconv.ParseFloat(val, 64)
-	if err != nil {
-		err = errors.New(core.ErrorText(core.ErrStrToFloat))
-	}
-	return
-}
-
-// intºBool converts boolean value to int false -> 0, true -> 1
-func boolºStr(val string) bool {
-	return len(val) != 0 && val != `0` && strings.ToLower(val) != `false`
 }
 
 // FindºStrStr returns the index of the first instance of substr

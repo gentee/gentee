@@ -552,21 +552,37 @@ main:
 					}
 				}
 			} else {
-				switch v := ptr.(type) {
-				case *int64:
-					iValue, err = stdlib.EmbedInt[assign-core.ASSIGN](
-						v, iValue.(int64))
-				case *float64:
-					iValue, err = stdlib.EmbedFloat[assign-core.ASSIGN](
-						v, iValue.(float64))
-				case *string:
-					iValue, err = stdlib.EmbedStr[assign-core.ASSIGN](
-						v, iValue)
-				default:
-					iValue, err = stdlib.EmbedAny[assign-core.ASSIGN](
-						ptr, iValue)
-					//				default:
-					//					fmt.Println(`Embed Assign`, rightType)
+				if assign >= core.EMBEDFUNC {
+					assign -= core.EMBEDFUNC
+					switch v := ptr.(type) {
+					case *int64:
+						iValue, err = EmbedFuncs[assign].Func.(core.AssignIntFunc)(
+							v, iValue.(int64))
+					case *float64:
+						iValue, err = EmbedFuncs[assign].Func.(core.AssignFloatFunc)(
+							v, iValue.(float64))
+					case *string:
+						iValue, err = EmbedFuncs[assign].Func.(core.AssignStrFunc)(
+							v, iValue)
+					default:
+						iValue, err = EmbedFuncs[assign].Func.(core.AssignAnyFunc)(
+							ptr, iValue)
+					}
+				} else if assign == core.INCDEC {
+					iValue, err = IncDecºInt(ptr.(*int64), iValue.(int64))
+				} else {
+					switch v := ptr.(type) {
+					case *int64, *float64:
+						fmt.Println(`Embed Assign`)
+					case *string:
+						iValue, err = stdlib.EmbedStr[assign-core.ASSIGN](
+							v, iValue)
+					default:
+						iValue, err = stdlib.EmbedAny[assign-core.ASSIGN](
+							ptr, iValue)
+						//				default:
+						//					fmt.Println(`Embed Assign`, rightType)
+					}
 				}
 				if err != nil {
 					errHandle(i, err)
@@ -596,20 +612,12 @@ main:
 						if errID := obj.Obj.(core.Indexer).SetIndex(obj.Index, dest); errID != 0 {
 							errHandle(i, errID)
 							continue main
-							//return nil, runtimeError(rt, i, errID)
 						}
 					}
 				} else {
 					obj = &iInfo.Objects[count]
 					if obj.Obj == nil {
-						/*switch obj.Type & 0xf {
-						case core.STACKINT:
-							rt.SInt[obj.Index.(int64)] = iValue.(int64)
-						case core.STACKSTR:
-							rt.SStr[obj.Index.(int64)] = iValue.(string)
-						case core.STACKANY:*/
 						rt.SAny[obj.Index.(int64)] = iValue
-						//						}
 					} else {
 						switch obj.Type & 0xf {
 						case core.STACKINT:
@@ -622,12 +630,10 @@ main:
 						if obj.Obj == iValue {
 							errHandle(i, ErrAssignment)
 							continue main
-							//return nil, runtimeError(rt, i, ErrAssignment)
 						}
 						if errID := obj.Obj.(core.Indexer).SetIndex(obj.Index, iValue); errID != 0 {
 							errHandle(i, errID)
 							continue main
-							//return nil, runtimeError(rt, i, errID)
 						}
 					}
 				}
@@ -1250,16 +1256,20 @@ main:
 			threadID := rt.GoThread(int64(rt.Owner.Exec.Funcs[id]), pars, &top)
 			rt.SInt[top.Int] = threadID
 			top.Int++
-		case core.EMBED:
+		case core.EMBED, core.EMBEDNEW:
 			var (
 				vCount int
 				embed  core.Embed
 			)
 			idEmbed := uint16(code[i] >> 16)
-			if idEmbed < 1000 {
-				embed = stdlib.Embedded[idEmbed]
+			if code[i]&0xffff == core.EMBEDNEW {
+				embed = EmbedFuncs[idEmbed]
 			} else {
-				embed = Embedded[idEmbed-1000]
+				if idEmbed < 1000 {
+					embed = stdlib.Embedded[idEmbed]
+				} else {
+					embed = Embedded[idEmbed-1000]
+				}
 			}
 			count := len(embed.Params)
 			if embed.Variadic {

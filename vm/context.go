@@ -7,6 +7,7 @@ package vm
 import (
 	"fmt"
 	"strings"
+
 	//	"strings"
 	"unicode/utf8"
 	//	"github.com/gentee/gentee/core"
@@ -55,7 +56,7 @@ func CtxSetºStrStr(rt *Runtime, key, value string) (string, error) {
 
 // CtxSetºStrFloat assign a float to a context key
 func CtxSetºStrFloat(rt *Runtime, key string, value float64) (string, error) {
-	return CtxSetºStrStr(rt, key, stdlib.StrºFloat(value))
+	return CtxSetºStrStr(rt, key, strºFloat(value))
 }
 
 // CtxSetºStrBool assign a bool to a context key
@@ -65,7 +66,7 @@ func CtxSetºStrBool(rt *Runtime, key string, value int64) (string, error) {
 
 // CtxSetºStrInt assign an integer to a context key
 func CtxSetºStrInt(rt *Runtime, key string, value int64) (string, error) {
-	return CtxSetºStrStr(rt, key, stdlib.StrºInt(value))
+	return CtxSetºStrStr(rt, key, strºInt(value))
 }
 
 // CtxValueºStr returns a context value

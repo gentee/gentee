@@ -6,6 +6,7 @@ package stdlib
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -30,18 +31,23 @@ var (
 	ErrCtxDeep = `maximum depth reached`
 )
 
+// strºInt converts integer value to string
+func strºInt(val int64) string {
+	return strconv.FormatInt(val, 10)
+}
+
 // InitContext appends stdlib context functions to the virtual machine
 func InitContext(ws *core.Workspace) {
 	for _, item := range []embedInfo{
 		{core.Link{CtxSetºStrStr, 1000<<16 | core.EMBED}, `str,str`, `str`}, // CtxSet( str, str )
-		{core.Link{CtxSetºStrBool, 1001<<16 | core.EMBED}, `str,bool`, `str`}, 
-		     // CtxSet( str, bool )
-		{core.Link{CtxSetºStrFloat, 1002<<16 | core.EMBED}, `str,float`, `str`},                         // CtxSet( str, float )
-		{core.Link{CtxSetºStrInt, 1003<<16 | core.EMBED}, `str,int`, `str`}, // CtxSet( str, int )
-		{core.Link{CtxValueºStr, 1004<<16 | core.EMBED}, `str`, `str`},  // CtxValue( str )
-		{core.Link{CtxIsºStr, 1005<<16 | core.EMBED}, `str`, `bool`}, // CtxIs( str )
-		{core.Link{CtxºStr, 1006<<16 | core.EMBED}, `str`, `str`}, // Ctx( str )
-		{core.Link{CtxGetºStr, 1007<<16 | core.EMBED}, `str`, `str`}, // CtxGet( str )
+		{core.Link{CtxSetºStrBool, 1001<<16 | core.EMBED}, `str,bool`, `str`},
+		// CtxSet( str, bool )
+		{core.Link{CtxSetºStrFloat, 1002<<16 | core.EMBED}, `str,float`, `str`}, // CtxSet( str, float )
+		{core.Link{CtxSetºStrInt, 1003<<16 | core.EMBED}, `str,int`, `str`},     // CtxSet( str, int )
+		{core.Link{CtxValueºStr, 1004<<16 | core.EMBED}, `str`, `str`},          // CtxValue( str )
+		{core.Link{CtxIsºStr, 1005<<16 | core.EMBED}, `str`, `bool`},            // CtxIs( str )
+		{core.Link{CtxºStr, 1006<<16 | core.EMBED}, `str`, `str`},               // Ctx( str )
+		{core.Link{CtxGetºStr, 1007<<16 | core.EMBED}, `str`, `str`},            // CtxGet( str )
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -70,9 +76,22 @@ func CtxSetºStrStr(rt *core.RunTime, key, value string) (string, error) {
 	return value, nil
 }
 
+// strºFloat converts float value to string
+func strºFloat(val float64) string {
+	return strconv.FormatFloat(val, 'f', -1, 64)
+}
+
 // CtxSetºStrFloat assign a float to a context key
 func CtxSetºStrFloat(rt *core.RunTime, key string, value float64) (string, error) {
 	return CtxSetºStrStr(rt, key, strºFloat(value))
+}
+
+// strºBool converts boolean value to string
+func strºBool(val bool) string {
+	if val {
+		return `true`
+	}
+	return `false`
 }
 
 // CtxSetºStrBool assign a bool to a context key

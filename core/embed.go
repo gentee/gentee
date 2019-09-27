@@ -189,9 +189,12 @@ func (unit *Unit) ImportEmbed(embed Embed) {
 		code     []Bcode
 		retType  *TypeObject
 		parTypes []*TypeObject
+		fnc      interface{}
 	)
 	if embed.Func == nil {
 		code = []Bcode{Bcode(embed.Code)}
+	} else {
+		fnc = int32(embed.Code)
 	}
 	if len(embed.Ret) > 0 {
 		retType = unit.NameToType(embed.Ret).(*TypeObject)
@@ -211,7 +214,7 @@ func (unit *Unit) ImportEmbed(embed Embed) {
 				Code: code,
 			},
 		},
-		Func:     embed.Func,
+		Func:     fnc,
 		Return:   retType,
 		Params:   parTypes,
 		Variadic: embed.Variadic,

@@ -87,7 +87,7 @@ var EmbedFuncs = []core.Embed{
 	if input, err = ioutil.ReadFile(`generate/stdlib.txt`); err != nil {
 		log.Fatal(err)
 	}
-	re, err := regexp.Compile(`^(\w+)\(([\w ,]*)\)\s*(\w*);(\w+);?(\w*)?`)
+	re, err := regexp.Compile(`^(\w+)\(([\w ,]*)\)\s*(\w*);([º\w]+);?(\w*)?`)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -104,9 +104,24 @@ var EmbedFuncs = []core.Embed{
 		if strings.ToUpper(vals[4]) != vals[4] {
 			code = fmt.Sprint(i)
 			fnc = vals[4]
+			if strings.HasPrefix(fnc, `Assign`) {
+				assignType := `Any`
+				if strings.HasPrefix(vals[2], `int`) {
+					assignType = `Int`
+				} else if strings.HasPrefix(vals[2], `float`) {
+					assignType = `Float`
+				} else if strings.HasPrefix(vals[2], `str`) {
+					assignType = `Str`
+				}
+				fnc = fmt.Sprintf(`core.Assign%sFunc(%s)`, assignType, fnc)
+			}
 		} else {
-			code = "core." + vals[4]
 			fnc = "nil"
+			if vals[4] == `LEN` {
+				code = fmt.Sprintf(`%s<<16 | core.LEN`, str2type(vals[2]))
+			} else {
+				code = "core." + vals[4]
+			}
 		}
 		embed.Variadic = strings.Contains(vals[5], `v`)
 		embed.Runtime = strings.Contains(vals[5], `r`)

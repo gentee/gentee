@@ -54,7 +54,7 @@ type Embed struct {
 	Name     string      // name of the function
 	Pars     string      // parameters with comma delimiter
 	Ret      string      // result type
-	Code     uint16      // Bytecode (if Func == nil) or function index
+	Code     uint32      // Bytecode (if Func == nil) or function index
 	Func     interface{} // golang function
 	Return   uint16      // the type of the result
 	Params   []uint16    // the types of parameters
@@ -166,7 +166,9 @@ const (
 	CONSTBYID // + int32 id of the object
 	CALLBYID  // & (par count<<16) + int32 id of the object
 	GOBYID    // & (par count<<16) + int32 id of the object new thread + int32 type of pars
-	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
+	EMBEDNEW  // & (embed id << 16) calls embedded func + int32 count for variadic funcs
+	// + [variadic types]
+	EMBED // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
 	LOCAL // & (par count << 16)+ int32 offset
 	IOTA  // & (iota<<16)

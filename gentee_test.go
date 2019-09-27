@@ -92,6 +92,7 @@ func TestGentee(t *testing.T) {
 			//			settings.Cycle = 5
 			result, err := exec.Run(settings)
 			//			result, err := workspace.Run(unitID)
+			// fmt.Println(`i`, src[i].Line, filename)
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {
 					return testErr(err)

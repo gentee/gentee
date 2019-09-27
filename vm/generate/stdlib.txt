@@ -1,15 +1,93 @@
-Add(int,int) int;ADD                    // int + int
+Add(char,char) str;AddºCharChar                 // char + char
+Add(char,str) str;AddºCharStr                   // char + str
+Add(float,float) float;ADDFLOAT                 // float + float
+Add(float,int) float;AddºFloatInt               // float + int
+Add(int,float) float;AddºIntFloat               // int + float
+Add(int,int) int;ADD                            // int + int
+Add(str,char) str;AddºStrChar                   // str + char
+Add(str,str) str;ADDSTR                         // str + str
+Assign(bool,bool) bool;ASSIGN                   // bool = bool
+Assign(char,char) char;ASSIGN                   // char = char
+Assign(float,float) float;ASSIGN                // float = float
+Assign(int,char) int;ASSIGN                     // int = char
+Assign(int,int) int;ASSIGN                      // int = int
+Assign(str,str) str;ASSIGN                      // str = str
+AssignAdd(float,float) float;AssignAddºFloatFloat   // float += float
+AssignAdd(int,int) int;AssignAddºIntInt             // int += int
+AssignAdd(str,char) str;AssignAddºStrChar           // str += char
+AssignBitAnd(int,int) int;AssignBitAndºIntInt       // int &= int
+AssignBitOr(int,int) int;AssignBitOrºIntInt         // int |= int
+AssignBitXor(int,int) int;AssignBitXorºIntInt       // int ^= int
+AssignDiv(float,float) float;AssignDivºFloatFloat;e // float /= float
+AssignDiv(int,int) int;AssignDivºIntInt;e           // int /= int
+AssignMod(int,int) int;AssignModºIntInt;e           // int %= int
+AssignLShift(int,int) int;AssignLShiftºIntInt;e     // int <<= int
+AssignMul(float,float) float;AssignMulºFloatFloat   // float *= float
+AssignMul(int,int) int;AssignMulºIntInt             // int *= int
+AssignRShift(int,int) int;AssignRShiftºIntInt;e     // int >>= int
+AssignSub(float,float) float;AssignSubºFloatFloat   // float -= float
+AssignSub(int,int) int;AssignSubºIntInt             // int -= int
 BitAnd(int,int) int;BITAND              // int & int
 BitNot(int) int;BITNOT                  // ^int
 BitOr(int,int) int;BITOR                // int | int
 BitXor(int,int) int;BITXOR              // int ^ int
+bol(float) bool;boolºFloat
+bool(int) bool;boolºInt
+bool(str) bool;boolºStr
+Ceil(float) int;CeilºFloat
+Div(float,float) float;DIVFLOAT;e       // float / float
+Div(float,int) float;DivºFloatInt;e     // float / int
+Div(int,float) float;DivºIntFloat;e     // int / float
 Div(int,int) int;DIV;e                  // int / int
+Equal(char,char) bool;EQ                // char == char
+Equal(float,float) bool;EQFLOAT         // float == float
+Equal(float,int) bool;EqualºFloatInt    // float == int
 Equal(int,int) bool;EQ                  // int == int
-Greater(int,int) bool;GT                // int > int
+Equal(str,str) bool;EQSTR               // str == str
+ExpStr(str,bool) str;ExpStrºBool
+ExpStr(str,char) str;ExpStrºChar
+ExpStr(str,float) str;ExpStrºFloat
+ExpStr(str,int) str;ExpStrºInt
+ExpStr(str,str) str;ADDSTR
+float(int) float;floatºInt
+float(str) float;floatºStr;e
+Floor(float) int;FloorºFloat
+Greater(char,char) bool;GreaterºCharChar    // char > char
+Greater(float,float) bool;GTFLOAT           // float > float
+Greater(float,int) bool;GreaterºFloatInt    // float > int
+Greater(int,int) bool;GT                    // int > int
+Greater(str,str) bool;GTSTR                 // str > str
+int(bool) int;NOP
+int(char) int;NOP
+int(float) int;intºFloat
+int(str) int;intºStr;e
+Len(str) int;LEN                        // *str
+Less(char,char) bool;LessºCharChar      // char < char
+Less(float,float) bool;LTFLOAT          // float < float
+Less(float,int) bool;LessºFloatInt      // float < int
 Less(int,int) bool;LT                   // int < int
+Less(str,str) bool;LTSTR                // str < str
 LShift(int,int) int;LSHIFT;e            // int << int
+Max(float,float) float;MaxºFloatFloat
+Max(int,int) int;MaxºIntInt
+Min(float,float) float;MinºFloatFloat
+Min(int,int) int;MinºIntInt
 Mod(int,int) int;MOD;e                  // int % int
+Mul(float,float) float;MULFLOAT         // float * float
+Mul(float,int) float;MulºFloatInt
+Mul(int,float) float;MulºIntFloat
 Mul(int,int) int;MUL                    // int * int
+Not(bool) bool;NOT                      // !bool
+Round(float) int;RoundºFloat
+Round(float,int) float;RoundºFloatInt
 RShift(int,int) int;RSHIFT;e            // int >> int
+Sign(float) float;SIGNFLOAT
 Sign(int) int;SIGN                      // -int
+str(bool) str;strºBool
+str(char) str;strºChar
+str(float) str;strºFloat
+str(int) str;strºInt
+Sub(float,float) float;SUBFLOAT         // float - float
+Sub(float,int) float;SubºFloatInt       // float - int
+Sub(int,float) float;SubºIntFloat       // int - float
 Sub(int,int) int;SUB                    // int - int

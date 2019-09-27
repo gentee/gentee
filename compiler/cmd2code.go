@@ -90,7 +90,15 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		switch obj.GetType() {
 		case core.ObjEmbedded:
 			embed := obj.(*core.EmbedObject)
-			if embed.BCode.Code != nil {
+			if ind, ok := embed.Func.(int32); ok {
+				push(core.Bcode(ind<<16) | core.EMBEDNEW)
+				if embed.Variadic {
+					push(core.Bcode(len(ptypes)))
+					if len(ptypes) > 0 {
+						push(ptypes...)
+					}
+				}
+			} else if embed.BCode.Code != nil {
 				code := embed.BCode.Code[0]
 				if code != core.NOP {
 					push(code) //...)
@@ -593,7 +601,13 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 				obj := cmd.GetObject()
 				if obj.GetType() == core.ObjEmbedded {
 					embed := obj.(*core.EmbedObject)
-					if embed.BCode.Code != nil {
+					if ind, ok := embed.Func.(int32); ok {
+						push(rightType<<16 | core.Bcode(ind+core.EMBEDFUNC))
+						if rightType >= core.TYPESTRUCT {
+							structOffset(out, -len(out.Code)+1)
+						}
+						getPos(linker, cmdStack, out)
+					} else if embed.BCode.Code != nil {
 						push(rightType<<16 | embed.BCode.Code[0])
 						if rightType >= core.TYPESTRUCT {
 							structOffset(out, -len(out.Code)+1)

@@ -2,10 +2,10 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlibvm
+package vm
 
-// StrºBool converts boolean value to string
-func StrºBool(val int64) string {
+// strºBool converts boolean value to string
+func strºBool(val int64) string {
 	if val != 0 {
 		return `true`
 	}
@@ -14,5 +14,5 @@ func StrºBool(val int64) string {
 
 // ExpStrºBool adds string and boolean in string expression
 func ExpStrºBool(left string, right int64) string {
-	return left + StrºBool(right)
+	return left + strºBool(right)
 }
