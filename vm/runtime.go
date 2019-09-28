@@ -572,11 +572,8 @@ main:
 					iValue, err = IncDecºInt(ptr.(*int64), iValue.(int64))
 				} else {
 					switch v := ptr.(type) {
-					case *int64, *float64:
-						fmt.Println(`Embed Assign`)
-					case *string:
-						iValue, err = stdlib.EmbedStr[assign-core.ASSIGN](
-							v, iValue)
+					case *int64, *float64, *string:
+						fmt.Println(`Embed Assign`, v)
 					default:
 						iValue, err = stdlib.EmbedAny[assign-core.ASSIGN](
 							ptr, iValue)
@@ -1072,7 +1069,7 @@ main:
 					ret.Data = append(ret.Data, value)
 				}
 			}
-			rt.SAny[top.Any] = stdlib.ReverseºArr(ret)
+			rt.SAny[top.Any] = ReverseºArr(ret)
 			top.Any++
 		case core.LEN:
 			var length int64

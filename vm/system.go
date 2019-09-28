@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlibvm
+package vm
 
 import (
 	"fmt"
@@ -13,6 +13,52 @@ import (
 
 	"github.com/gentee/gentee/core"
 )
+
+// Command executes the command line
+func Command(cmdLine string) error {
+	cmd, err := splitCmdLine(cmdLine)
+	if err != nil {
+		return err
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err = cmd.Run(); err != nil {
+		err = fmt.Errorf(err.Error())
+	}
+	return err
+}
+
+// CommandOutput executes the command line and returns the standard output
+func CommandOutput(cmdLine string) (string, error) {
+	cmd, err := splitCmdLine(cmdLine)
+	if err != nil {
+		return ``, err
+	}
+	stdout, err := cmd.CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf(err.Error())
+	}
+	return string(stdout), err
+}
+
+// GetEnv return the value of the environment variable
+func GetEnv(name string) string {
+	return os.Getenv(name)
+}
+
+// SetEnv assign the value to the environment variable
+func SetEnv(name string, value interface{}) (string, error) {
+	ret := fmt.Sprint(value)
+	err := os.Setenv(name, ret)
+	return ret, err
+}
+
+// SetEnvBool assign the value to the environment variable
+func SetEnvBool(name string, value int64) (string, error) {
+	ret := strºBool(value)
+	err := os.Setenv(name, ret)
+	return ret, err
+}
 
 func splitCmdLine(cmdLine string) (*exec.Cmd, error) {
 	var (
@@ -64,50 +110,4 @@ func splitCmdLine(cmdLine string) (*exec.Cmd, error) {
 		cmds = append(cmds[:1], append([]string{`/C`, `echo`}, cmds[1:]...)...)
 	}
 	return exec.Command(cmds[0], cmds[1:]...), nil
-}
-
-// Command executes the command line
-func Command(cmdLine string) error {
-	cmd, err := splitCmdLine(cmdLine)
-	if err != nil {
-		return err
-	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err = cmd.Run(); err != nil {
-		err = fmt.Errorf(err.Error())
-	}
-	return err
-}
-
-// CommandOutput executes the command line and returns the standard output
-func CommandOutput(cmdLine string) (string, error) {
-	cmd, err := splitCmdLine(cmdLine)
-	if err != nil {
-		return ``, err
-	}
-	stdout, err := cmd.CombinedOutput()
-	if err != nil {
-		err = fmt.Errorf(err.Error())
-	}
-	return string(stdout), err
-}
-
-// GetEnv return the value of the environment variable
-func GetEnv(name string) string {
-	return os.Getenv(name)
-}
-
-// SetEnv assign the value to the environment variable
-func SetEnv(name string, value interface{}) (string, error) {
-	ret := fmt.Sprint(value)
-	err := os.Setenv(name, ret)
-	return ret, err
-}
-
-// SetEnvBool assign the value to the environment variable
-func SetEnvBool(name string, value int64) (string, error) {
-	ret := StrºBool(value)
-	err := os.Setenv(name, ret)
-	return ret, err
 }

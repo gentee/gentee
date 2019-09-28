@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlibvm
+package vm
 
 import (
 	"encoding/base64"
@@ -11,18 +11,6 @@ import (
 
 	"github.com/gentee/gentee/core"
 )
-
-// bufºStr converts string to buffer
-func bufºStr(value string) *core.Buffer {
-	b := core.NewBuffer()
-	b.Data = []byte(value)
-	return b
-}
-
-// strºBuf converts buffer to string
-func strºBuf(buf *core.Buffer) string {
-	return string(buf.Data)
-}
 
 // AddºBufBuf adds two buffers
 func AddºBufBuf(left *core.Buffer, right *core.Buffer) (out *core.Buffer) {
@@ -38,12 +26,6 @@ func AssignAddºBufBuf(buf interface{}, value interface{}) (interface{}, error) 
 	return buf, nil
 }
 
-// AssignAddºBufStr appends string to buffer
-func AssignAddºBufStr(buf interface{}, value interface{}) (interface{}, error) {
-	buf.(*core.Buffer).Data = append(buf.(*core.Buffer).Data, []byte(value.(string))...)
-	return buf, nil
-}
-
 // AssignAddºBufChar appends rune to buffer
 func AssignAddºBufChar(buf interface{}, value interface{}) (interface{}, error) {
 	buf.(*core.Buffer).Data = append(buf.(*core.Buffer).Data,
@@ -54,15 +36,28 @@ func AssignAddºBufChar(buf interface{}, value interface{}) (interface{}, error)
 // AssignAddºBufInt appends one byte to buffer
 func AssignAddºBufInt(buf interface{}, value interface{}) (interface{}, error) {
 	if uint64(value.(int64)) > 255 {
-		return nil, fmt.Errorf(core.ErrorText(core.ErrByteOut))
+		return nil, fmt.Errorf(ErrorText(ErrByteOut))
 	}
 	buf.(*core.Buffer).Data = append(buf.(*core.Buffer).Data, byte(value.(int64)))
+	return buf, nil
+}
+
+// AssignAddºBufStr appends string to buffer
+func AssignAddºBufStr(buf interface{}, value interface{}) (interface{}, error) {
+	buf.(*core.Buffer).Data = append(buf.(*core.Buffer).Data, []byte(value.(string))...)
 	return buf, nil
 }
 
 // Base64ºBuf encodes buf to base64 string
 func Base64ºBuf(buf *core.Buffer) string {
 	return base64.StdEncoding.EncodeToString(buf.Data)
+}
+
+// bufºStr converts string to buffer
+func bufºStr(value string) *core.Buffer {
+	b := core.NewBuffer()
+	b.Data = []byte(value)
+	return b
 }
 
 // DelºBufIntInt deletes part of the buffer
@@ -100,6 +95,18 @@ func InsertºBufIntBuf(buf *core.Buffer, off int64, b *core.Buffer) (*core.Buffe
 	return buf, nil
 }
 
+// strºBuf converts buffer to string
+func strºBuf(buf *core.Buffer) string {
+	return string(buf.Data)
+}
+
+// sysBufNil return nil buffer
+func sysBufNil() *core.Buffer {
+	b := core.NewBuffer()
+	b.Data = nil
+	return b
+}
+
 // UnBase64ºStr decodes base64 string to buf
 func UnBase64ºStr(value string) (buf *core.Buffer, err error) {
 	buf = core.NewBuffer()
@@ -113,11 +120,4 @@ func UnHexºStr(value string) (*core.Buffer, error) {
 	buf := core.NewBuffer()
 	buf.Data, err = hex.DecodeString(value)
 	return buf, err
-}
-
-// sysBufNil return nil buffer
-func sysBufNil() *core.Buffer {
-	b := core.NewBuffer()
-	b.Data = nil
-	return b
 }

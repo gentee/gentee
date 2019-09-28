@@ -1,3 +1,4 @@
+Add(buf,buf) buf;AddºBufBuf                     // buf + buf
 Add(char,char) str;AddºCharChar                 // char + char
 Add(char,str) str;AddºCharStr                   // char + str
 Add(float,float) float;ADDFLOAT                 // float + float
@@ -6,16 +7,42 @@ Add(int,float) float;AddºIntFloat               // int + float
 Add(int,int) int;ADD                            // int + int
 Add(str,char) str;AddºStrChar                   // str + char
 Add(str,str) str;ADDSTR                         // str + str
+AddHours(time,int) time;AddHoursºTimeInt;r
+arr(set) arr.int;arrºSet
 Assign(bool,bool) bool;ASSIGN                   // bool = bool
+Assign(buf,buf) buf;ASSIGN                      // buf = buf
 Assign(char,char) char;ASSIGN                   // char = char
 Assign(float,float) float;ASSIGN                // float = float
 Assign(int,char) int;ASSIGN                     // int = char
 Assign(int,int) int;ASSIGN                      // int = int
+Assign(set,set) set;ASSIGN                      // set = set
+Assign(str,bool) str;AssignºStrBool             // str = bool
+Assign(str,int) str;AssignºStrInt               // str = int
 Assign(str,str) str;ASSIGN                      // str = str
+AssignºArrArr(arr*,arr*) arr*;ASSIGN            // arr = arr
+AssignºFnFn(fn,fn) fn;ASSIGN                    // fn = fn
+AssignºMapMap(map*,map*) map*;ASSIGN            // map = map
+AssignºStructStruct(struct,struct) struct;ASSIGN    // struct = struct
+AssignAdd(arr.bool,bool) arr.bool;AssignAddºArrAny  // arr += bool
+AssignAdd(arr.int,int) arr.int;AssignAddºArrAny     // arr += int
+AssignAdd(arr.str,str) arr.str;AssignAddºArrAny     // arr.str += str
+AssignAdd(buf,buf) buf;AssignAddºBufBuf             // buf += buf
+AssignAdd(buf,char) buf;AssignAddºBufChar           // buf += char
+AssignAdd(buf,int) buf;AssignAddºBufInt;e           // buf += int
+AssignAdd(buf,str) buf;AssignAddºBufStr             // buf += str
 AssignAdd(float,float) float;AssignAddºFloatFloat   // float += float
 AssignAdd(int,int) int;AssignAddºIntInt             // int += int
+AssignAdd(set,set) set;AssignAddºSetSet             // set += set
 AssignAdd(str,char) str;AssignAddºStrChar           // str += char
-AssignBitAnd(int,int) int;AssignBitAndºIntInt       // int &= int
+AssignAdd(str,str) str;AssignAddºStrStr             // str += str
+AssignAddºArrArr(arr.arr*,arr*) arr.arr*;AssignAddºArrAny   // arr.arr += arr
+AssignAddºArrMap(arr.map*,map*) arr.map*;AssignAddºArrAny   // arr.map += map
+AssignBitAnd(buf,buf) buf;ASSIGNPTR                         // buf &= buf
+AssignBitAnd(int,int) int;AssignBitAndºIntInt               // int &= int
+AssignBitAnd(set,set) set;ASSIGNPTR                         // set &= set
+AssignBitAndºArrArr(arr*,arr*) arr*;ASSIGNPTR               // arr &= arr
+AssignBitAndºMapMap(map*,map*) map*;ASSIGNPTR               // map &= map
+AssignBitAndºStructStruct(struct,struct) struct;ASSIGNPTR   // struct &= struct
 AssignBitOr(int,int) int;AssignBitOrºIntInt         // int |= int
 AssignBitXor(int,int) int;AssignBitXorºIntInt       // int ^= int
 AssignDiv(float,float) float;AssignDivºFloatFloat;e // float /= float
@@ -27,14 +54,26 @@ AssignMul(int,int) int;AssignMulºIntInt             // int *= int
 AssignRShift(int,int) int;AssignRShiftºIntInt;e     // int >>= int
 AssignSub(float,float) float;AssignSubºFloatFloat   // float -= float
 AssignSub(int,int) int;AssignSubºIntInt             // int -= int
-BitAnd(int,int) int;BITAND              // int & int
+Base64(buf) str;Base64ºBuf
+BitAnd(int,int) int;BITAND                          // int & int
+BitAnd(set,set) set;BitAndºSetSet                   // set & set
 BitNot(int) int;BITNOT                  // ^int
+BitNot(set) set;BitNotºSet              // ^set 
 BitOr(int,int) int;BITOR                // int | int
+BitOr(set,set) set;BitOrºSetSet         // set | set
 BitXor(int,int) int;BITXOR              // int ^ int
 bol(float) bool;boolºFloat
 bool(int) bool;boolºInt
 bool(str) bool;boolºStr
+buf(str) buf;bufºStr
 Ceil(float) int;CeilºFloat
+Command(str);Command;e                  // $ str 
+CommandOutput(str) str;CommandOutput;e  // $ str 
+Date(int,int,int) time;DateºInts;r
+DateTime(int,int,int,int,int,int) time;DateTimeºInts;r
+Days(time) int;DaysºTime
+Del(buf,int,int) buf;DelºBufIntInt
+DelAuto(map*,str) map*;DelºMapStr
 Div(float,float) float;DIVFLOAT;e       // float / float
 Div(float,int) float;DivºFloatInt;e     // float / int
 Div(int,float) float;DivºIntFloat;e     // int / float
@@ -44,29 +83,50 @@ Equal(float,float) bool;EQFLOAT         // float == float
 Equal(float,int) bool;EqualºFloatInt    // float == int
 Equal(int,int) bool;EQ                  // int == int
 Equal(str,str) bool;EQSTR               // str == str
+Equal(time,time) bool;EqualºTimeTime    // time == time
 ExpStr(str,bool) str;ExpStrºBool
 ExpStr(str,char) str;ExpStrºChar
 ExpStr(str,float) str;ExpStrºFloat
 ExpStr(str,int) str;ExpStrºInt
 ExpStr(str,str) str;ADDSTR
+Find(str,str) int;FindºStrStr
 float(int) float;floatºInt
 float(str) float;floatºStr;e
 Floor(float) int;FloorºFloat
+Format(str) str;FormatºStr;v
+Format(str,time) str;FormatºTimeStr
+GetEnv(str) str;GetEnv
 Greater(char,char) bool;GreaterºCharChar    // char > char
 Greater(float,float) bool;GTFLOAT           // float > float
 Greater(float,int) bool;GreaterºFloatInt    // float > int
 Greater(int,int) bool;GT                    // int > int
 Greater(str,str) bool;GTSTR                 // str > str
+Greater(time,time) bool;GreaterºTimeTime    // time > time
+HasPrefix(str,str) bool;HasPrefixºStrStr
+HasSuffix(str,str) bool;HasSuffixºStrStr
+Hex(buf) str;HexºBuf
+Join(arr.str,str) str;JoinºArrStr
+Insert(buf,int,buf) buf;InsertºBufIntBuf
 int(bool) int;NOP
 int(char) int;NOP
 int(float) int;intºFloat
 int(str) int;intºStr;e
+int(time) int;intºTime
+IsKeyAuto(map*,str) bool;IsKeyºMapStr
+Left(str,int) str;LeftºStrInt
+LenºArr(arr*) int;LEN                   // *arr
+Len(buf) int;LEN                        // *buf
+LenºMap(map*) int;LEN                   // *map
+Len(set) int;LEN		                // *set
 Len(str) int;LEN                        // *str
 Less(char,char) bool;LessºCharChar      // char < char
 Less(float,float) bool;LTFLOAT          // float < float
 Less(float,int) bool;LessºFloatInt      // float < int
 Less(int,int) bool;LT                   // int < int
 Less(str,str) bool;LTSTR                // str < str
+Less(time,time) bool;LessºTimeTime      // time < time
+Lines(str) arr.str;LinesºStr
+Lower(str) str;LowerºStr
 LShift(int,int) int;LSHIFT;e            // int << int
 Max(float,float) float;MaxºFloatFloat
 Max(int,int) int;MaxºIntInt
@@ -77,17 +137,46 @@ Mul(float,float) float;MULFLOAT         // float * float
 Mul(float,int) float;MulºFloatInt
 Mul(int,float) float;MulºIntFloat
 Mul(int,int) int;MUL                    // int * int
+NewKeyValue(int,int) keyval;NOP         // key: value
+NewRange(int,int) range;RANGE           // ..
 Not(bool) bool;NOT                      // !bool
+Now() time;Now;r
+ParseTime(str,str) time;ParseTimeºStrStr;re
+Repeat(str,int) str;RepeatºStrInt
+Replace(str,str,str) str;ReplaceºStrStrStr
 Round(float) int;RoundºFloat
 Round(float,int) float;RoundºFloatInt
 RShift(int,int) int;RSHIFT;e            // int >> int
+set(arr.int) set;setºArr;e
+Set(set,int) set;SetºSet;e
+set(str) set;setºStr;e
+SetEnv(str,str) str;SetEnv;e                // $name = str
+SetEnv(str,int) str;SetEnv;e	            // $name = int
+SetEnv(str,bool) str;SetEnvBool;e           // $name = bool
+Shift(str) str;ShiftºStr
 Sign(float) float;SIGNFLOAT
 Sign(int) int;SIGN                      // -int
+Sort(arr.str) arr.str;SortºArr
+Split(str,str) arr.str;SplitºStrStr
 str(bool) str;strºBool
+str(buf) str;strºBuf
 str(char) str;strºChar
 str(float) str;strºFloat
 str(int) str;strºInt
+str(set) str;strºSet
 Sub(float,float) float;SUBFLOAT         // float - float
 Sub(float,int) float;SubºFloatInt       // float - int
 Sub(int,float) float;SubºIntFloat       // int - float
 Sub(int,int) int;SUB                    // int - int
+Substr(str,int,int) str;SubstrºStrIntInt;e
+sysBufNil() buf;sysBufNil
+time(int) time;timeºInt;r
+Toggle(set,int) bool;ToggleºSetInt
+TrimRight(str,str) str;TrimRightºStr
+TrimSpace(str) str;TrimSpaceºStr
+UnBase64(str) buf;UnBase64ºStr;e
+UnHex(str) buf;UnHexºStr;e
+UnSet(set, int) set;UnSetºSet;e
+Upper(str) str;UpperºStr
+
+

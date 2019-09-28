@@ -11,8 +11,6 @@ import (
 	//	"strings"
 	"unicode/utf8"
 	//	"github.com/gentee/gentee/core"
-
-	stdlib "github.com/gentee/gentee/stdlibvm"
 )
 
 const (
@@ -61,7 +59,7 @@ func CtxSetºStrFloat(rt *Runtime, key string, value float64) (string, error) {
 
 // CtxSetºStrBool assign a bool to a context key
 func CtxSetºStrBool(rt *Runtime, key string, value int64) (string, error) {
-	return CtxSetºStrStr(rt, key, stdlib.StrºBool(value))
+	return CtxSetºStrStr(rt, key, strºBool(value))
 }
 
 // CtxSetºStrInt assign an integer to a context key

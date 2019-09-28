@@ -87,7 +87,7 @@ var EmbedFuncs = []core.Embed{
 	if input, err = ioutil.ReadFile(`generate/stdlib.txt`); err != nil {
 		log.Fatal(err)
 	}
-	re, err := regexp.Compile(`^(\w+)\(([\w ,]*)\)\s*(\w*);([º\w]+);?(\w*)?`)
+	re, err := regexp.Compile(`^([\wº]+)\(([\w ,\.\*]*)\)\s*([\w\.\*]*);([º\w]+);?(\w*)?`)
 	if err != nil {
 		log.Fatal(err)
 	}

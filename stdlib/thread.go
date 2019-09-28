@@ -10,6 +10,12 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+// AssignAddºArrInt appends one integer to array
+func AssignAddºArrInt(ptr *interface{}, value int64) *core.Array {
+	(*ptr).(*core.Array).Data = append((*ptr).(*core.Array).Data, value)
+	return (*ptr).(*core.Array)
+}
+
 // InitThread appends stdlib thread functions to the virtual machine
 func InitThread(ws *core.Workspace) {
 	for _, item := range []embedInfo{

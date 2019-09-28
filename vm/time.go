@@ -7,8 +7,6 @@ package vm
 import (
 	"fmt"
 	"time"
-
-	stdlib "github.com/gentee/gentee/stdlibvm"
 )
 
 func newTime(rt *Runtime) *Struct {
@@ -40,8 +38,32 @@ func fromTime(it *Struct, in time.Time) *Struct {
 	return it
 }
 
+func replaceArr(in string, old, new []string) string {
+	input := []rune(in)
+	out := make([]rune, 0, len(input))
+	lin := len(input)
+	for i := 0; i < lin; i++ {
+		eq := -1
+		maxLen := lin - i
+		for k, item := range old {
+			litem := len([]rune(item))
+			if maxLen >= litem && string(input[i:i+litem]) == item {
+				eq = k
+				break
+			}
+		}
+		if eq >= 0 {
+			out = append(out, []rune(new[eq])...)
+			i += len([]rune(old[eq])) - 1
+		} else {
+			out = append(out, input[i])
+		}
+	}
+	return string(out)
+}
+
 func layout2go(layout string) string {
-	return stdlib.ReplaceArr(layout, []string{
+	return replaceArr(layout, []string{
 		`YYYY`, `YY`, `MMMM`, `MMM`, `MM`, `M`, `DD`, `D`, `dddd`, `ddd`,
 		`HH`, `hh`, `h`, `PM`, `pm`, `mm`, `m`, `ss`, `s`, `tz`, `zz`, `z`,
 	}, []string{

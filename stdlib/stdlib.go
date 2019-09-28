@@ -9,6 +9,12 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+type embedInfo struct {
+	Func    interface{}
+	InTypes string
+	OutType string
+}
+
 // InitStdlib appends stdlib types and functions to the virtual machine
 func InitStdlib(ws *core.Workspace) {
 	stdlib := ws.InitUnit()
@@ -16,17 +22,13 @@ func InitStdlib(ws *core.Workspace) {
 	ws.Units = append(ws.Units, stdlib)
 	ws.UnitNames[core.DefName] = len(ws.Units) - 1
 	InitTypes(ws)
+	NewStructType(ws, `time`, []string{
+		`Year:int`, `Month:int`, `Day:int`,
+		`Hour:int`, `Minute:int`, `Second:int`,
+		`UTC:bool`,
+	})
+
 	InitEmbed(ws)
-	InitStr(ws)
-	InitKeyValue(ws)
-	InitRange(ws)
-	InitArray(ws)
-	InitBuffer(ws)
-	InitSet(ws)
-	InitMap(ws)
-	InitStruct(ws)
-	InitFn(ws)
-	InitSystem(ws)
 	InitTime(ws)
 	InitFile(ws)
 	InitPath(ws)

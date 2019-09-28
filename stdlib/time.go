@@ -5,7 +5,6 @@
 package stdlib
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gentee/gentee/core"
@@ -13,30 +12,24 @@ import (
 
 // InitTime appends stdlib time functions to the virtual machine
 func InitTime(ws *core.Workspace) {
-	NewStructType(ws, `time`, []string{
-		`Year:int`, `Month:int`, `Day:int`,
-		`Hour:int`, `Minute:int`, `Second:int`,
-		`UTC:bool`,
-	})
-
 	for _, item := range []embedInfo{
-		{core.Link{intºTime, 1041<<16 | core.EMBED}, `time`, `int`},              // int( time )
-		{core.Link{timeºInt, 1042<<16 | core.EMBED}, `int`, `time`},              // time( int, time )
-		{core.Link{AddHoursºTimeInt, 1043<<16 | core.EMBED}, `time,int`, `time`}, // AddHours(time,int) time
-		{core.Link{DateºInts, 1044<<16 | core.EMBED}, `int,int,int`, `time`},     // Date(day, month, year)
-		{core.Link{DateTimeºInts, 1045<<16 | core.EMBED},
-			`int,int,int,int,int,int`, `time`}, // DateTime()
-		{core.Link{DaysºTime, 1046<<16 | core.EMBED}, `time`, `int`},              // Days(time)
-		{core.Link{EqualºTimeTime, 1019<<16 | core.EMBED}, `time,time`, `bool`},   // binary ==
-		{core.Link{FormatºTimeStr, 1020<<16 | core.EMBED}, `str,time`, `str`},     // Format(time,str)
-		{core.Link{ParseTimeºStrStr, 1015<<16 | core.EMBED}, `str,str`, `time`},   // ParseTime(str,str) time
-		{core.Link{GreaterºTimeTime, 1021<<16 | core.EMBED}, `time,time`, `bool`}, // binary >
-		{core.Link{LessºTimeTime, 1022<<16 | core.EMBED}, `time,time`, `bool`},    // binary <
-		{core.Link{Now, 1037<<16 | core.EMBED}, ``, `time`},                       // Now()
-		{core.Link{sleepºInt, 1008<<16 | core.EMBED}, `int`, ``},                  // sleep(int)
-		{core.Link{UTCºTime, 1038<<16 | core.EMBED}, `time`, `time`},              // UTC()
-		{core.Link{WeekdayºTime, 1039<<16 | core.EMBED}, `time`, `int`},           // Weekday(time)
-		{core.Link{YearDayºTime, 1040<<16 | core.EMBED}, `time`, `int`},           // YearDay(time) int
+		//{core.Link{intºTime, 1041<<16 | core.EMBED}, `time`, `int`},              // int( time )
+		//{core.Link{timeºInt, 1042<<16 | core.EMBED}, `int`, `time`},              // time( int, time )
+		//{core.Link{AddHoursºTimeInt, 1043<<16 | core.EMBED}, `time,int`, `time`}, // AddHours(time,int) time
+		//		{core.Link{DateºInts, 1044<<16 | core.EMBED}, `int,int,int`, `time`}, // Date(day, month, year)
+		//{core.Link{DateTimeºInts, 1045<<16 | core.EMBED},
+		//	`int,int,int,int,int,int`, `time`}, // DateTime()
+		//{core.Link{DaysºTime, 1046<<16 | core.EMBED}, `time`, `int`},              // Days(time)
+		//{core.Link{EqualºTimeTime, 1019<<16 | core.EMBED}, `time,time`, `bool`},   // binary ==
+		//{core.Link{FormatºTimeStr, 1020<<16 | core.EMBED}, `str,time`, `str`},     // Format(time,str)
+		//{core.Link{ParseTimeºStrStr, 1015<<16 | core.EMBED}, `str,str`, `time`},   // ParseTime(str,str) time
+		//core.Link{GreaterºTimeTime, 1021<<16 | core.EMBED}, `time,time`, `bool`}, // binary >
+		//{core.Link{LessºTimeTime, 1022<<16 | core.EMBED}, `time,time`, `bool`}, // binary <
+		//{core.Link{Now, 1037<<16 | core.EMBED}, ``, `time`},             // Now()
+		{core.Link{sleepºInt, 1008<<16 | core.EMBED}, `int`, ``},        // sleep(int)
+		{core.Link{UTCºTime, 1038<<16 | core.EMBED}, `time`, `time`},    // UTC()
+		{core.Link{WeekdayºTime, 1039<<16 | core.EMBED}, `time`, `int`}, // Weekday(time)
+		{core.Link{YearDayºTime, 1040<<16 | core.EMBED}, `time`, `int`}, // YearDay(time) int
 	} {
 		ws.StdLib().NewEmbedExt(item.Func, item.InTypes, item.OutType)
 	}
@@ -67,42 +60,28 @@ func toTime(it *core.Struct) time.Time {
 		int(it.Values[5].(int64)), 0, utc)
 }
 
-// intºTime converts time to Unix time
-func intºTime(it *core.Struct) int64 {
-	return toTime(it).Unix()
-}
-
-// timeºInt converts Unix time to time
-func timeºInt(rt *core.RunTime, unix int64) *core.Struct {
-	return fromTime(newTime(rt), time.Unix(unix, 0))
-}
-
-// AddHoursºTimeInt adds/subtract hours
-func AddHoursºTimeInt(rt *core.RunTime, it *core.Struct, hours int64) *core.Struct {
-	return fromTime(newTime(rt), toTime(it).Add(time.Duration(hours)*time.Hour))
-}
-
-// DateºInts returns time
-func DateºInts(rt *core.RunTime, year, month, day int64) *core.Struct {
-	return DateTimeºInts(rt, year, month, day, 0, 0, 0)
-}
-
-// DateTimeºInts returns time
-func DateTimeºInts(rt *core.RunTime, year, month, day, hour, minute, second int64) *core.Struct {
-	return fromTime(newTime(rt), time.Date(int(year), time.Month(month), int(day), int(hour), int(minute),
-		int(second), 0, time.Local))
-}
-
-// DaysºTime returns the days of the month
-func DaysºTime(it *core.Struct) int64 {
-	next := time.Date(int(it.Values[0].(int64)), time.Month(it.Values[1].(int64))+1, 0, 0, 0, 0, 0, time.UTC)
-	next.Add(time.Duration(-24 * time.Hour))
-	return int64(next.Day())
-}
-
-// EqualºTimeTime returns true if time structures are equal
-func EqualºTimeTime(left, right *core.Struct) bool {
-	return toTime(left).Equal(toTime(right))
+func replaceArr(in string, old, new []string) string {
+	input := []rune(in)
+	out := make([]rune, 0, len(input))
+	lin := len(input)
+	for i := 0; i < lin; i++ {
+		eq := -1
+		maxLen := lin - i
+		for k, item := range old {
+			litem := len([]rune(item))
+			if maxLen >= litem && string(input[i:i+litem]) == item {
+				eq = k
+				break
+			}
+		}
+		if eq >= 0 {
+			out = append(out, []rune(new[eq])...)
+			i += len([]rune(old[eq])) - 1
+		} else {
+			out = append(out, input[i])
+		}
+	}
+	return string(out)
 }
 
 func layout2go(layout string) string {
@@ -113,37 +92,6 @@ func layout2go(layout string) string {
 		`2006`, `06`, `January`, `Jan`, `01`, `1`, `02`, `2`, `Monday`, `Mon`,
 		`15`, `03`, `3`, `PM`, `pm`, `04`, `4`, `05`, `5`, `MST`, `-0700`, `-07:00`,
 	})
-}
-
-// FormatºTimeStr formats the time
-func FormatºTimeStr(layout string, t *core.Struct) string {
-	return toTime(t).Format(layout2go(layout))
-}
-
-// GreaterºTimeTime returns true if left time structures are greater than right
-func GreaterºTimeTime(left, right *core.Struct) bool {
-	return toTime(left).After(toTime(right))
-}
-
-// LessºTimeTime returns true if left time structures are less than right
-func LessºTimeTime(left, right *core.Struct) bool {
-	return toTime(left).Before(toTime(right))
-}
-
-// Now returns the current time
-func Now(rt *core.RunTime) *core.Struct {
-	return fromTime(newTime(rt), time.Now())
-}
-
-// ParseTimeºStrStr parses a formatted string and returns the time value it represents
-func ParseTimeºStrStr(rt *core.RunTime, layout, value string) (*core.Struct, error) {
-	ret := newTime(rt)
-	t, err := time.Parse(layout2go(layout), value)
-	if err != nil {
-		return ret, err
-	}
-	fmt.Println(`T`, t.Location(), time.UTC, t)
-	return fromTime(ret, t.Local()), nil
 }
 
 // sleepºInt pauses the current script for at least the specified duration in milliseconds.

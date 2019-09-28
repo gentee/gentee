@@ -222,13 +222,13 @@ func (unit *Unit) ImportEmbed(embed Embed) {
 		CanError: embed.CanError,
 	})
 	ind := len(unit.VM.Objects) - 1
-	/*	if defFuncs[originalName] {
-			unit.NameSpace[originalName] = uint32(ind) | NSPub
-			return
-		}
-		if strings.HasSuffix(originalName, `Auto`) {
-			unit.NameSpace[`?`+name] = uint32(ind) | NSPub
-			return
-		}*/
+	if defFuncs[embed.Name] {
+		unit.NameSpace[embed.Name] = uint32(ind) | NSPub
+		return
+	}
+	if strings.HasSuffix(embed.Name, `Auto`) {
+		unit.NameSpace[`?`+embed.Name[:len(embed.Name)-4]] = uint32(ind) | NSPub
+		return
+	}
 	unit.AddFunc(ind, obj, true)
 }
