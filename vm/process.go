@@ -16,15 +16,6 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-// Args returns the command-line parameters
-func Args(rt *Runtime) *core.Array {
-	out := core.NewArray()
-	for _, par := range rt.Owner.Settings.CmdLine {
-		out.Data = append(out.Data, par)
-	}
-	return out
-}
-
 // ArgCount returns the count of command-line parameters
 func ArgCount(rt *Runtime) int64 {
 	return int64(len(rt.Owner.Settings.CmdLine))
@@ -99,6 +90,15 @@ func ArgºStrStr(rt *Runtime, flag, def string) string {
 // ArgºStrInt returns the number value of the command-line option or the default value
 func ArgºStrInt(rt *Runtime, flag string, def int64) (int64, error) {
 	return strconv.ParseInt(ArgºStrStr(rt, flag, strconv.FormatInt(def, 10)), 10, 64)
+}
+
+// Args returns the command-line parameters
+func Args(rt *Runtime) *core.Array {
+	out := core.NewArray()
+	for _, par := range rt.Owner.Settings.CmdLine {
+		out.Data = append(out.Data, par)
+	}
+	return out
 }
 
 // ArgsºStr returns the value list of command-line option

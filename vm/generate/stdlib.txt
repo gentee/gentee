@@ -1,3 +1,4 @@
+AbsPath(str) str;AbsPath;e
 Add(buf,buf) buf;AddºBufBuf                     // buf + buf
 Add(char,char) str;AddºCharChar                 // char + char
 Add(char,str) str;AddºCharStr                   // char + str
@@ -8,6 +9,15 @@ Add(int,int) int;ADD                            // int + int
 Add(str,char) str;AddºStrChar                   // str + char
 Add(str,str) str;ADDSTR                         // str + str
 AddHours(time,int) time;AddHoursºTimeInt;r
+AppendFile(str,buf);AppendFileºStrBuf;e
+AppendFile(str,str);AppendFileºStrStr;e
+Arg(str) str;ArgºStr;r
+Arg(str, int) int;ArgºStrInt;er
+Arg(str, str) str;ArgºStrStr;r
+ArgCount() int;ArgCount;r
+Args() arr.str;Args;r
+Args(str) arr.str;ArgsºStr;r
+ArgsTail() arr.str;ArgsTail;r
 arr(set) arr.int;arrºSet
 Assign(bool,bool) bool;ASSIGN                   // bool = bool
 Assign(buf,buf) buf;ASSIGN                      // buf = buf
@@ -55,6 +65,7 @@ AssignRShift(int,int) int;AssignRShiftºIntInt;e     // int >>= int
 AssignSub(float,float) float;AssignSubºFloatFloat   // float -= float
 AssignSub(int,int) int;AssignSubºIntInt             // int -= int
 Base64(buf) str;Base64ºBuf
+BaseName(str) str;BaseName
 BitAnd(int,int) int;BITAND                          // int & int
 BitAnd(set,set) set;BitAndºSetSet                   // set & set
 BitNot(int) int;BITNOT                  // ^int
@@ -67,13 +78,18 @@ bool(int) bool;boolºInt
 bool(str) bool;boolºStr
 buf(str) buf;bufºStr
 Ceil(float) int;CeilºFloat
+ChDir(str);ChDirºStr;e
 Command(str);Command;e                  // $ str 
 CommandOutput(str) str;CommandOutput;e  // $ str 
+CopyFile(str,str) int;CopyFileºStrStr;e
+CreateDir(str);CreateDirºStr;e
 Date(int,int,int) time;DateºInts;r
 DateTime(int,int,int,int,int,int) time;DateTimeºInts;r
 Days(time) int;DaysºTime
 Del(buf,int,int) buf;DelºBufIntInt
 DelAuto(map*,str) map*;DelºMapStr
+Dir(str) str;Dir
+Ext(str) str;Ext
 Div(float,float) float;DIVFLOAT;e       // float / float
 Div(float,int) float;DivºFloatInt;e     // float / int
 Div(int,float) float;DivºIntFloat;e     // int / float
@@ -89,12 +105,14 @@ ExpStr(str,char) str;ExpStrºChar
 ExpStr(str,float) str;ExpStrºFloat
 ExpStr(str,int) str;ExpStrºInt
 ExpStr(str,str) str;ADDSTR
+FileInfo(str) finfo;FileInfoºStr;er
 Find(str,str) int;FindºStrStr
 float(int) float;floatºInt
 float(str) float;floatºStr;e
 Floor(float) int;FloorºFloat
 Format(str) str;FormatºStr;v
 Format(str,time) str;FormatºTimeStr
+GetCurDir() str;GetCurDir;e
 GetEnv(str) str;GetEnv
 Greater(char,char) bool;GreaterºCharChar    // char > char
 Greater(float,float) bool;GTFLOAT           // float > float
@@ -106,12 +124,14 @@ HasPrefix(str,str) bool;HasPrefixºStrStr
 HasSuffix(str,str) bool;HasSuffixºStrStr
 Hex(buf) str;HexºBuf
 Join(arr.str,str) str;JoinºArrStr
+JoinPath() str;JoinPath;v
 Insert(buf,int,buf) buf;InsertºBufIntBuf
 int(bool) int;NOP
 int(char) int;NOP
 int(float) int;intºFloat
 int(str) int;intºStr;e
 int(time) int;intºTime
+IsArg(str) bool;IsArgºStr;r
 IsKeyAuto(map*,str) bool;IsKeyºMapStr
 Left(str,int) str;LeftºStrInt
 LenºArr(arr*) int;LEN                   // *arr
@@ -128,8 +148,10 @@ Less(time,time) bool;LessºTimeTime      // time < time
 Lines(str) arr.str;LinesºStr
 Lower(str) str;LowerºStr
 LShift(int,int) int;LSHIFT;e            // int << int
+MatchPath(str, str) bool;MatchPath;e
 Max(float,float) float;MaxºFloatFloat
 Max(int,int) int;MaxºIntInt
+Md5File(str) str;Md5FileºStr;e
 Min(float,float) float;MinºFloatFloat
 Min(int,int) int;MinºIntInt
 Mod(int,int) int;MOD;e                  // int % int
@@ -141,7 +163,20 @@ NewKeyValue(int,int) keyval;NOP         // key: value
 NewRange(int,int) range;RANGE           // ..
 Not(bool) bool;NOT                      // !bool
 Now() time;Now;r
+Open(str);OpenºStr;e
+OpenWith(str,str);OpenWithºStr;e
 ParseTime(str,str) time;ParseTimeºStrStr;re
+Print() int;Print;ev
+Println() int;Println;ev
+PrintShift(str) int;PrintShiftºStr;e
+ReadDir(str) arr.finfo;ReadDirºStr;re
+ReadFile(str) str;ReadFileºStr;e
+ReadFile(str,buf) buf;ReadFileºStrBuf;e
+ReadFile(str,int,int) buf;ReadFileºStrIntInt;e
+ReadString(str) str;ReadString;e
+Remove(str);RemoveºStr;e
+RemoveDir(str);RemoveDirºStr;e
+Rename(str,str);RenameºStrStr;e
 Repeat(str,int) str;RepeatºStrInt
 Replace(str,str,str) str;ReplaceºStrStrStr
 Round(float) int;RoundºFloat
@@ -153,9 +188,12 @@ set(str) set;setºStr;e
 SetEnv(str,str) str;SetEnv;e                // $name = str
 SetEnv(str,int) str;SetEnv;e	            // $name = int
 SetEnv(str,bool) str;SetEnvBool;e           // $name = bool
+SetFileTime(str,time);SetFileTimeºStrTime;e
+Sha256File(str) str;Sha256FileºStr;e
 Shift(str) str;ShiftºStr
 Sign(float) float;SIGNFLOAT
 Sign(int) int;SIGN                      // -int
+sleep(int);sleepºInt;r
 Sort(arr.str) arr.str;SortºArr
 Split(str,str) arr.str;SplitºStrStr
 str(bool) str;strºBool
@@ -170,6 +208,9 @@ Sub(int,float) float;SubºIntFloat       // int - float
 Sub(int,int) int;SUB                    // int - int
 Substr(str,int,int) str;SubstrºStrIntInt;e
 sysBufNil() buf;sysBufNil
+sysRun(str,bool,buf,buf,buf,arr.str);sysRun;e
+TempDir() str;TempDir
+TempDir(str, str) str;TempDirºStrStr;e
 time(int) time;timeºInt;r
 Toggle(set,int) bool;ToggleºSetInt
 TrimRight(str,str) str;TrimRightºStr
@@ -178,5 +219,8 @@ UnBase64(str) buf;UnBase64ºStr;e
 UnHex(str) buf;UnHexºStr;e
 UnSet(set, int) set;UnSetºSet;e
 Upper(str) str;UpperºStr
-
-
+UTC(time) time;UTCºTime;r
+Weekday(time) int;WeekdayºTime;r
+WriteFile(str,buf);WriteFileºStrBuf;e
+WriteFile(str,str);WriteFileºStrStr;e
+YearDay(time) int;YearDayºTime

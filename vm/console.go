@@ -1,29 +1,15 @@
-// Copyright 2018 Alexey Krivonogov. All rights reserved.
+// Copyright 2019 Alexey Krivonogov. All rights reserved.
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package vm
 
 import (
 	"bufio"
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/gentee/gentee/core"
 )
-
-// InitConsole appends stdlib console functions to the virtual machine
-func InitConsole(ws *core.Workspace) {
-	for _, item := range []interface{}{
-		core.Link{Print, 54<<16 | core.EMBED},          // Print()
-		core.Link{Println, 55<<16 | core.EMBED},        // Println()
-		core.Link{PrintShiftºStr, 56<<16 | core.EMBED}, // unary bitwise OR
-		core.Link{ReadString, 57<<16 | core.EMBED},     // ReadString(str) str
-	} {
-		ws.StdLib().NewEmbed(item)
-	}
-}
 
 // Print writes to standard output.
 func Print(pars ...interface{}) (int64, error) {

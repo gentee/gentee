@@ -27,13 +27,12 @@ func InitStdlib(ws *core.Workspace) {
 		`Hour:int`, `Minute:int`, `Second:int`,
 		`UTC:bool`,
 	})
+	NewStructType(ws, `finfo`, []string{
+		`Name:str`, `Size:int`, `Mode:int`,
+		`Time:time`, `IsDir:bool`,
+	})
 
 	InitEmbed(ws)
-	InitTime(ws)
-	InitFile(ws)
-	InitPath(ws)
-	InitProcess(ws)
-	InitConsole(ws)
 	InitRuntime(ws)
 	InitRegExp(ws)
 	InitContext(ws)
