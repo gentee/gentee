@@ -12,23 +12,27 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+// BlockInfo describes block in the linker
 type BlockInfo struct {
 	Block   *core.CmdBlock
 	Vars    []int
 	IsLocal bool
 }
 
+// Linker is the main structure of the linker
 type Linker struct {
 	Blocks []BlockInfo
 	Lex    *core.Lex
 }
 
+// Int32Slice is a slice of int32
 type Int32Slice []int32
 
 func (p Int32Slice) Len() int           { return len(p) }
 func (p Int32Slice) Less(i, j int) bool { return p[i] < p[j] }
 func (p Int32Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+// Link creates a bytecode
 func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 	var exec *core.Exec
 	if unitID < 0 || unitID >= len(ws.Units) {

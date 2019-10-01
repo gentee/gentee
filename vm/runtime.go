@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gentee/gentee/core"
-	stdlib "github.com/gentee/gentee/stdlibvm"
 )
 
 const (
@@ -544,7 +543,6 @@ main:
 					if ptr == iValue {
 						errHandle(i, ErrAssignment)
 						continue main
-						//return nil, runtimeError(rt, i, ErrAssignment)
 					}
 					if assign == core.ASSIGN {
 						CopyVar(rt, &ptr, iValue)
@@ -570,25 +568,12 @@ main:
 					}
 				} else if assign == core.INCDEC {
 					iValue, err = IncDecºInt(ptr.(*int64), iValue.(int64))
-				} else {
-					switch v := ptr.(type) {
-					case *int64, *float64, *string:
-						fmt.Println(`Embed Assign`, v)
-					default:
-						iValue, err = stdlib.EmbedAny[assign-core.ASSIGN](
-							ptr, iValue)
-						//				default:
-						//					fmt.Println(`Embed Assign`, rightType)
-					}
 				}
 				if err != nil {
 					errHandle(i, err)
 					continue main
-					//return nil, runtimeError(rt, i, err)
 				}
 			}
-			//			typeVar = (int(code[i]) >> 16) & 0xf
-			//			fmt.Println(`OBJ`, iInfo.Objects[:iInfo.Count+1], iValue)
 			if count > 0 || typeVar&0xf == core.STACKANY {
 				if count > 0 && iInfo.Objects[count-1].Type == core.TYPESTR {
 					var dest string
@@ -1261,20 +1246,12 @@ main:
 			idEmbed := uint16(code[i] >> 16)
 			if code[i]&0xffff == core.EMBEDNEW {
 				embed = EmbedFuncs[idEmbed]
-			} else {
-				if idEmbed < 1000 {
-					embed = stdlib.Embedded[idEmbed]
-				} else {
-					embed = Embedded[idEmbed-1000]
-				}
 			}
 			count := len(embed.Params)
 			if embed.Variadic {
 				i++
 				vCount = int(code[i])
-				//				count--
 			}
-			//			fmt.Println(`CALL`, embed.Variadic, count, vCount)
 			pars := make([]reflect.Value, count+vCount)
 			if vCount > 0 {
 				for j := vCount - 1; j >= 0; j-- {

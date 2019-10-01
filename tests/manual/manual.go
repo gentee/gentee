@@ -17,9 +17,18 @@ import (
 func main() {
 	workspace := gentee.New()
 
-	result, err := workspace.CompileAndRun(`tests/manual/readinput.g`)
+	result, err := workspace.CompileAndRun(`tests/scripts/readinput.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
+		return
+	}
+	result, err = workspace.CompileAndRun(`tests/scripts/network.g`)
+	if err != nil {
+		fmt.Println(`ERROR:`, err)
+		return
+	}
+	if fmt.Sprint(result) != `OK` {
+		fmt.Printf(`Wrong result %v`, result)
 		return
 	}
 	fmt.Println(`Result:`, result)

@@ -10,21 +10,7 @@ import (
 	"reflect"
 
 	"github.com/gentee/gentee/core"
-	stdlib "github.com/gentee/gentee/stdlibvm"
-	"github.com/gentee/gentee/vm"
 )
-
-/*func pushSaved(dest *core.Bytecode, src *core.Bytecode) {
-	ldest := int32(len(dest.Code))
-	dest.Code = append(dest.Code, src.Code...)
-	for _, strOffset := range src.StrOffset {
-		dest.StrOffset = append(dest.StrOffset, ldest+strOffset)
-	}
-	for i := range src.Pos {
-		src.Pos[i].Offset += ldest
-	}
-	dest.Pos = append(dest.Pos, src.Pos...)
-}*/
 
 func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 
@@ -102,20 +88,6 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 				code := embed.BCode.Code[0]
 				if code != core.NOP {
 					push(code) //...)
-				}
-				if (code & 0xffff) == core.EMBED {
-					var variadic bool
-					if code>>16 < 1000 {
-						variadic = stdlib.Embedded[code>>16].Variadic
-					} else {
-						variadic = vm.Embedded[code>>16-1000].Variadic
-					}
-					if variadic {
-						push(core.Bcode(len(ptypes)))
-						if len(ptypes) > 0 {
-							push(ptypes...)
-						}
-					}
 				}
 			} else {
 				fmt.Println(`EMBED obj`, obj)

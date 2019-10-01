@@ -24,7 +24,7 @@ func str2type(in string) (ret string) {
 	switch in {
 	case ``:
 		ret = `core.TYPENONE`
-	case `int`:
+	case `int`, `thread`:
 		ret = `core.TYPEINT`
 	case `bool`:
 		ret = `core.TYPEBOOL`
@@ -126,7 +126,10 @@ var EmbedFuncs = []core.Embed{
 		embed.Variadic = strings.Contains(vals[5], `v`)
 		embed.Runtime = strings.Contains(vals[5], `r`)
 		embed.CanError = strings.Contains(vals[5], `e`)
-		out += fmt.Sprintf(`	{"%s", "%s", "%s", %s, %s, %s, %s, %v, %v, %v},
+		out += fmt.Sprintf(`	{Name: "%s", Pars: "%s", Ret: "%s", Code: %s, 
+		Func: %s, Return: %s, 
+		Params: %s, 
+		Variadic: %v, Runtime: %v, CanError: %v},
 `, vals[1], vals[2], vals[3], code, fnc, str2type(vals[3]), str2pars(vals[2]),
 			embed.Variadic, embed.Runtime, embed.CanError)
 	}

@@ -1,3 +1,16 @@
+run arr.bool {
+  arr.bool bib
+  bib += true
+  bib += false
+  bib += !false
+  return bib
+}
+===== [1 0 1]
+run arr.bool {
+  arr.bool mb = : true, false, true
+  return mb
+}
+===== [1 0 1]
 run arr.arr.int {
   arr.arr.int ab = {{1,2,3}, {4,5,6}}
   arr.int ac = {0, 1, 2}

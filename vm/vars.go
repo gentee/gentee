@@ -10,77 +10,6 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-var Embedded = []core.Embed{
-	{Func: CtxSetºStrStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPESTR},
-		Runtime: true, CanError: true},
-	{Func: CtxSetºStrBool, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEBOOL},
-		Runtime: true, CanError: true},
-	{Func: CtxSetºStrFloat, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEFLOAT},
-		Runtime: true, CanError: true},
-	{Func: CtxSetºStrInt, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPEINT},
-		Runtime: true, CanError: true},
-	{Func: CtxValueºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, Runtime: true},
-	{Func: CtxIsºStr, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTR}, Runtime: true},
-	{Func: CtxºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR},
-		Runtime: true, CanError: true},
-	{Func: CtxGetºStr, Return: core.TYPESTR, Params: []uint16{core.TYPESTR},
-		Runtime: true, CanError: true},
-	{Func: nil, Params: []uint16{core.TYPEINT}, Runtime: true},
-	{Func: errorºIntStr, Params: []uint16{core.TYPEINT, core.TYPESTR}, CanError: true,
-		Variadic: true},
-	// 10
-	{Func: terminateºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
-	{Func: waitºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
-	{Func: ErrID, Return: core.TYPEINT, Params: []uint16{core.TYPEERROR}},
-	{Func: ErrText, Return: core.TYPESTR, Params: []uint16{core.TYPEERROR}},
-	{Func: ErrTrace, Return: core.TYPEARR, Params: []uint16{core.TYPEERROR}, Runtime: true},
-	{Func: nil, Return: core.TYPESTRUCT, Params: []uint16{core.TYPESTR, core.TYPESTR},
-		Runtime: true, CanError: true},
-	{Func: nil, Return: core.TYPESTRUCT, Params: []uint16{core.TYPESTR},
-		Runtime: true, CanError: true},
-	{Func: nil, Return: core.TYPEARR, Params: []uint16{core.TYPESTR},
-		Runtime: true, CanError: true},
-	{Func: nil, Params: []uint16{core.TYPESTR, core.TYPESTRUCT}, CanError: true},
-	{Func: nil, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTRUCT, core.TYPESTRUCT}},
-	// 20
-	{Func: nil, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPESTRUCT}},
-	{Func: nil, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTRUCT, core.TYPESTRUCT}},
-	{Func: nil, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTRUCT, core.TYPESTRUCT}},
-	{Func: nil, Return: core.TYPEINT, Runtime: true},
-	{Func: nil, Return: core.TYPESTR, Params: []uint16{core.TYPESTR}, Runtime: true},
-	{Func: nil, Return: core.TYPESTR, Params: []uint16{core.TYPESTR, core.TYPESTR},
-		Runtime: true},
-	{Func: nil, Return: core.TYPEINT, Params: []uint16{core.TYPESTR, core.TYPEINT},
-		Runtime: true, CanError: true},
-	{Func: nil, Return: core.TYPEARR, Runtime: true},
-	{Func: nil, Return: core.TYPEARR, Params: []uint16{core.TYPESTR}, Runtime: true},
-	{Func: nil, Return: core.TYPEARR, Runtime: true},
-	// 30
-	{Func: nil, Return: core.TYPEBOOL, Params: []uint16{core.TYPESTR}, Runtime: true},
-	{Func: nil, Params: []uint16{core.TYPESTR}, CanError: true},
-	{Func: nil, Params: []uint16{core.TYPESTR, core.TYPESTR}, CanError: true},
-	{Func: nil, Params: []uint16{core.TYPESTR, core.TYPEBOOL, core.TYPEBUF, core.TYPEBUF,
-		core.TYPEBUF, core.TYPEARR}, CanError: true},
-	{Func: Trace, Return: core.TYPEARR, Runtime: true},
-	{Func: resumeºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
-	{Func: suspendºThread, Params: []uint16{core.TYPEINT}, Runtime: true, CanError: true},
-	{Func: nil, Return: core.TYPESTRUCT, Runtime: true},
-	{Func: nil, Return: core.TYPESTRUCT, Params: []uint16{core.TYPESTRUCT}, Runtime: true},
-	{Func: nil, Return: core.TYPEINT, Params: []uint16{core.TYPESTRUCT}, Runtime: true},
-	// 40
-	{Func: nil, Return: core.TYPEINT, Params: []uint16{core.TYPESTRUCT}},
-
-	{Func: nil, Return: core.TYPEINT, Params: []uint16{core.TYPESTRUCT}},
-	{Func: nil, Return: core.TYPESTRUCT, Params: []uint16{core.TYPEINT}, Runtime: true},
-	{Func: nil, Return: core.TYPESTRUCT, Params: []uint16{core.TYPESTRUCT,
-		core.TYPEINT}, Runtime: true},
-	{Func: nil, Return: core.TYPESTRUCT, Params: []uint16{core.TYPEINT, core.TYPEINT,
-		core.TYPEINT}, Runtime: true},
-	{Func: nil, Return: core.TYPESTRUCT, Params: []uint16{core.TYPEINT, core.TYPEINT,
-		core.TYPEINT, core.TYPEINT, core.TYPEINT, core.TYPEINT}, Runtime: true},
-	{Func: nil, Return: core.TYPEINT, Params: []uint16{core.TYPESTRUCT}},
-}
-
 // Fn is used for custom func types
 type Fn struct {
 	Func int32 // id of function
@@ -194,15 +123,4 @@ func newValue(rt *Runtime, vtype int) interface{} {
 		}
 	}
 	return nil
-}
-
-// errorºIntStr throws an error
-func errorºIntStr(code int64, text string, pars ...interface{}) error {
-	if len(pars) > 0 {
-		text = fmt.Sprintf(text, pars...)
-	}
-	return &RuntimeError{
-		ID:      int(code),
-		Message: text,
-	}
 }

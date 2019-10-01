@@ -90,9 +90,9 @@ func TestGentee(t *testing.T) {
 			}
 			var settings Settings
 			//			settings.Cycle = 5
+			//			fmt.Println(`i`, src[i].Line, filename)
 			result, err := exec.Run(settings)
 			//			result, err := workspace.Run(unitID)
-			// fmt.Println(`i`, src[i].Line, filename)
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {
 					return testErr(err)
@@ -103,7 +103,7 @@ func TestGentee(t *testing.T) {
 		}
 		return nil
 	}
-	for _, name := range []string{`run_test`, `err_test`, `dif_test`} {
+	for _, name := range []string{`run_test`, `err_test`} {
 		if err := testFile(name); err != nil {
 			t.Error(err)
 			return

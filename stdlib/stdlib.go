@@ -31,14 +31,10 @@ func InitStdlib(ws *core.Workspace) {
 		`Name:str`, `Size:int`, `Mode:int`,
 		`Time:time`, `IsDir:bool`,
 	})
-
+	NewStructType(ws, `trace`, []string{
+		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
+	})
 	InitEmbed(ws)
-	InitRuntime(ws)
-	InitRegExp(ws)
-	InitContext(ws)
-	InitThread(ws)
-	InitCrypto(ws)
-	InitNetwork(ws)
 
 	ws.IotaID = stdlib.NewConst(core.ConstIota, int64(0), false)
 	stdlib.NewConst(core.ConstDepth, int64(1000), true)

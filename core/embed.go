@@ -42,8 +42,6 @@ const (
 	DefAssignBitAndMapMap = `AssignBitAndºMapMap`
 	// DefNewKeyValue returns a pair of key value
 	DefNewKeyValue = `NewKeyValue`
-	// DefSetEnv sets an environment variable
-	DefSetEnv = `#SetEnv#str#int`
 	// DefGetEnv returns an environment variable
 	DefGetEnv = `GetEnv`
 )
@@ -63,7 +61,6 @@ var (
 		DefAssignBitAndArrArr:       true,
 		DefAssignBitAndMapMap:       true,
 		DefNewKeyValue:              true,
-		DefSetEnv:                   true,
 		DefGetEnv:                   true,
 	}
 )

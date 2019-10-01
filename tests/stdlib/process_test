@@ -1,4 +1,13 @@
-
+func first(int i) str {
+    return str(i) + Format(`%v`, Trace())
+}
+func Runtime(int i) str {
+    return first(i+2)
+}
+run str {
+    return Runtime(10)
+}
+===== 12[trace[Path: Entry:run Func:Runtime Line:8 Pos:12] trace[Path: Entry:Runtime Func:first Line:5 Pos:12]]
 run int {
     arr args = Args()
     return ArgCount() + *args + ?(IsArg(`-ok`), 2, 1) + Arg(`my`, 99)
