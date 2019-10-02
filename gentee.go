@@ -7,7 +7,6 @@ package gentee
 import (
 	"github.com/gentee/gentee/compiler"
 	"github.com/gentee/gentee/core"
-	"github.com/gentee/gentee/stdlib"
 	"github.com/gentee/gentee/vm"
 )
 
@@ -36,7 +35,7 @@ func New() *Gentee {
 	g := Gentee{
 		Workspace: core.NewVM(vm.EmbedFuncs),
 	}
-	stdlib.InitStdlib(g.Workspace)
+	compiler.InitStdlib(g.Workspace)
 	return &g
 }
 

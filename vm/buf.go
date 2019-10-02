@@ -64,7 +64,7 @@ func bufºStr(value string) *core.Buffer {
 func DelºBufIntInt(buf *core.Buffer, off, length int64) (*core.Buffer, error) {
 	size := int64(len(buf.Data))
 	if off < 0 || off > size {
-		return buf, fmt.Errorf(core.ErrorText(core.ErrInvalidParam))
+		return buf, fmt.Errorf(ErrorText(ErrInvalidParam))
 	}
 	if length < 0 {
 		off += length
@@ -89,7 +89,7 @@ func HexºBuf(buf *core.Buffer) string {
 func InsertºBufIntBuf(buf *core.Buffer, off int64, b *core.Buffer) (*core.Buffer, error) {
 	size := int64(len(buf.Data))
 	if off < 0 || off > size {
-		return buf, fmt.Errorf(core.ErrorText(core.ErrInvalidParam))
+		return buf, fmt.Errorf(ErrorText(ErrInvalidParam))
 	}
 	buf.Data = append(buf.Data[:off], append(b.Data, buf.Data[off:]...)...)
 	return buf, nil

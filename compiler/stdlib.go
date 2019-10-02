@@ -2,18 +2,11 @@
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
-package stdlib
+package compiler
 
 import (
-	"github.com/gentee/gentee/compiler"
 	"github.com/gentee/gentee/core"
 )
-
-type embedInfo struct {
-	Func    interface{}
-	InTypes string
-	OutType string
-}
 
 // InitStdlib appends stdlib types and functions to the virtual machine
 func InitStdlib(ws *core.Workspace) {
@@ -56,11 +49,12 @@ func InitStdlib(ws *core.Workspace) {
 		sysRun(cmd, true, stdin, stdout, stderr, args)
 	  }
 	`
-	unitID, _ := compiler.Compile(ws, src, ``)
+	unitID, _ := Compile(ws, src, ``)
 	ws.Units[0].NameSpace[`?Run`] = ws.Units[unitID].NameSpace[`?Run`]
 	ws.Units[0].NameSpace[`?Start`] = ws.Units[unitID].NameSpace[`?Start`]
 }
 
+// InitEmbed imports in-line functions
 func InitEmbed(ws *core.Workspace) {
 	for _, embed := range ws.Embedded {
 		ws.StdLib().ImportEmbed(embed)

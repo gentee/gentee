@@ -128,7 +128,7 @@ func OpenºStr(fname string) error {
 	case "darwin":
 		err = exec.Command("open", fname).Start()
 	default:
-		err = fmt.Errorf(core.ErrorText(core.ErrPlatform))
+		err = fmt.Errorf(ErrorText(ErrPlatform))
 	}
 	return err
 }

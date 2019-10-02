@@ -6,14 +6,8 @@ package core
 
 import (
 	"reflect"
-	"runtime"
 	"strings"
 )
-
-type Link struct {
-	Func interface{}
-	Code Bcode
-}
 
 const (
 	// DefAssignAddArr appends the array to array
@@ -64,98 +58,6 @@ var (
 		DefGetEnv:                   true,
 	}
 )
-
-// NewEmbedTypes adds a new EmbedObject to Unit with types
-func (unit *Unit) NewEmbedTypes(Func interface{}, inTypes []*TypeObject, outType *TypeObject) {
-	var (
-		variadic, isRuntime, isError bool
-		code                         []Bcode
-	)
-
-	if v, ok := Func.(Link); ok {
-		Func = v.Func
-		code = []Bcode{v.Code}
-	}
-	name := runtime.FuncForPC(reflect.ValueOf(Func).Pointer()).Name()
-	name = name[strings.LastIndexByte(name, '.')+1:]
-	originalName := name
-	if isLow := strings.Index(name, `º`); isLow >= 0 {
-		name = name[:isLow] // Cut off ºType in the case like AddºStr
-	}
-
-	t := reflect.TypeOf(Func)
-	if t.NumOut() >= 1 {
-		if outType == nil {
-			outType = unit.TypeByGoType(t.Out(0))
-		}
-		typeOut := t.Out(t.NumOut() - 1)
-		isError = typeOut.Kind() == reflect.Interface &&
-			typeOut.Implements(reflect.TypeOf((*error)(nil)).Elem())
-	}
-	inCount := t.NumIn()
-	if variadic = t.IsVariadic(); variadic {
-		inCount--
-	}
-	if inCount > 0 {
-		isRuntime = t.In(0) == reflect.TypeOf(&RunTime{})
-		if inTypes == nil {
-			inTypes = make([]*TypeObject, inCount)
-			for i := 0; i < inCount; i++ {
-				inTypes[i] = unit.TypeByGoType(t.In(i))
-			}
-			if strings.HasPrefix(name, `Assign`) {
-				inTypes[0] = outType
-			}
-		}
-	}
-	obj := unit.NewObject(&EmbedObject{
-		Object: Object{
-			Name: name,
-			Unit: unit,
-			BCode: Bytecode{
-				Code: code,
-			},
-		},
-		Func:     Func,
-		Return:   outType,
-		Params:   inTypes,
-		Variadic: variadic,
-		Runtime:  isRuntime,
-		CanError: isError,
-	})
-	ind := len(unit.VM.Objects) - 1
-	if defFuncs[originalName] {
-		unit.NameSpace[originalName] = uint32(ind) | NSPub
-		return
-	}
-	if strings.HasSuffix(originalName, `Auto`) {
-		unit.NameSpace[`?`+name] = uint32(ind) | NSPub
-		return
-	}
-	unit.AddFunc(ind, obj, true)
-}
-
-// NewEmbed adds a new EmbedObject to Unit
-func (unit *Unit) NewEmbed(Func interface{}) {
-	unit.NewEmbedTypes(Func, nil, nil)
-}
-
-// NewEmbedExt adds a new EmbedObject to Unit with string types
-func (unit *Unit) NewEmbedExt(Func interface{}, in string, out string) {
-	var ins []string
-	if len(in) > 0 {
-		ins = strings.Split(in, `,`)
-	}
-	inTypes := make([]*TypeObject, len(ins))
-	for i, item := range ins {
-		inTypes[i] = unit.NameToType(item).(*TypeObject)
-	}
-	var retType *TypeObject
-	if len(out) > 0 {
-		retType = unit.NameToType(out).(*TypeObject)
-	}
-	unit.NewEmbedTypes(Func, inTypes, retType)
-}
 
 // NameToType searches the type by its name. It accepts names like name.name.name.
 // It creates a new type if it absents.

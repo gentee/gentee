@@ -10,8 +10,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-
-	"github.com/gentee/gentee/core"
 )
 
 // Command executes the command line
@@ -97,13 +95,13 @@ func splitCmdLine(cmdLine string) (*exec.Cmd, error) {
 		}
 	}
 	if quote != 0 {
-		return nil, fmt.Errorf(core.ErrorText(core.ErrQuoteCommand))
+		return nil, fmt.Errorf(ErrorText(ErrQuoteCommand))
 	}
 	if offset < len(input) {
 		cmds = append(cmds, string(input[offset:]))
 	}
 	if len(cmds) == 0 {
-		return nil, fmt.Errorf(core.ErrorText(core.ErrEmptyCommand))
+		return nil, fmt.Errorf(ErrorText(ErrEmptyCommand))
 	}
 	if cmds[0] == `echo` && runtime.GOOS == "windows" {
 		cmds[0] = `cmd.exe`

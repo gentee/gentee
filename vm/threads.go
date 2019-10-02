@@ -221,8 +221,8 @@ func resumeºThread(rt *Runtime, threadID int64) error {
 // suspendºThread suspends the thread
 func suspendºThread(rt *Runtime, threadID int64) error {
 	return changeStatus(rt, threadID, func(vm *VM) {
-		if vm.Runtimes[threadID].Thread.Status < core.ThFinished {
-			vm.Runtimes[threadID].Thread.Status = core.ThPaused
+		if vm.Runtimes[threadID].Thread.Status < ThFinished {
+			vm.Runtimes[threadID].Thread.Status = ThPaused
 		}
 	})
 }
@@ -242,7 +242,7 @@ func waitºThread(rt *Runtime, threadID int64) error {
 		if vm.Runtimes[threadID].Thread.Status < ThFinished {
 			vm.Runtimes[threadID].Thread.Notify = append(vm.Runtimes[threadID].Thread.Notify,
 				rt.ThreadID)
-			rt.Thread.Status = core.ThWait
+			rt.Thread.Status = ThWait
 		}
 	})
 }
