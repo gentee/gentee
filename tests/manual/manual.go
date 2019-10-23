@@ -22,6 +22,7 @@ func main() {
 		fmt.Println(`ERROR:`, err)
 		return
 	}
+	fmt.Println(`Result:`, result)
 	result, err = workspace.CompileAndRun(`tests/scripts/network.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
@@ -31,7 +32,6 @@ func main() {
 		fmt.Printf(`Wrong result %v`, result)
 		return
 	}
-	fmt.Println(`Result:`, result)
 	err = filepath.Walk(`examples`, func(script string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil

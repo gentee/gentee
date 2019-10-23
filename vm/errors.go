@@ -53,6 +53,10 @@ const (
 	ErrThreadClosed
 	// ErrPlatform is generated when the function is not supported on the current platform
 	ErrPlatform
+	// ErrCustom is generated when there is an invalid custom declaration
+	ErrCustom
+	// ErrCRC is returned when Exec was compiled with different stdlib or custom functions
+	ErrCRC
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -106,6 +110,8 @@ var (
 		ErrThreadIndex:  `invalid thread`,
 		ErrThreadClosed: `thread has been closed`,
 		ErrPlatform:     `unsupported platform`,
+		ErrCustom:       `invalid custom declaration`,
+		ErrCRC:          `different CRC of stdlib or custom functions`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

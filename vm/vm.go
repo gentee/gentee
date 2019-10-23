@@ -100,6 +100,9 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	if exec == nil {
 		return nil, fmt.Errorf(ErrorText(ErrNotRun))
 	}
+	if exec.CRCStdlib != CRCStdlib || (exec.CRCCustom != 0 && exec.CRCCustom != CRCCustom) {
+		return nil, fmt.Errorf(ErrorText(ErrCRC))
+	}
 	vm := &VM{
 		Settings: settings,
 		Exec:     exec,

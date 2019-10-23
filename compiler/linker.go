@@ -10,6 +10,7 @@ import (
 	"sort"
 
 	"github.com/gentee/gentee/core"
+	"github.com/gentee/gentee/vm"
 )
 
 // BlockInfo describes block in the linker
@@ -49,6 +50,9 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 		Init:    bcode.Init,
 		Pos:     bcode.Pos,
 		Structs: bcode.StructsList,
+
+		CRCStdlib: vm.CRCStdlib,
+		CRCCustom: vm.CRCCustom,
 	}
 	var (
 		ok  bool

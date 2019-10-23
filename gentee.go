@@ -5,6 +5,11 @@
 package gentee
 
 import (
+	"fmt"
+	"reflect"
+	"regexp"
+	"strings"
+
 	"github.com/gentee/gentee/compiler"
 	"github.com/gentee/gentee/core"
 	"github.com/gentee/gentee/vm"
@@ -28,6 +33,96 @@ type Settings struct {
 // Gentee is a common structure for compiling and executing Gentee source code
 type Gentee struct {
 	*core.Workspace
+}
+
+// EmbedItem is a structure for declaration of embedded functions.
+type EmbedItem struct {
+	Prototype string
+	Object    interface{}
+}
+
+// Custom is a structure with parameters for compiling and runtime
+type Custom struct {
+	Embedded []EmbedItem
+}
+
+func str2type(in string) (ret uint16) {
+	switch in {
+	case ``:
+		ret = core.TYPENONE
+	case `int`, `thread`:
+		ret = core.TYPEINT
+	case `bool`:
+		ret = core.TYPEBOOL
+	case `float`:
+		ret = core.TYPEFLOAT
+	case `char`:
+		ret = core.TYPECHAR
+	case `str`:
+		ret = core.TYPESTR
+	case `range`:
+		ret = core.TYPERANGE
+	case `buf`:
+		ret = core.TYPEBUF
+	case `fn`:
+		ret = core.TYPEFUNC
+	case `error`:
+		ret = core.TYPEERROR
+	case `set`:
+		ret = core.TYPESET
+	default:
+		if in == `arr` || strings.HasPrefix(in, `arr.`) {
+			ret = core.TYPEARR
+		} else if in == `map` || strings.HasPrefix(in, `map.`) {
+			ret = core.TYPEMAP
+		} else {
+			ret = core.TYPESTRUCT
+		}
+	}
+	return
+}
+
+func str2pars(in string) (types []uint16) {
+	if len(in) == 0 {
+		return
+	}
+	for _, par := range strings.Split(in, `,`) {
+		types = append(types, str2type(strings.TrimSpace(par)))
+	}
+	return
+}
+
+func Customize(custom *Custom) error {
+	re, err := regexp.Compile(`^([\wº]+)\(([\w ,\.\*]*)\)\s*([\w\.\*]*)?`)
+	if err != nil {
+		return err
+	}
+	for _, v := range custom.Embedded {
+		v.Prototype = strings.ReplaceAll(v.Prototype, ` `, ``)
+		if len(v.Prototype) == 0 || v.Object == nil {
+			return fmt.Errorf("%s %v", vm.ErrorText(vm.ErrCustom), v)
+		}
+		list := re.FindAllStringSubmatch(v.Prototype, -1)
+		vals := list[0]
+		if len(vals) < 4 {
+			return fmt.Errorf("%s %v", vm.ErrorText(vm.ErrCustom), v)
+		}
+		t := reflect.TypeOf(v.Object)
+		embed := core.Embed{
+			Name:     vals[1],
+			Pars:     vals[2],
+			Ret:      vals[3],
+			Code:     uint32(len(vm.EmbedFuncs)),
+			Func:     v.Object,
+			Return:   str2type(vals[3]),
+			Params:   str2pars(vals[2]),
+			Variadic: t.IsVariadic(),
+			Runtime:  t.NumIn() > 0 && t.In(0) == reflect.TypeOf(&vm.Runtime{}),
+			CanError: t.NumOut() >= 1 && t.Out(t.NumOut()-1).String() == `error`,
+		}
+		vm.EmbedFuncs = append(vm.EmbedFuncs, embed)
+	}
+	return nil
 }
 
 // New creates a new Gentee workspace

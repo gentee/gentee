@@ -161,7 +161,9 @@ func Compile(ws *core.Workspace, input, path string) (int, error) {
 		curIota: core.NotIota,
 	}
 	cmpl.unit.Lexeme = []*core.Lex{lp}
-	cmpl.copyNameSpace(ws.StdLib(), true)
+	if err := cmpl.copyNameSpace(ws.StdLib(), true); err != nil {
+		return core.Undefined, err
+	}
 	cmplError := func(err interface{}) (int, error) {
 		// Rollback ws
 		ws.Objects = ws.Objects[:countObjects]

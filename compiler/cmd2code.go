@@ -77,7 +77,7 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 		case core.ObjEmbedded:
 			embed := obj.(*core.EmbedObject)
 			if ind, ok := embed.Func.(int32); ok {
-				push(core.Bcode(ind<<16) | core.EMBEDNEW)
+				push(core.Bcode(ind<<16) | core.EMBED)
 				if embed.Variadic {
 					push(core.Bcode(len(ptypes)))
 					if len(ptypes) > 0 {

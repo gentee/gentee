@@ -5,7 +5,11 @@
 package compiler
 
 import (
+	"fmt"
+	"hash/crc64"
+
 	"github.com/gentee/gentee/core"
+	"github.com/gentee/gentee/vm"
 )
 
 // InitStdlib appends stdlib types and functions to the virtual machine
@@ -56,7 +60,17 @@ func InitStdlib(ws *core.Workspace) {
 
 // InitEmbed imports in-line functions
 func InitEmbed(ws *core.Workspace) {
-	for _, embed := range ws.Embedded {
+	var crc string
+
+	for i, embed := range ws.Embedded {
+		crc += fmt.Sprintf("%s(%s)%s", embed.Name, embed.Pars, embed.Ret)
 		ws.StdLib().ImportEmbed(embed)
+		if i == vm.StdLibCount-1 {
+			vm.CRCStdlib = crc64.Checksum([]byte(crc), crc64.MakeTable(crc64.ECMA))
+			crc = ``
+		}
+	}
+	if len(crc) > 0 {
+		vm.CRCCustom = crc64.Checksum([]byte(crc), crc64.MakeTable(crc64.ECMA))
 	}
 }

@@ -375,8 +375,9 @@ main:
 			}
 		case core.SETVAR:
 			var (
-				ptr interface{}
-				err error
+				ptr     interface{}
+				err     error
+				typeRet int
 			)
 
 			if code[i+2]&0xffff == core.INDEX {
@@ -399,7 +400,7 @@ main:
 			blockOff := rt.Calls[int32(base)]
 			i++
 			typeVar := int(code[i]) >> 16
-			typeRet := typeVar
+			//			typeRet := typeVar
 			obj := &iInfo.Objects[0]
 			obj.Type = typeVar
 			root := int64(int(code[i]) & 0xffff)
@@ -1238,15 +1239,12 @@ main:
 			threadID := rt.GoThread(int64(rt.Owner.Exec.Funcs[id]), pars, &top)
 			rt.SInt[top.Int] = threadID
 			top.Int++
-		case core.EMBED, core.EMBEDNEW:
+		case core.EMBED:
 			var (
 				vCount int
-				embed  core.Embed
 			)
 			idEmbed := uint16(code[i] >> 16)
-			if code[i]&0xffff == core.EMBEDNEW {
-				embed = EmbedFuncs[idEmbed]
-			}
+			embed := EmbedFuncs[idEmbed]
 			count := len(embed.Params)
 			if embed.Variadic {
 				i++

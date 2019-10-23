@@ -47,6 +47,9 @@ type Exec struct {
 	Strings []string // string resources
 	Structs []StructInfo
 	Pos     []CodePos
+
+	CRCStdlib uint64
+	CRCCustom uint64
 }
 
 // Embed contains information about the golang function
@@ -166,9 +169,7 @@ const (
 	CONSTBYID // + int32 id of the object
 	CALLBYID  // & (par count<<16) + int32 id of the object
 	GOBYID    // & (par count<<16) + int32 id of the object new thread + int32 type of pars
-	EMBEDNEW  // & (embed id << 16) calls embedded func + int32 count for variadic funcs
-	// + [variadic types]
-	EMBED // & (embed id << 16) calls embedded func + int32 count for variadic funcs
+	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
 	LOCAL // & (par count << 16)+ int32 offset
 	IOTA  // & (iota<<16)

@@ -1,0 +1,34 @@
+run arr {
+  str s1 = "s1"
+  return rtStrStack("param", "s2")
+}
+===== [s1 s1 param s2]
+run {
+  mustErr()
+}
+===== [2:3] custom error
+run {
+  custErr("OK")
+}
+===== [2:3] string OK is too long
+run str {
+  return varPar("ok") + varPar("A", "B") + varPar("C", 7, "D") + custErr("Z")
+}
+===== okABC7DZZ
+run int {
+  return varInt() + varInt(7) + varInt(4, 5, 6)
+}
+===== 22
+run str {
+  return str(45 == `45`) + str(123 == `50`)
+}
+===== truefalse
+run str {
+  return nopars() 
+}
+===== [2:19] function returns wrong type
+run str {
+  nopars() 
+  return retStr() + ParStr(`0`) + str(Sum(3,4))
+}
+===== retStr0011
