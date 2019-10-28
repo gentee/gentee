@@ -176,6 +176,6 @@ func (exec *Exec) Run(settings Settings) (interface{}, error) {
 }
 
 // Version returns the current version of the Gentee compiler.
-func (g *Gentee) Version() string {
+func Version() string {
 	return core.Version
 }

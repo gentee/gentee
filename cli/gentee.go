@@ -37,7 +37,7 @@ func main() {
 
 	workspace := gentee.New()
 	if ver {
-		fmt.Println(workspace.Version())
+		fmt.Println(gentee.Version())
 		return
 	}
 

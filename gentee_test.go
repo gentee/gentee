@@ -144,7 +144,7 @@ func TestGentee(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if result != workspace.Version() {
+	if result != Version() {
 		t.Errorf(`Wrong version %v`, result)
 		return
 	}
