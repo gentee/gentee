@@ -117,8 +117,8 @@ func (ws *Workspace) Unit(name string) *Unit {
 
 func (unit *Unit) GetHeader(name string) string {
 	for _, line := range strings.Split(unit.Lexeme[0].Header, "\n") {
-		ret := regexp.MustCompile(`\s*` + name + `\s*=\s*(.*)$`).FindStringSubmatch(
-			strings.TrimSpace(line))
+		ret := regexp.MustCompile(`\s*` + strings.ReplaceAll(name, `.`, `\.`) +
+			`\s*=\s*(.*)$`).FindStringSubmatch(strings.TrimSpace(line))
 		if len(ret) == 2 {
 			return ret[1]
 		}

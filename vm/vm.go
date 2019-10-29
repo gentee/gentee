@@ -23,6 +23,7 @@ const (
 
 type Settings struct {
 	CmdLine []string
+	Input   []byte // stdin
 	Cycle   uint64 // limit of loops
 	Depth   uint32 // limit of blocks stack
 }

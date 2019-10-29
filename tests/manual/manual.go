@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gentee/gentee"
@@ -48,6 +49,8 @@ func main() {
 			unit := workspace.Unit(unitID)
 			stdout := unit.GetHeader(`stdout`)
 			resWant := unit.GetHeader(`result`)
+			stdin := unit.GetHeader(`stdin`)
+			cycle := unit.GetHeader(`settings.cycle`)
 			var (
 				rescueStdout, r, w *os.File
 			)
@@ -56,7 +59,16 @@ func main() {
 				r, w, _ = os.Pipe()
 				os.Stdout = w
 			}
-			result, err := exec.Run(gentee.Settings{})
+			var settings gentee.Settings
+			if len(stdin) > 0 {
+				settings.Input = []byte(strings.ReplaceAll(stdin, `\n`, "\n"))
+			}
+			if len(cycle) > 0 {
+				if i, err := strconv.ParseUint(cycle, 10, 64); err == nil {
+					settings.Cycle = i
+				}
+			}
+			result, err := exec.Run(settings)
 			if stdout == `1` {
 				w.Close()
 				out, _ := ioutil.ReadAll(r)
@@ -67,7 +79,11 @@ func main() {
 						crc64.MakeTable(crc64.ECMA)))
 				}
 			}
-			if len(resWant) > 0 && resWant != fmt.Sprint(result) {
+			if err != nil {
+				if err.Error() != resWant {
+					return fmt.Errorf(`error result %v`, err)
+				}
+			} else if len(resWant) > 0 && resWant != strings.TrimSpace(fmt.Sprint(result)) {
 				return fmt.Errorf(`wrong result %v`, result)
 			}
 		}

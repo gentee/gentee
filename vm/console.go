@@ -33,11 +33,28 @@ func PrintShiftºStr(par string) (int64, error) {
 }
 
 // ReadString reads a string from standard input.
-func ReadString(text string) (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	if len(text) > 0 {
-		fmt.Print(text)
+func ReadString(rt *Runtime, text string) (string, error) {
+	vm := rt.Owner
+	vm.ThreadMutex.Lock()
+	defer vm.ThreadMutex.Unlock()
+	var (
+		ret string
+		err error
+	)
+	if len(vm.Settings.Input) > 0 {
+		if toRead := strings.IndexByte(string(vm.Settings.Input), '\n'); toRead == -1 {
+			ret = string(vm.Settings.Input)
+			vm.Settings.Input = vm.Settings.Input[:0]
+		} else {
+			ret = string(vm.Settings.Input[:toRead+1])
+			vm.Settings.Input = vm.Settings.Input[toRead+1:]
+		}
+	} else {
+		if len(text) > 0 {
+			fmt.Print(text)
+		}
+		reader := bufio.NewReader(os.Stdin)
+		ret, err = reader.ReadString('\n')
 	}
-	ret, err := reader.ReadString('\n')
 	return strings.TrimSpace(ret), err
 }

@@ -1,4 +1,5 @@
 #!/usr/local/bin/gentee
+# stdin = 1024\n384\n0
 
 // Copyright 2019 Alexey Krivonogov. All rights reserved.
 // Use of this source code is governed by a MIT license

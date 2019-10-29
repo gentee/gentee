@@ -1,3 +1,4 @@
+Abs(int)int;AbsºInt
 AbsPath(str) str;AbsPath;e
 Add(buf,buf) buf;AddºBufBuf                     // buf + buf
 Add(char,char) str;AddºCharChar                 // char + char
@@ -194,7 +195,7 @@ ReadDir(str) arr.finfo;ReadDirºStr;re
 ReadFile(str) str;ReadFileºStr;e
 ReadFile(str,buf) buf;ReadFileºStrBuf;e
 ReadFile(str,int,int) buf;ReadFileºStrIntInt;e
-ReadString(str) str;ReadString;e
+ReadString(str) str;ReadString;er
 Remove(str);RemoveºStr;e
 RemoveDir(str);RemoveDirºStr;e
 Rename(str,str);RenameºStrStr;e

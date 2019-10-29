@@ -9,6 +9,14 @@ import (
 	"strconv"
 )
 
+// AbsºInt the absolute value of x.
+func AbsºInt(x int64) int64 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 // AssignAddºIntInt adds one integer to another
 func AssignAddºIntInt(ptr *int64, value int64) (int64, error) {
 	*ptr += value

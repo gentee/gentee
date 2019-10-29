@@ -1,0 +1,4 @@
+run int {
+    return Abs(-100) - Abs(25) - Abs(-10)
+}
+===== 65
