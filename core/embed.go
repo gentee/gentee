@@ -11,7 +11,9 @@ import (
 
 const (
 	// DefAssignAddArr appends the array to array
-	DefAssignAddArr = `AssignAddºArrArr`
+	DefAssignAddArr = `AssignAddºArr`
+	// DefAssignAddArrArr appends the array to array
+	DefAssignAddArrArr = `AssignAddºArrArr`
 	// DefAssignAddMap appends the map to array
 	DefAssignAddMap = `AssignAddºArrMap`
 	// DefAssignArr assigns one array to another
@@ -43,6 +45,7 @@ const (
 var (
 	defFuncs = map[string]bool{
 		DefAssignAddArr:             true,
+		DefAssignAddArrArr:          true,
 		DefAssignAddMap:             true,
 		DefAssignArr:                true,
 		DefAssignMap:                true,

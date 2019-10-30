@@ -257,10 +257,13 @@ func popBuf(cmpl *compiler) error {
 			if expBuf.Oper == tkAddEq && left.GetResult().Original == reflect.TypeOf(core.Array{}) {
 				if left.GetResult().IndexOf == right.GetResult() {
 					if right.GetResult().Original == reflect.TypeOf(core.Array{}) {
-						obj = cmpl.unit.FindObj(core.DefAssignAddArr)
+						obj = cmpl.unit.FindObj(core.DefAssignAddArrArr)
 					} else if right.GetResult().Original == reflect.TypeOf(core.Map{}) {
 						obj = cmpl.unit.FindObj(core.DefAssignAddMap)
 					}
+				} else if right.GetResult().Original == reflect.TypeOf(core.Array{}) &&
+					left.GetResult().IndexOf == right.GetResult().IndexOf {
+					obj = cmpl.unit.FindObj(core.DefAssignAddArr)
 				}
 			}
 			if obj == nil {
@@ -559,6 +562,12 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 								}
 							} else {
 								result = obj.Result()
+								if result != nil && len(params) > 0 {
+									retName := result.GetName()
+									if retName == `arr*` || retName == `map*` {
+										result = params[0]
+									}
+								}
 								pobj = obj
 							}
 							if optCount > 0 {

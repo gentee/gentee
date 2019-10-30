@@ -1,4 +1,21 @@
 run {
+  arr astr = {`1`, `2`}
+  Slice(astr, 0, 24)
+}
+===== [3:3] invalid value of parameter(s)
+run {
+  arr astr = {`1`, `2`}
+  arr.int aint
+  aint += astr
+}
+===== [4:8] function AssignAdd(arr.int, arr.str) has not been found
+run {
+  arr astr = {`1`, `2`}
+  arr.int aint
+  aint = Reverse(astr)
+}
+===== [4:8] function Assign(arr.int, arr.str) has not been found
+run {
   arr ai
   IsKey(ai, `100`)
 }

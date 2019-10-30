@@ -35,6 +35,7 @@ AssignºFnFn(fn,fn) fn;ASSIGN                    // fn = fn
 AssignºMapMap(map*,map*) map*;ASSIGN            // map = map
 AssignºStructStruct(struct,struct) struct;ASSIGN            // struct = struct
 Assign(thread,thread) thread;ASSIGN                         // thread = thread
+AssignAddºArr(arr*,arr*) arr*;AssignAddºArr;e               // arr += arr
 AssignAdd(arr.bool,bool) arr.bool;AssignAddºArrAny          // arr += bool
 AssignAdd(arr.int,int) arr.int;AssignAddºArrAny             // arr += int
 AssignAdd(arr.thread,thread) arr.thread;AssignAddºArrAny	// arr += thread
@@ -202,6 +203,7 @@ Rename(str,str);RenameºStrStr;e
 Repeat(str,int) str;RepeatºStrInt
 Replace(str,str,str) str;ReplaceºStrStrStr
 ReplaceRegExp(str,str,str) str;ReplaceRegExpºStrStr;e
+ReverseAuto(arr*) arr*;ReverseºArr
 resume(thread);resumeºThread;er
 Round(float) int;RoundºFloat
 Round(float,int) float;RoundºFloatInt
@@ -220,6 +222,7 @@ Shift(str) str;ShiftºStr
 Sign(float) float;SIGNFLOAT
 Sign(int) int;SIGN                      // -int
 sleep(int);sleepºInt;r
+SliceAuto(arr*,int,int) arr*;SliceºArr;e
 Sort(arr.str) arr.str;SortºArr
 Split(str,str) arr.str;SplitºStrStr
 str(bool) str;strºBool

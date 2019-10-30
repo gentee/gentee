@@ -1,3 +1,16 @@
+run arr.int {
+  arr.int ai = {1, 2, 3, 4, 5, 6}
+  arr.int ab &= Slice(ai, 2, 0)
+  return ab += Slice(ai, 0, 3)
+}
+===== [3 4 5 6 1 2 3]
+run arr.int {
+  arr.int ai = {1, 2, 3, 4}
+  arr.int ab = Reverse(ai)
+  ab += 5
+  return Reverse(ab)
+}
+===== [5 1 2 3 4]
 run arr.bool {
   arr.bool bib
   bib += true

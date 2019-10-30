@@ -5,11 +5,20 @@
 package vm
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/gentee/gentee/core"
 )
+
+// AssignAddºArr appends one array to another one
+func AssignAddºArr(dest interface{}, src interface{}) (interface{}, error) {
+	for _, item := range src.(*core.Array).Data {
+		dest.(*core.Array).Data = append(dest.(*core.Array).Data, item)
+	}
+	return dest, nil
+}
 
 // AssignAddºArrAny appends an item to array
 func AssignAddºArrAny(arr interface{}, value interface{}) (interface{}, error) {
@@ -27,13 +36,26 @@ func JoinºArrStr(value *core.Array, sep string) string {
 }
 
 // ReverseºArr reverses an array
-func ReverseºArr(arr interface{}) interface{} {
-	data := arr.(*core.Array).Data
-	for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
-		data[i], data[j] = data[j], data[i]
+func ReverseºArr(arr *core.Array) *core.Array {
+	for i, j := 0, len(arr.Data)-1; i < j; i, j = i+1, j-1 {
+		arr.Data[i], arr.Data[j] = arr.Data[j], arr.Data[i]
 	}
-	arr.(*core.Array).Data = data
 	return arr
+}
+
+// SliceºArr extracts some consecutive elements from within an array.
+func SliceºArr(arr *core.Array, start, end int64) (*core.Array, error) {
+	ret := core.NewArray()
+	if start < 0 || end > int64(len(arr.Data)) {
+		return ret, fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	if end == 0 {
+		end = int64(len(arr.Data))
+	}
+	for ; start < end; start++ {
+		ret.Data = append(ret.Data, arr.Data[start])
+	}
+	return ret, nil
 }
 
 // SortºArr sorts an array of strings
