@@ -11,7 +11,7 @@ Gentee is a free open source script programming language. The Gentee programming
 - [Gentee programming language (English)](https://docs.gentee.org/)
 - [Язык программирования Gentee (Russian)](https://ru.gentee.org/)
 
-All documentation is available on [GitHub pages](https://github.com/gentee/gentee.github.io). 
+All documentation is available on [GitHub](https://github.com/gentee/docs-gentee). 
 
 ## Download
 
@@ -21,6 +21,10 @@ All documentation is available on [GitHub pages](https://github.com/gentee/gente
 
 You can download other binary distributions for Linux, macOS, Windows [here](https://github.com/gentee/gentee/releases).
 
+## Go integration
+
+You can use the Gentee compiler and virtual machine in **golang** projects without any restrictions.
+Documentation is available [here](https://docs.gentee.org/golang/howtouse).
 
 ## How to run Gentee scripts
 

@@ -222,7 +222,7 @@ Shift(str) str;ShiftºStr
 Sign(float) float;SIGNFLOAT
 Sign(int) int;SIGN                      // -int
 sleep(int);sleepºInt;r
-SliceAuto(arr*,int,int) arr*;SliceºArr;e
+SliceAuto(arr*,int,int) arr*;SliceºArr;er
 Sort(arr.str) arr.str;SortºArr
 Split(str,str) arr.str;SplitºStrStr
 str(bool) str;strºBool

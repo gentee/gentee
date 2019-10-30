@@ -44,7 +44,7 @@ func ReverseºArr(arr *core.Array) *core.Array {
 }
 
 // SliceºArr extracts some consecutive elements from within an array.
-func SliceºArr(arr *core.Array, start, end int64) (*core.Array, error) {
+func SliceºArr(rt *Runtime, arr *core.Array, start, end int64) (*core.Array, error) {
 	ret := core.NewArray()
 	if start < 0 || end > int64(len(arr.Data)) {
 		return ret, fmt.Errorf(ErrorText(ErrInvalidParam))
@@ -53,7 +53,9 @@ func SliceºArr(arr *core.Array, start, end int64) (*core.Array, error) {
 		end = int64(len(arr.Data))
 	}
 	for ; start < end; start++ {
-		ret.Data = append(ret.Data, arr.Data[start])
+		var ptr interface{}
+		CopyVar(rt, &ptr, arr.Data[start])
+		ret.Data = append(ret.Data, ptr)
 	}
 	return ret, nil
 }
