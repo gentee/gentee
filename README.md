@@ -23,7 +23,7 @@ You can download other binary distributions for Linux, macOS, Windows [here](htt
 
 ## Go integration
 
-You can use the Gentee compiler and virtual machine in **golang** projects without any restrictions.
+You can use the Gentee compiler and virtual machine in **golang** projects without any restrictions.  
 Documentation is available [here](https://docs.gentee.org/golang/howtouse).
 
 ## How to run Gentee scripts
