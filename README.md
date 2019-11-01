@@ -69,6 +69,6 @@ If you have any questions and suggestions or would like to help in the developme
 
 ## License
 
-[MIT](http://opensource.org/licenses/MIT)
+[MIT](https://github.com/gentee/gentee/blob/master/LICENSE)
 
 Copyright (c) 2018-present, Alexey Krivonogov

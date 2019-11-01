@@ -1,3 +1,13 @@
+include {
+  "tests/scripts/f.g"
+  "tests/scripts/g.g"
+  "tests/scripts/f.g"
+} 
+
+run include_test int {
+  return c_func(e_func(33,11))+ cpub_func(7)
+}
+===== 29
 run str {
   str s
   for i in 1..3 {

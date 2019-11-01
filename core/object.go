@@ -37,7 +37,6 @@ type IObject interface {
 // Object contains information about any compiled object of the virtual machine
 type Object struct {
 	Name  string
-	LexID int // the identifier of source code in Lexeme of Unit
 	Unit  *Unit
 	Pub   bool  // public object
 	ObjID int32 // index in Objects
@@ -79,13 +78,6 @@ type ConstObject struct {
 	Iota      int64       // iota
 }
 
-func getLex(obj *Object) *Lex {
-	if obj.LexID < len(obj.Unit.Lexeme) {
-		return obj.Unit.Lexeme[obj.LexID]
-	}
-	return nil
-}
-
 // GetName returns the name of the object
 func (typeObj *TypeObject) GetName() (ret string) {
 	ret = typeObj.Name
@@ -97,7 +89,7 @@ func (typeObj *TypeObject) GetName() (ret string) {
 
 // GetLex returns the lex structure of the object
 func (typeObj *TypeObject) GetLex() *Lex {
-	return getLex(&typeObj.Object)
+	return typeObj.Object.Unit.Lexeme
 }
 
 // GetType returns ObjType
@@ -137,7 +129,7 @@ func (funcObj *FuncObject) GetName() string {
 
 // GetLex returns the lex structure of the object
 func (funcObj *FuncObject) GetLex() *Lex {
-	return getLex(&funcObj.Object)
+	return funcObj.Object.Unit.Lexeme
 }
 
 // GetType returns ObjFunc
@@ -177,7 +169,7 @@ func (embedObj *EmbedObject) GetName() string {
 
 // GetLex returns the lex structure of the object
 func (embedObj *EmbedObject) GetLex() *Lex {
-	return getLex(&embedObj.Object)
+	return embedObj.Object.Unit.Lexeme
 }
 
 // GetType returns ObjEmbedded
@@ -217,7 +209,7 @@ func (constObj *ConstObject) GetName() string {
 
 // GetLex returns the lex structure of the object
 func (constObj *ConstObject) GetLex() *Lex {
-	return getLex(&constObj.Object)
+	return constObj.Object.Unit.Lexeme
 }
 
 // GetType returns ObjType

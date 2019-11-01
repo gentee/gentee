@@ -33,7 +33,7 @@ func coTryBack(cmpl *compiler) error {
 }
 
 func coCatch(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	if err := checkUsedName(cmpl, token); err != nil {
 		return err
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 func checkNewType(cmpl *compiler) (string, error) {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	obj, _ := getType(cmpl)
 	if obj != nil {
 		return ``, cmpl.Error(ErrTypeExists, token)
@@ -62,7 +62,7 @@ func coStructType(cmpl *compiler) error {
 }
 
 func coStructName(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	if strings.IndexRune(token, '.') >= 0 {
 		return cmpl.Error(ErrIdent)
 	}

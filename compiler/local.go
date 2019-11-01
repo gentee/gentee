@@ -38,7 +38,7 @@ func coLocalBack(cmpl *compiler) error {
 }
 
 func coLocalName(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	if isCapital(token) {
 		return cmpl.Error(ErrCapitalLetters)
 	}

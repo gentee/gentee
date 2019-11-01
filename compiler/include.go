@@ -62,7 +62,7 @@ func coIncludeImport(cmpl *compiler) error {
 		err    error
 		unitID int
 	)
-	lp := cmpl.getLex()
+	lp := cmpl.unit.Lexeme
 	token := getToken(lp, cmpl.pos)
 	v = lp.Strings[lp.Tokens[cmpl.pos].Index]
 	if len(lp.Tokens) > cmpl.pos+1 && lp.Tokens[cmpl.pos+1].Type == tkStrExp {

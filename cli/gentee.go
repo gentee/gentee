@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	gentee "github.com/gentee/gentee"
@@ -81,13 +80,9 @@ func main() {
 	isError(errRun)
 	resultStr := fmt.Sprint(result)
 	if testMode {
-		for _, line := range strings.Split(workspace.Unit(unitID).Lexeme[0].Header, "\n") {
-			ret := regexp.MustCompile(`\s*result\s*=\s*(.*)$`).FindStringSubmatch(strings.TrimSpace(line))
-			if len(ret) == 2 {
-				if ret[1] == strings.TrimSpace(resultStr) {
-					return
-				}
-			}
+		ret := workspace.Unit(unitID).GetHeader(`result`)
+		if len(ret) > 0 && ret == strings.TrimSpace(resultStr) {
+			return
 		}
 		err = fmt.Errorf(`different test result %s`, resultStr)
 		isError(errResult)

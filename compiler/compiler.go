@@ -160,7 +160,7 @@ func Compile(ws *core.Workspace, input, path string) (int, error) {
 		expbuf:  make([]ExpBuf, 0, 128),
 		curIota: core.NotIota,
 	}
-	cmpl.unit.Lexeme = []*core.Lex{lp}
+	cmpl.unit.Lexeme = lp
 	if err := cmpl.copyNameSpace(ws.StdLib(), true); err != nil {
 		return core.Undefined, err
 	}
@@ -211,7 +211,6 @@ main:
 		cmpl.dynamic = nil
 		cmpl.newPos = 0
 		//fmt.Printf("NEXT i=%d state=%d token=%d v=%v inits=%d nextstate=%v %v\r\n", i, state, token.Type,
-		//getToken(cmpl.getLex(), i), cmpl.inits, cmpl.next, stackState)
 		if (state == cmExp || state == cmExpOper) && token.Type == tkLine {
 			if state == cmExp && lp.Tokens[i-1].Type >= tkAdd && lp.Tokens[i-1].Type <= tkComma {
 				continue
@@ -294,14 +293,12 @@ main:
 		if len(cmpl.unit.Name) == 0 {
 			cmpl.unit.Name = path
 		}
-		if unitIndex, ok := ws.UnitNames[cmpl.unit.Name]; ok {
-			if ws.Units[unitIndex].Lexeme[0].Path != path {
-				return cmplError(cmpl.Error(ErrLink, cmpl.unit.Name))
-			}
-		}
-		/*				ws.Units[unitIndex] = cmpl.unit
-						ws.Compiled = unitIndex
-					} else {*/
+		/*		if unitIndex, ok := ws.UnitNames[cmpl.unit.Name]; ok {
+				if ws.Units[unitIndex].Lexeme[0].Path != path {
+					fmt.Println(unitIndex, path, `LEX`, ws.Units[unitIndex].Lexeme[0].Path, `Name`, cmpl.unit.Name)
+					return cmplError(cmpl.Error(ErrLink, cmpl.unit.Name))
+				}
+			}*/
 	}
 	ws.Units = append(ws.Units, cmpl.unit)
 	unitID := len(ws.Units) - 1
@@ -315,7 +312,7 @@ func colonToLine(cmpl *compiler, i int) error {
 	if i < cmpl.endColon {
 		return cmpl.ErrorPos(i, ErrDoubleColon)
 	}
-	lp := cmpl.unit.Lexeme[0]
+	lp := cmpl.unit.Lexeme
 	lp.Tokens[i].Type = tkLCurly
 	end := i + 1
 	for ; end < len(lp.Tokens); end++ {
@@ -418,11 +415,7 @@ func appendCmd(cmpl *compiler, cmd core.ICmd) {
 }
 
 func getType(cmpl *compiler) (obj core.IObject, err error) {
-	return autoType(cmpl, getToken(cmpl.getLex(), cmpl.pos))
-}
-
-func (cmpl *compiler) getLex() *core.Lex {
-	return cmpl.unit.Lexeme[len(cmpl.unit.Lexeme)-1]
+	return autoType(cmpl, getToken(cmpl.unit.Lexeme, cmpl.pos))
 }
 
 func findVar(cmpl *compiler, token string) (*core.CmdBlock, int) {
@@ -505,7 +498,7 @@ func coVarToken(cmpl *compiler, token string) error {
 }
 
 func coVar(cmpl *compiler) error {
-	return coVarToken(cmpl, getToken(cmpl.getLex(), cmpl.pos))
+	return coVarToken(cmpl, getToken(cmpl.unit.Lexeme, cmpl.pos))
 }
 
 func coVariadic(cmpl *compiler) error {
@@ -557,7 +550,7 @@ func coVarExp(cmpl *compiler) error {
 	if err := coVar(cmpl); err != nil {
 		return err
 	}
-	tokens := cmpl.getLex().Tokens
+	tokens := cmpl.unit.Lexeme.Tokens
 	if len(tokens) == cmpl.pos+1 {
 		return nil
 	}
@@ -608,7 +601,7 @@ func coVarExp(cmpl *compiler) error {
 }
 
 func coExpEnv(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	getEnv := cmpl.ws.StdLib().FindObj(core.DefGetEnv) //Names[`GetEnv`]
 	icmd := &core.CmdValue{Value: token,
 		CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},

@@ -29,7 +29,7 @@ func coPush(cmpl *compiler) error {
 		vType string
 		err   error
 	)
-	lp := cmpl.getLex()
+	lp := cmpl.unit.Lexeme
 	token := getToken(lp, cmpl.pos)
 	switch lp.Tokens[cmpl.pos].Type {
 	case tkFloat:
@@ -73,10 +73,10 @@ func coPush(cmpl *compiler) error {
 }
 
 func coExpVar(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos-1)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos-1)
 	init := isInState(cmpl, cmInit, 1)
 	if init && cmpl.curOwner().GetResult().Custom != nil &&
-		cmpl.getLex().Tokens[cmpl.pos].Type == tkColon {
+		cmpl.unit.Lexeme.Tokens[cmpl.pos].Type == tkColon {
 		if _, ok := cmpl.curOwner().GetResult().Custom.Fields[token]; !ok {
 			return cmpl.ErrorPos(cmpl.pos-1, ErrWrongField, token, cmpl.curOwner().GetResult().GetName())
 		}
@@ -85,7 +85,7 @@ func coExpVar(cmpl *compiler) error {
 			Result:    cmpl.getStrType()})
 		return nil
 	}
-	if cmpl.getLex().Tokens[cmpl.pos].Type == tkCtxEq {
+	if cmpl.unit.Lexeme.Tokens[cmpl.pos].Type == tkCtxEq {
 		appendExp(cmpl, &core.CmdValue{Value: token,
 			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos - 1)},
 			Result:    cmpl.unit.FindType(`str`).(*core.TypeObject)})
@@ -362,7 +362,7 @@ func popBuf(cmpl *compiler) error {
 }
 
 func coFnOperator(cmpl *compiler) error {
-	lp := cmpl.getLex()
+	lp := cmpl.unit.Lexeme
 	if len(lp.Tokens) == cmpl.pos+1 {
 		return cmpl.ErrorPos(len(lp.Tokens), ErrEnd)
 	}
@@ -399,11 +399,11 @@ func coFnOperator(cmpl *compiler) error {
 }
 
 func coUnaryOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type)|tkUnary)
+	return appendExpBuf(cmpl, int(cmpl.unit.Lexeme.Tokens[cmpl.pos].Type)|tkUnary)
 }
 
 func coCtxOperator(cmpl *compiler) error {
-	lp := cmpl.getLex()
+	lp := cmpl.unit.Lexeme
 	if len(lp.Tokens) == cmpl.pos+1 || lp.Tokens[cmpl.pos+1].Type != tkIdent {
 		return cmpl.ErrorPos(cmpl.pos+1, ErrName)
 	}
@@ -452,7 +452,7 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 				if len(cmpl.expbuf) > 0 {
 					prevToken := cmpl.expbuf[len(cmpl.expbuf)-1]
 					if prevToken.Oper == tkCallFunc {
-						nameFunc := getToken(cmpl.getLex(), prevToken.Pos-1)
+						nameFunc := getToken(cmpl.unit.Lexeme, prevToken.Pos-1)
 						var (
 							curOpt   *optInfo
 							optCount int
@@ -661,16 +661,16 @@ func setIndex(cmpl *compiler) error {
 }
 
 func coOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type))
+	return appendExpBuf(cmpl, int(cmpl.unit.Lexeme.Tokens[cmpl.pos].Type))
 }
 
 func coRPar(cmpl *compiler) error {
-	if cmpl.getLex().Tokens[cmpl.pos-1].Type == tkLPar {
+	if cmpl.unit.Lexeme.Tokens[cmpl.pos-1].Type == tkLPar {
 		// This is for calling functions without parameters - 2 * sum() + 1
 		cmpl.dynamic = &cmState{tkRPar, cmExpOper, nil, nil, cfStay | cfStopBack}
 		return nil
 	}
-	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type))
+	return appendExpBuf(cmpl, int(cmpl.unit.Lexeme.Tokens[cmpl.pos].Type))
 }
 
 func coCallFunc(cmpl *compiler) error {
@@ -679,7 +679,7 @@ func coCallFunc(cmpl *compiler) error {
 }
 
 func coOptionalFunc(cmpl *compiler) (bool, error) {
-	tokens := cmpl.getLex().Tokens
+	tokens := cmpl.unit.Lexeme.Tokens
 	if len(tokens) == cmpl.pos+1 {
 		return false, nil
 	}
@@ -687,7 +687,7 @@ func coOptionalFunc(cmpl *compiler) (bool, error) {
 		if len(cmpl.expbuf) >= 2 && (cmpl.expbuf[len(cmpl.expbuf)-1].Oper == tkLPar &&
 			cmpl.expbuf[len(cmpl.expbuf)-2].Oper == tkCallFunc) {
 
-			lp := cmpl.getLex()
+			lp := cmpl.unit.Lexeme
 			token := getToken(lp, cmpl.pos)
 			cmpl.newPos = cmpl.pos + 1
 			curOpt := cmpl.optionals[len(cmpl.optionals)-1]
@@ -731,5 +731,5 @@ func coComma(cmpl *compiler) error {
 }
 
 func coUnaryPostOperator(cmpl *compiler) error {
-	return appendExpBuf(cmpl, int(cmpl.getLex().Tokens[cmpl.pos].Type)|tkUnary|tkPost)
+	return appendExpBuf(cmpl, int(cmpl.unit.Lexeme.Tokens[cmpl.pos].Type)|tkUnary|tkPost)
 }

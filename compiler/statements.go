@@ -153,7 +153,7 @@ func coFor(cmpl *compiler) error {
 	cmd := core.CmdBlock{ID: core.StackFor, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)}}
 	appendCmd(cmpl, &cmd)
 	cmpl.owners = append(cmpl.owners, &cmd)
-	lp := cmpl.unit.Lexeme[0]
+	lp := cmpl.unit.Lexeme
 	cmpl.newPos = cmpl.pos + 1
 	if lp.Tokens[cmpl.newPos].Type != tkIdent {
 		return cmpl.ErrorPos(cmpl.newPos, ErrName)

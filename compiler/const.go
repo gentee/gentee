@@ -9,7 +9,7 @@ import (
 )
 
 func coConst(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	if !isCapital(token) {
 		return cmpl.Error(ErrConstName)
 	}
@@ -49,10 +49,9 @@ func coConstExpBack(cmpl *compiler) error {
 	owner := cmpl.curOwner()
 	constObj := &core.ConstObject{
 		Object: core.Object{
-			Name:  cmpl.curConst,
-			LexID: len(cmpl.unit.Lexeme) - 1,
-			Unit:  cmpl.unit,
-			Pub:   cmpl.unit.Pub != 0,
+			Name: cmpl.curConst,
+			Unit: cmpl.unit,
+			Pub:  cmpl.unit.Pub != 0,
 		},
 		Redefined: false,
 		Exp:       owner.Children[0],
@@ -82,10 +81,9 @@ func coConstList(cmpl *compiler) error {
 	}
 	constObj := &core.ConstObject{
 		Object: core.Object{
-			Name:  cmpl.curConst,
-			LexID: len(cmpl.unit.Lexeme) - 1,
-			Unit:  cmpl.unit,
-			Pub:   cmpl.unit.Pub != 0,
+			Name: cmpl.curConst,
+			Unit: cmpl.unit,
+			Pub:  cmpl.unit.Pub != 0,
 		},
 		Redefined: false,
 		Exp:       cmpl.expConst,

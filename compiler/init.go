@@ -89,7 +89,7 @@ func coInitNext(cmpl *compiler) error {
 	if len(cmpl.owners[len(cmpl.owners)-1].(*core.CmdBlock).Children) == 0 {
 		return cmpl.Error(ErrValue)
 	}
-	lp := cmpl.getLex()
+	lp := cmpl.unit.Lexeme
 	if lp.Tokens[cmpl.pos].Type == tkComma {
 		for i := cmpl.pos - 1; i > 0; i-- {
 			token := lp.Tokens[i]

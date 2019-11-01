@@ -49,7 +49,7 @@ func coGoBack(cmpl *compiler) error {
 	goExpPop(cmpl)
 	cmpl.dynamic = &cmState{tkToken, cmExp, nil, nil, 0}
 	*cmpl.states = (*cmpl.states)[:len(*cmpl.states)-1]
-	lp := cmpl.getLex()
+	lp := cmpl.unit.Lexeme
 	nextPos := cmpl.pos + 1
 	if len(lp.Tokens) == nextPos || (lp.Tokens[nextPos].Type != tkLine &&
 		lp.Tokens[nextPos].Type != tkRCurly) {

@@ -38,7 +38,7 @@ type Unit struct {
 	Index     uint32            // Index of the Unit
 	NameSpace map[string]uint32 // name space of the unit
 	Included  map[uint32]bool   // false - included or true - imported units
-	Lexeme    []*Lex            // The array of source code
+	Lexeme    *Lex              // The array of source code
 	RunID     int               // The index of run function. Undefined (-1) - run has not yet been defined
 	Name      string            // The name of the unit
 	Pub       int               // Public mode
@@ -116,7 +116,7 @@ func (ws *Workspace) Unit(name string) *Unit {
 }
 
 func (unit *Unit) GetHeader(name string) string {
-	for _, line := range strings.Split(unit.Lexeme[0].Header, "\n") {
+	for _, line := range strings.Split(unit.Lexeme.Header, "\n") {
 		ret := regexp.MustCompile(`\s*` + strings.ReplaceAll(name, `.`, `\.`) +
 			`\s*=\s*(.*)$`).FindStringSubmatch(strings.TrimSpace(line))
 		if len(ret) == 2 {

@@ -14,9 +14,8 @@ import (
 func newFunc(cmpl *compiler, name string) int {
 	funcObj := &core.FuncObject{
 		Object: core.Object{
-			Name:  name,
-			LexID: len(cmpl.unit.Lexeme) - 1,
-			Unit:  cmpl.unit,
+			Name: name,
+			Unit: cmpl.unit,
 		},
 		Block: core.CmdBlock{
 			CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
@@ -56,7 +55,7 @@ func coRunBack(cmpl *compiler) error {
 }
 
 func coRunName(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	if len(cmpl.unit.Name) != 0 {
 		cmpl.dynamic = &cmState{tkLCurly, cmLCurly, nil, nil, 0}
 		return coRetType(cmpl)
@@ -173,7 +172,7 @@ func coFuncBack(cmpl *compiler) error {
 }
 
 func coFuncName(cmpl *compiler) error {
-	token := getToken(cmpl.getLex(), cmpl.pos)
+	token := getToken(cmpl.unit.Lexeme, cmpl.pos)
 	if isCapital(token) {
 		return cmpl.Error(ErrCapitalLetters)
 	}
