@@ -1,4 +1,9 @@
 run {
+  map smap = {`1`:`1`, `2`:`2`}
+  Key(smap, 3)
+}
+===== [3:3] index out of range
+run {
   arr astr = {`1`, `2`}
   Slice(astr, 0, 24)
 }

@@ -4,7 +4,11 @@
 
 package vm
 
-import "github.com/gentee/gentee/core"
+import (
+	"fmt"
+
+	"github.com/gentee/gentee/core"
+)
 
 // DelºMapStr deletes key and value from the map
 func DelºMapStr(pmap *core.Map, key string) *core.Map {
@@ -18,11 +22,19 @@ func DelºMapStr(pmap *core.Map, key string) *core.Map {
 	return pmap
 }
 
-// IsKeyºMapStr returns true if there is teh key in the map
+// IsKeyºMapStr returns true if there is the key in the map
 func IsKeyºMapStr(pmap *core.Map, key string) int64 {
 	_, ok := pmap.Data[key]
 	if ok {
 		return 1
 	}
 	return 0
+}
+
+// KeyºMapInt returns the key by the index
+func KeyºMapInt(pmap *core.Map, index int64) (string, error) {
+	if index >= int64(len(pmap.Keys)) {
+		return ``, fmt.Errorf(ErrorText(ErrIndexOut))
+	}
+	return pmap.Keys[index], nil
 }

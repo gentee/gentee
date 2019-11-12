@@ -153,6 +153,7 @@ int(str) int;intºStr;e
 int(time) int;intºTime
 IsArg(str) bool;IsArgºStr;r
 IsKeyAuto(map*,str) bool;IsKeyºMapStr
+KeyAuto(map*,int) str;KeyºMapInt;e
 Left(str,int) str;LeftºStrInt
 LenºArr(arr*) int;LEN                   // *arr
 Len(buf) int;LEN                        // *buf

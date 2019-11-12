@@ -1,3 +1,11 @@
+run str {
+  str out
+  map m = {`zero`: `00`, `º`: `-º-`, ``: `empty`}
+  map.int mi = {`00`: 0, `11`: 1}
+  for val, i in m : out += Key(m,i)
+  return out + Key(mi,0) + Key(mi,1)
+}
+===== zeroº0011
 run map {
   map m = {`first`: `01`, `º`: `03`, ``: `04`, `last`: `02`}
   return Del(Del(m, `first`), `last`)
