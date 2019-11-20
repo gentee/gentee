@@ -189,6 +189,8 @@ func popBuf(cmpl *compiler) error {
 			Object: obj, Result: obj.Result(), Left: left, Right: right}
 		cmpl.exp[len(cmpl.exp)-2] = icmd
 		cmpl.exp = cmpl.exp[:len(cmpl.exp)-1]
+	case tkDot:
+		return cmpl.ErrorPos(expBuf.Pos, ErrOper)
 	case tkAssign, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq, tkBitAndEq,
 		tkBitOrEq, tkBitXorEq:
 		if len(cmpl.exp) < 2 {
@@ -466,6 +468,12 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 								return cmpl.Error(ErrEndOptional)
 							}
 						}
+						if len(cmpl.expbuf) > 1 && cmpl.expbuf[len(cmpl.expbuf)-2].Oper == tkDot {
+							cmpl.expbuf = cmpl.expbuf[:len(cmpl.expbuf)-1]
+							prevToken.LenExp--
+							cmpl.expbuf[len(cmpl.expbuf)-1] = prevToken
+						}
+
 						numParams := len(cmpl.exp) - prevToken.LenExp - optCount
 						params := make([]*core.TypeObject, 0)
 						for i := 0; i < numParams; i++ {

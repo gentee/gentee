@@ -1,3 +1,22 @@
+run int {
+  int a
+  return (20).(a)
+}
+===== [3:14] unexpected token, expecting operator
+run int {
+  int a
+  return 20.a
+}
+===== [3:13] wrong sequence of characters
+run int {
+  int a
+  return a.20
+}
+===== [3:10] int type is not struct type
+run str {
+  str s = " StriNg".
+}
+===== [2:20] unexpected token, expecting operator
 run str {
   int i
   str s = `ok`
@@ -350,7 +369,7 @@ run {
   `ssss`()
   &my1.my(10, `s`)
 }
-===== [4:10] unexpected token, expecting operator
+===== [4:3] address of function must be defined as &name.type
 fn my( int, str ) int
 fn my1( int, str ) int 
 func my2(int i, my f ) int : return 10
@@ -605,7 +624,7 @@ run {
   int myname
   myname. = 10
 }
-===== [3:9] unexpected token, expecting operator
+===== [3:11] unexpected token, expecting value, identifier or calling func
 run {
   for i in 1..5 :
   if false : continue
@@ -775,7 +794,7 @@ func myFunc() str {
 }
 ===== [2:7] the name of the identifier can't contain a dot
 func my.Func() str : return "test"
-===== [1:6] the name of the identifier can't contain a dot
+===== [1:8] unexpected token, expecting {
 struct myType : int my.value
 ===== [1:21] the name of the identifier can't contain a dot
 struct typ.45 : int my 

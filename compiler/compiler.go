@@ -112,6 +112,7 @@ var (
 		tkDoubleCtx | tkUnary:    {30, true, `Ctx`},
 		tkBitAnd | tkUnary:       {35, true, ``},
 		tkStrExp:                 {35, false, `ExpStr`},
+		tkDot:                    {40, true, ``},
 		tkLPar:                   {50, true, ``},
 		tkRPar:                   {50, true, ``},
 		tkLSBracket:              {50, true, ``},

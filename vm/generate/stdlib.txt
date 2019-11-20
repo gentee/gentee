@@ -246,6 +246,8 @@ terminate(thread);terminateºThread;er
 time(int) time;timeºInt;r
 Toggle(set,int) bool;ToggleºSetInt
 Trace() arr.trace;Trace;r
+Trim(str,str) str;TrimºStr
+TrimLeft(str,str) str;TrimLeftºStr
 TrimRight(str,str) str;TrimRightºStr
 TrimSpace(str) str;TrimSpaceºStr
 UnBase64(str) buf;UnBase64ºStr;e

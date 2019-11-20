@@ -158,7 +158,17 @@ func SubstrºStrIntInt(in string, off, length int64) (string, error) {
 	return string(rin[off : off+length]), nil
 }
 
-// TrimRightºStr trims white space in a string
+// TrimºStr returns a substring of the string with all leading and trailing characters in set removed.
+func TrimºStr(in string, set string) string {
+	return strings.Trim(in, set)
+}
+
+// TrimLeftºStr returns a substring of the string with all leading characters in set removed.
+func TrimLeftºStr(in string, set string) string {
+	return strings.TrimLeft(in, set)
+}
+
+// TrimRightºStr returns a substring of the string with all trailing characters in set removed.
 func TrimRightºStr(in string, set string) string {
 	return strings.TrimRight(in, set)
 }

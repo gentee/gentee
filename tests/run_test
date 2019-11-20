@@ -1,3 +1,30 @@
+func mul(int i) int {
+  int ? a = 2
+  return i*a+1
+}
+
+run int {
+  return (3).mul().mul(a: 3).mul()
+}
+===== 45
+run str {
+  str s = "StriNg"
+  return (s.Lower() + "ooops".Upper()).Trim(`sS`)
+}
+===== tringOOOP
+fn myi(int) int
+struct myd {
+   myi f
+   int v
+}
+func fi(int i) int : return 2*i + 3
+
+run int {
+  myd a = {f: &fi.myi, v: 10}
+  myi mf = a.f
+  return a.v + mf(7)
+}
+=====  27
 include {
   "tests/scripts/f.g"
   "tests/scripts/g.g"

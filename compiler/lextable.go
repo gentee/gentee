@@ -321,6 +321,11 @@ func newIdent(lex *lexEngine, start, off int) {
 	if lex.Callback {
 		original := string(lex.Lex.Source[start:off])
 		name := strings.TrimRight(original, `.`)
+		if lex.Lex.Source[lex.Off] == '(' && len(name) == len(original) {
+			if dot := strings.LastIndex(name, `.`); dot > 0 {
+				name = name[:dot]
+			}
+		}
 		lex.Off -= len(original) - len(name)
 		tokType := tkIdent
 		if keyType, ok := keywords[name]; ok {
