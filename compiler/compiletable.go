@@ -137,7 +137,7 @@ var (
 				tkRShift, tkAddEq, tkSubEq, tkMulEq, tkDivEq, tkModEq, tkLShiftEq, tkRShiftEq,
 				tkBitAndEq, tkBitOrEq, tkBitXorEq, tkRange, tkCtxEq, tkDot}, cmBack,
 				coOperator, nil, 0},
-			{[]int{tkInc, tkDec}, 0, coUnaryPostOperator, nil, 0},
+			{[]int{tkInc, tkDec, tkQuestion}, 0, coUnaryPostOperator, nil, 0},
 			{[]int{tkRPar, tkRSBracket}, 0, coOperator, nil, 0},
 			{[]int{tkLSBracket}, cmBack, coIndex, nil, cfStay},
 			{tkComma, cmBack, coComma, nil, 0},

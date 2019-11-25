@@ -53,6 +53,14 @@ func Base64ºBuf(buf *core.Buffer) string {
 	return base64.StdEncoding.EncodeToString(buf.Data)
 }
 
+// boolºBuf converts buf to bool
+func boolºBuf(buf *core.Buffer) int64 {
+	if len(buf.Data) == 0 {
+		return 0
+	}
+	return 1
+}
+
 // bufºStr converts string to buffer
 func bufºStr(value string) *core.Buffer {
 	b := core.NewBuffer()

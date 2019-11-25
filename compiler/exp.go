@@ -328,7 +328,7 @@ func popBuf(cmpl *compiler) error {
 			Children: []core.ICmd{top}}
 		cmpl.exp[len(cmpl.exp)-1] = icmd
 	case tkSub | tkUnary, tkMul | tkUnary, tkNot | tkUnary, tkBitXor | tkUnary, tkCtx | tkUnary,
-		tkDoubleCtx | tkUnary, tkBitOr | tkUnary, tkOr | tkUnary:
+		tkDoubleCtx | tkUnary, tkBitOr | tkUnary, tkOr | tkUnary, tkQuestion | tkUnary | tkPost:
 		if len(cmpl.exp) == 0 {
 			return cmpl.Error(ErrValue)
 		}
@@ -556,6 +556,9 @@ func appendExpBuf(cmpl *compiler, operation int) error {
 									var local core.ICmd
 									if local = getLocal(cmpl, nameFunc, params); local == nil {
 										return cmpl.ErrorFunction(ErrFunction, prevToken.Pos-1, nameFunc, params)
+									}
+									if optCount > 0 {
+										return cmpl.Error(ErrFuncOptional, curOpt.Names[0])
 									}
 									icmd := &core.CmdBlock{ID: uint32(core.StackCallLocal),
 										Result: local.GetResult(), Children: []core.ICmd{local},

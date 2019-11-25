@@ -1,4 +1,12 @@
 run str {
+  map.int aim = {`ok`:1, `no`:2}
+  map.str ms
+  str out = str(aim?) + str(ms?)
+  ms["ok"] = "test"
+  return out + str(ms?)
+}
+===== truefalsetrue
+run str {
   str out
   map m = {`zero`: `00`, `º`: `-º-`, ``: `empty`}
   map.int mi = {`00`: 0, `11`: 1}

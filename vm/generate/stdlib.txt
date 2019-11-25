@@ -77,8 +77,11 @@ BitNot(set) set;BitNotºSet              // ^set
 BitOr(int,int) int;BITOR                // int | int
 BitOr(set,set) set;BitOrºSetSet         // set | set
 BitXor(int,int) int;BITXOR              // int ^ int
-bol(float) bool;boolºFloat
+bool(arr*) bool;boolºArr
+bool(buf) bool;boolºBuf
+bool(float) bool;boolºFloat
 bool(int) bool;boolºInt
+bool(map*) bool;boolºMap
 bool(str) bool;boolºStr
 buf(str) buf;bufºStr
 Ceil(float) int;CeilºFloat

@@ -1,3 +1,9 @@
+run bool {
+  buf b
+  if !b? : b += `data`
+  return b?
+}
+===== true
 run str {
   return str(UnBase64(Base64(buf(`абв010203 test ŋ`))))
 }

@@ -10,6 +10,14 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+// boolºMap converts map to bool
+func boolºMap(pmap *core.Map) int64 {
+	if len(pmap.Data) == 0 {
+		return 0
+	}
+	return 1
+}
+
 // DelºMapStr deletes key and value from the map
 func DelºMapStr(pmap *core.Map, key string) *core.Map {
 	delete(pmap.Data, key)

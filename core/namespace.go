@@ -4,6 +4,10 @@
 
 package core
 
+import (
+	"strings"
+)
+
 // Prefixes
 const (
 	npType     = `@`
@@ -45,14 +49,28 @@ func (unit *Unit) FindConst(name string) IObject {
 // FindFunc returns the function with the specified name and parameters
 func (unit *Unit) FindFunc(name string, params []*TypeObject) (IObject, bool) {
 	key := npFunc + name
+	keyAny := key
 	for _, v := range params {
 		if v == nil {
 			return nil, false
 		}
-		key += npFunc + v.GetName()
+		parName := v.GetName()
+		key += npFunc + parName
+		if strings.HasPrefix(parName, `arr.`) {
+			keyAny += npFunc + `arr*`
+		} else if strings.HasPrefix(parName, `map.`) {
+			keyAny += npFunc + `map*`
+		} else {
+			keyAny += npFunc + parName
+		}
 	}
 	if obj := unit.FindObj(key); obj != nil {
 		return obj, false
+	}
+	if key != keyAny {
+		if obj := unit.FindObj(keyAny); obj != nil {
+			return obj, false
+		}
 	}
 	return unit.FindObj(npVariadic + name), true
 }

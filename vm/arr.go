@@ -26,6 +26,14 @@ func AssignAddºArrAny(arr interface{}, value interface{}) (interface{}, error) 
 	return arr, nil
 }
 
+// boolºArr converts array to bool
+func boolºArr(val *core.Array) int64 {
+	if len(val.Data) == 0 {
+		return 0
+	}
+	return 1
+}
+
 // JoinºArrStr concatenates the elements of a to create a single string.
 func JoinºArrStr(value *core.Array, sep string) string {
 	tmp := make([]string, len(value.Data))

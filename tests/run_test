@@ -1,3 +1,19 @@
+run str {
+  int a
+  str p
+  str s = "ok"
+  if s? : s += "="
+  return s+`%{"0"?}%{10?}%{!""?}%{"s"?}%{a?}=%{(10+a)?}=%{*s?}%{*p?}`
+}
+===== ok=falsetruetruetruefalse=true=truefalse
+run int {
+  int a b
+  local mul(int i) int {
+    return (i+1)*++b + 1
+  }
+  return a.mul().mul().mul()
+}
+===== 25
 func mul(int i) int {
   int ? a = 2
   return i*a+1

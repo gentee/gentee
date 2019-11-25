@@ -1,3 +1,9 @@
+run str {
+  arr.int ai = {1, 2, 3}
+  arr ab
+  return str(ai?) + str(ab?) + str((ab+="ok")?)
+}
+===== truefalsetrue
 run arr.arr.str {
   arr.arr.str ai = {{`1`, `2`}, {`3`, `4`, `5`}, {`6`}}
   arr.arr.str ab &= Slice(ai, 1, 3)

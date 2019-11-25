@@ -1,3 +1,14 @@
+run {
+  if true? :
+}
+===== [2:10] function bool(bool) has not been found
+run int {
+  local mul(int i) int {
+    return i*3
+  }
+  mul(1, b:3)
+}
+===== [5:13] function doesn't have optional variable b
 run int {
   int a
   return (20).(a)

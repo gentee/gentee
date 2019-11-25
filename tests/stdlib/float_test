@@ -1,4 +1,11 @@
 run float {
+  float f
+  if f? : f = 1.0
+  else : f = 2.4
+  return f
+}
+===== 2.4
+run float {
   float r1 = 31.54
   float r2 = 31.543
   return -Min(r1, r2) + Max(r2,r1) + Max(int(r1), 101) - Min(8, int(r2))
