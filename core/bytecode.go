@@ -47,6 +47,7 @@ type Exec struct {
 	Strings []string // string resources
 	Structs []StructInfo
 	Pos     []CodePos
+	Path    string
 
 	CRCStdlib uint64
 	CRCCustom uint64

@@ -201,6 +201,7 @@ ReadFile(str) str;ReadFileºStr;e
 ReadFile(str,buf) buf;ReadFileºStrBuf;e
 ReadFile(str,int,int) buf;ReadFileºStrIntInt;e
 ReadString(str) str;ReadString;er
+RegExp(str,str) str;RegExpºStrStr;e
 Remove(str);RemoveºStr;e
 RemoveDir(str);RemoveDirºStr;e
 Rename(str,str);RenameºStrStr;e
@@ -209,6 +210,7 @@ Replace(str,str,str) str;ReplaceºStrStrStr
 ReplaceRegExp(str,str,str) str;ReplaceRegExpºStrStr;e
 ReverseAuto(arr*) arr*;ReverseºArr
 resume(thread);resumeºThread;er
+Right(str,int) str;RightºStrInt
 Round(float) int;RoundºFloat
 Round(float,int) float;RoundºFloatInt
 RShift(int,int) int;RSHIFT;e            // int >> int

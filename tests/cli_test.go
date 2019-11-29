@@ -74,6 +74,7 @@ func TestCli(t *testing.T) {
 		{``, []string{`-t`, `h.g`}},
 		{``, []string{`-t`, `ok.g`}},
 		{``, []string{`-t`, `struct.g`}},
+		{``, []string{`-t`, `str.g`}},
 		{`falsefalseok`, []string{`cmdline.g`}},
 		{`1my par º ok`, []string{`cmdline.g`, `my par º ok`}},
 		{`my parfalse`, []string{`cmdline.g`, `-p="my par"`, `--flag`}},

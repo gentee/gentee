@@ -122,9 +122,22 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	//	fmt.Println(`CODE`, vm.Exec.Code)
 	//fmt.Println(`POS`, vm.Exec.Pos)
 	//fmt.Println(`STRING`, vm.Exec.Strings)
+	var iotaShift int32
 	for i, id := range vm.Exec.Init {
 		if i == 0 {
+			iotaShift = id
 			vm.Consts[id] = Const{Type: core.TYPEINT, Value: int64(0)}
+			continue
+		}
+		switch id - iotaShift {
+		case core.ConstDepthID:
+			vm.Consts[id] = Const{Type: core.TYPEINT, Value: int64(vm.Settings.Depth)}
+			continue
+		case core.ConstCycleID:
+			vm.Consts[id] = Const{Type: core.TYPEINT, Value: int64(vm.Settings.Cycle)}
+			continue
+		case core.ConstScriptID:
+			vm.Consts[id] = Const{Type: core.TYPESTR, Value: exec.Path}
 			continue
 		}
 		val, err := vm.runConsts(int64(vm.Exec.Funcs[id]))

@@ -40,6 +40,20 @@ func MatchºStrStr(s string, rePattern string) (int64, error) {
 	return 0, nil
 }
 
+// RegExpºStrStr returns the first found match of the expression
+func RegExpºStrStr(src, rePattern string) (ret string, err error) {
+	var re *regexp.Regexp
+	re, err = regexp.Compile(rePattern)
+	if err != nil {
+		return
+	}
+	list := re.FindAllStringSubmatch(src, -1)
+	if len(list) > 0 && len(list[0]) > 1 {
+		ret = list[0][1]
+	}
+	return
+}
+
 // ReplaceRegExpºStrStr returns a copy of src, replacing matches of the Regexp with the replacement string
 func ReplaceRegExpºStrStr(src, rePattern, repl string) (string, error) {
 	re, err := regexp.Compile(rePattern)

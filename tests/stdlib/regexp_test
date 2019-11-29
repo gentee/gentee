@@ -1,4 +1,9 @@
 run str {
+    str input = "This is a string тестовое значение"
+    return RegExp(input, `is (.{2})`) + RegExp(input, `(\".\")`) + RegExp(input, `е(.+?)е`)
+}
+===== isстово
+run str {
     return ReplaceRegExp("This is a string", `i(.{2})`, "xyz") +
         ReplaceRegExp(" email is xyz@example.com", 
             `(\w+)@(\w+)\.(\w+)`, "${3}.${2}@zzz")

@@ -50,9 +50,13 @@ func Link(ws *core.Workspace, unitID int) (*core.Exec, error) {
 		Init:    bcode.Init,
 		Pos:     bcode.Pos,
 		Structs: bcode.StructsList,
+		Path:    unit.Lexeme.Path,
 
 		CRCStdlib: vm.CRCStdlib,
 		CRCCustom: vm.CRCCustom,
+	}
+	if len(exec.Path) == 0 {
+		exec.Path = unit.Name
 	}
 	var (
 		ok  bool

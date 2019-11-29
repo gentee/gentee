@@ -1,3 +1,7 @@
+run myscript str {
+  return SCRIPT + `OK`
+}
+===== myscriptOK
 run str {
   int a
   str p

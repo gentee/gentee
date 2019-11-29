@@ -121,6 +121,16 @@ func ReplaceºStrStrStr(in, old, new string) string {
 	return strings.Replace(in, old, new, -1)
 }
 
+// RightºStrInt returns the right substring of the string.
+func RightºStrInt(s string, count int64) string {
+	r := []rune(s)
+	off := len(r) - int(count)
+	if off < 0 {
+		off = 0
+	}
+	return string(r[off:])
+}
+
 // ShiftºStr trims white spaces characters in the each line of the string.
 func ShiftºStr(par string) string {
 	lines := strings.Split(par, "\n")

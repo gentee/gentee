@@ -1,8 +1,8 @@
 run str {
   str s = `фqwertyфt`
-  return Trim(s, `фt`).TrimLeft(`qwr`) 
+  return Trim(s, `фt`).TrimLeft(`qwr`) + Right(s, 3)
 }
-===== erty
+===== ertyyфt
 run str {
   str s = `ABC myabф8 `
   return TrimRight(s, ` 8фb`) 

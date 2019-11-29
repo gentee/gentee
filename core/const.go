@@ -9,12 +9,21 @@ import (
 )
 
 const (
+	ConstIotaID = iota
+	ConstDepthID
+	ConstCycleID
+	ConstScriptID
+)
+
+const (
 	// ConstDepth is the name of the max depth of calling functions
 	ConstDepth = `DEPTH`
 	// ConstCycle is the name of the max count of cycle
 	ConstCycle = `CYCLE`
 	// ConstIota is the name of iota for constants
 	ConstIota = `IOTA`
+	// ConstScript is the script path
+	ConstScript = `SCRIPT`
 	// ConstVersion is the version of Gentee compiler
 	ConstVersion = `VERSION`
 
