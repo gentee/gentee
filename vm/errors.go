@@ -57,6 +57,10 @@ const (
 	ErrCustom
 	// ErrCRC is returned when Exec was compiled with different stdlib or custom functions
 	ErrCRC
+	// ErrMainThread is returned when the function is called in go thread
+	ErrMainThread
+	// ErrThread is returned when the function is called in main thread
+	ErrThread
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -112,6 +116,8 @@ var (
 		ErrPlatform:     `unsupported platform`,
 		ErrCustom:       `invalid custom declaration`,
 		ErrCRC:          `different CRC of stdlib or custom functions`,
+		ErrMainThread:   `%s must be called in the main thread`,
+		ErrThread:       `%s cannot be called in the main thread`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

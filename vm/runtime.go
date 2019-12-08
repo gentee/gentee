@@ -1352,6 +1352,11 @@ main:
 				select {
 				case err = <-rt.Owner.ChError:
 					return nil, err
+				case <-rt.Owner.ChWait:
+					rt.Owner.WaitCount--
+					if rt.Owner.WaitCount == 0 {
+						rt.setStatus(ThWork)
+					}
 				default:
 				}
 			} else {
@@ -1382,6 +1387,11 @@ main:
 					select {
 					case err = <-rt.Owner.ChError:
 						return nil, err
+					case <-rt.Owner.ChWait:
+						rt.Owner.WaitCount--
+						if rt.Owner.WaitCount == 0 {
+							rt.setStatus(ThWork)
+						}
 					case x = <-rt.Thread.Chan:
 						if x == ThCmdContinue {
 							rt.setStatus(ThWork)

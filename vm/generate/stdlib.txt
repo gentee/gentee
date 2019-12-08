@@ -170,6 +170,7 @@ Less(int,int) bool;LT                   // int < int
 Less(str,str) bool;LTSTR                // str < str
 Less(time,time) bool;LessºTimeTime      // time < time
 Lines(str) arr.str;LinesºStr
+Lock();Lock;r
 Lower(str) str;LowerºStr
 LShift(int,int) int;LSHIFT;e            // int << int
 Match(str,str) bool;MatchºStrStr;e
@@ -257,10 +258,14 @@ TrimRight(str,str) str;TrimRightºStr
 TrimSpace(str) str;TrimSpaceºStr
 UnBase64(str) buf;UnBase64ºStr;e
 UnHex(str) buf;UnHexºStr;e
+Unlock();Unlock;r
 UnSet(set, int) set;UnSetºSet;e
 Upper(str) str;UpperºStr
 UTC(time) time;UTCºTime;r
 wait(thread);waitºThread;er
+WaitAll();WaitAll;re
+WaitDone();WaitDone;re
+WaitGroup(int);WaitGroup;re
 Weekday(time) int;WeekdayºTime;r
 WriteFile(str,buf);WriteFileºStrBuf;e
 WriteFile(str,str);WriteFileºStrStr;e

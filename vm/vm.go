@@ -41,10 +41,14 @@ type VM struct {
 	Runtimes    []*Runtime
 	CtxMutex    sync.RWMutex
 	ThreadMutex sync.RWMutex
+	LockMutex   sync.Mutex
+	WaitGroup   sync.WaitGroup
 	Context     map[string]string
 	Count       int64 // count of active threads
+	WaitCount   int64
 	ChCount     chan int64
 	ChError     chan error
+	ChWait      chan int64
 }
 
 type OptValue struct {
@@ -112,6 +116,7 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		Runtimes: make([]*Runtime, 0, 32),
 		ChCount:  make(chan int64, 16),
 		ChError:  make(chan error, 16),
+		ChWait:   make(chan int64, 16),
 	}
 	if vm.Settings.Cycle == 0 {
 		vm.Settings.Cycle = CYCLE

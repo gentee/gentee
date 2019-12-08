@@ -1,4 +1,52 @@
 run str {
+  int count = 6
+  sval #= Repeat(`0`, count + 3)
+  WaitGroup(count)
+  for i in 1..count {
+    go (ind: i) {
+      Lock()
+      str val = #sval
+      val[ind-1] = '1'
+      CtxSet(`sval`, val)
+      Unlock()
+      WaitDone()
+    }
+  }
+  WaitAll()
+  WaitGroup(3)
+  for i in 1..3 {
+    go (ind: i, count: count) {
+      Lock()
+      str val = #sval
+      val[count+ind-1] = '7'
+      CtxSet(`sval`, val)
+      Unlock()
+      WaitDone()
+    }
+  }
+  WaitAll()
+  return #sval
+}
+===== 111111777
+run int {
+  ival #= 0
+  int count = 3
+  WaitGroup(count)
+  for i in 1..count {
+    go {
+      for i in 1..100 {
+        Lock()
+        CtxSet(`ival`, int(#ival)+1)
+        Unlock()
+      }
+      WaitDone()
+    }
+  }
+  WaitAll()
+  return int(#ival)
+}
+===== 300
+run str {
   arr astr = {`0`, `a`, `X`}
   thread th = go( mya: astr) {
       mya += `OK`

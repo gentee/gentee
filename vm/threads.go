@@ -192,6 +192,16 @@ func (rt *Runtime) GoThread(offset int64, pars []int32, top *Call) int64 {
 	return thread.ThreadID
 }
 
+// Lock locks vm mutex
+func Lock(rt *Runtime) {
+	rt.Owner.LockMutex.Lock()
+}
+
+// Unlock unlocks vm mutex
+func Unlock(rt *Runtime) {
+	rt.Owner.LockMutex.Unlock()
+}
+
 // sleepºInt pauses the current script for at least the specified duration in milliseconds.
 func sleepºInt(rt *Runtime, d int64) {
 	rt.Thread.Sleep = d
@@ -245,4 +255,39 @@ func waitºThread(rt *Runtime, threadID int64) error {
 			rt.Thread.Status = ThWait
 		}
 	})
+}
+
+// WaitAll blocks until the WaitGroup counter is zero
+func WaitAll(rt *Runtime) error {
+	if rt.ThreadID != 0 {
+		return fmt.Errorf(ErrorText(ErrMainThread), `WaitAll`)
+	}
+	//rt.Owner.WaitGroup.Wait()
+	if rt.Owner.WaitCount > 0 {
+		rt.setStatus(ThWait)
+	}
+	return nil
+}
+
+// WaitDone decrements the WaitGroup counter by one
+func WaitDone(rt *Runtime) error {
+	if rt.ThreadID == 0 {
+		return fmt.Errorf(ErrorText(ErrThread), `WaitDone`)
+	}
+	//rt.Owner.WaitGroup.Done()
+	rt.Owner.ChWait <- 1
+	return nil
+}
+
+// WaitGroup changes WaitGroup counter
+func WaitGroup(rt *Runtime, count int64) error {
+	if rt.ThreadID != 0 {
+		return fmt.Errorf(ErrorText(ErrMainThread), `WaitGroup`)
+	}
+	if count < 0 {
+		return fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	//rt.Owner.WaitGroup.Add(int(count))
+	rt.Owner.WaitCount = count
+	return nil
 }
