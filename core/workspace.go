@@ -96,6 +96,8 @@ func (unit *Unit) TypeByGoType(goType reflect.Type) *TypeObject {
 		name = `arr`
 	case `*core.Map`:
 		name = `map`
+	case `*core.Obj`:
+		name = `obj`
 	default:
 		return nil
 	}

@@ -1,0 +1,16 @@
+run arr.obj {
+  arr.obj ret = {obj(-10), obj(true), obj(`my string`), obj(0.333)}
+  if bool(ret[1]) {
+    ret += obj(7)
+  }
+  if ret[3]? {
+    ret += obj(23.21)
+  }
+  return ret
+}
+===== [-10 true my string 0.333 7 23.21]
+run obj {
+  obj o
+  return o
+}
+===== nil

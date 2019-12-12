@@ -1,3 +1,8 @@
+run bool {
+  obj o
+  return bool(o)
+}
+===== [3:10] obj is undefined (nil)
 run {
    go {
      WaitGroup(10)

@@ -114,6 +114,8 @@ func newValue(rt *Runtime, vtype int) interface{} {
 		return &RuntimeError{}
 	case core.TYPESET:
 		return core.NewSet()
+	case core.TYPEOBJ:
+		return core.NewObj()
 	default:
 		if vtype >= core.TYPESTRUCT {
 			return NewStruct(rt, &rt.Owner.Exec.Structs[(vtype-core.TYPESTRUCT)>>8])

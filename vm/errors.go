@@ -61,6 +61,8 @@ const (
 	ErrMainThread
 	// ErrThread is returned when the function is called in main thread
 	ErrThread
+	// ErrObjNil is returned when the object value is undefined
+	ErrObjNil
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -118,6 +120,7 @@ var (
 		ErrCRC:          `different CRC of stdlib or custom functions`,
 		ErrMainThread:   `%s must be called in the main thread`,
 		ErrThread:       `%s cannot be called in the main thread`,
+		ErrObjNil:       `obj is undefined (nil)`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

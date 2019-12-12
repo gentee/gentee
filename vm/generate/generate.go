@@ -44,6 +44,8 @@ func str2type(in string) (ret string) {
 		ret = `core.TYPEERROR`
 	case `set`:
 		ret = `core.TYPESET`
+	case `obj`:
+		ret = `core.TYPEOBJ`
 	default:
 		if in == `arr` || strings.HasPrefix(in, `arr.`) {
 			ret = `core.TYPEARR`

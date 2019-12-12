@@ -38,6 +38,7 @@ Assign(thread,thread) thread;ASSIGN                         // thread = thread
 AssignAddºArr(arr*,arr*) arr*;AssignAddºArr;e               // arr += arr
 AssignAdd(arr.bool,bool) arr.bool;AssignAddºArrAny          // arr += bool
 AssignAdd(arr.int,int) arr.int;AssignAddºArrAny             // arr += int
+AssignAdd(arr.obj,obj) arr.obj;AssignAddºArrAny             // arr.obj += obj
 AssignAdd(arr.thread,thread) arr.thread;AssignAddºArrAny	// arr += thread
 AssignAdd(arr.str,str) arr.str;AssignAddºArrAny             // arr.str += str
 AssignAdd(buf,buf) buf;AssignAddºBufBuf             // buf += buf
@@ -81,6 +82,7 @@ bool(arr*) bool;boolºArr
 bool(buf) bool;boolºBuf
 bool(float) bool;boolºFloat
 bool(int) bool;boolºInt
+bool(obj) bool;boolºObj;e 
 bool(map*) bool;boolºMap
 bool(str) bool;boolºStr
 buf(str) buf;bufºStr
@@ -191,6 +193,10 @@ NewKeyValue(int,int) keyval;NOP         // key: value
 NewRange(int,int) range;RANGE           // ..
 Not(bool) bool;NOT                      // !bool
 Now() time;Now;r
+obj(bool) obj;objºBool
+obj(float) obj;objºAny
+obj(int) obj;objºAny
+obj(str) obj;objºAny
 Open(str);OpenºStr;e
 OpenWith(str,str);OpenWithºStr;e
 ParseTime(str,str) time;ParseTimeºStrStr;re

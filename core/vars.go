@@ -76,6 +76,11 @@ type Struct struct {
 	Values []interface{} // Values of fields
 }
 
+// Object is an object
+type Obj struct {
+	Data interface{}
+}
+
 // Len is part of Indexer interface.
 func (prange *Range) Len() int {
 	if prange.From < prange.To {
@@ -356,3 +361,17 @@ func NewFn(ptype *TypeObject) *Fn {
 	}
 }
 
+// String interface for Obj
+func (pobj Obj) String() string {
+	if pobj.Data == nil {
+		return `nil`
+	}
+	return fmt.Sprint(pobj.Data)
+}
+
+// NewObj creates a new object
+func NewObj() *Obj {
+	return &Obj{
+		Data: nil,
+	}
+}

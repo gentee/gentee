@@ -253,6 +253,8 @@ func type2Code(itype *core.TypeObject, out *core.Bytecode) (retType core.Bcode) 
 		retType = core.TYPEERROR
 	case reflect.TypeOf(core.Set{}):
 		retType = core.TYPESET
+	case reflect.TypeOf(core.Obj{}):
+		retType = core.TYPEOBJ
 	case reflect.TypeOf(core.Struct{}):
 		typeName := itype.GetName()
 		var (
