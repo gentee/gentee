@@ -87,6 +87,26 @@ func CopyVar(rt *Runtime, ptr *interface{}, value interface{}) {
 			pmap.Data[v] = mapPtr
 		}
 		*ptr = pmap
+	case *core.Obj:
+		var pobj *core.Obj
+		if ptr == nil || *ptr == nil {
+			pobj = core.NewObj()
+		} else {
+			pobj = (*ptr).(*core.Obj)
+		}
+		if vItem.Data == nil {
+			pobj.Data = nil
+		} else {
+			switch v := vItem.Data.(type) {
+			case bool, int64, float64, string:
+				pobj.Data = vItem.Data
+			case *core.Array:
+				CopyVar(rt, &pobj.Data, v)
+			case *core.Map:
+				CopyVar(rt, &pobj.Data, v)
+			}
+		}
+		*ptr = pobj
 	default:
 		*ptr = value
 	}

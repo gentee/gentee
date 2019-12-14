@@ -26,6 +26,7 @@ Assign(char,char) char;ASSIGN                   // char = char
 Assign(float,float) float;ASSIGN                // float = float
 Assign(int,char) int;ASSIGN                     // int = char
 Assign(int,int) int;ASSIGN                      // int = int
+Assign(obj,obj) obj;ASSIGN                      // obj = obj
 Assign(set,set) set;ASSIGN                      // set = set
 Assign(str,bool) str;AssignºStrBool             // str = bool
 Assign(str,int) str;AssignºStrInt               // str = int
@@ -54,6 +55,7 @@ AssignAddºArrArr(arr.arr*,arr*) arr.arr*;AssignAddºArrAny   // arr.arr += arr
 AssignAddºArrMap(arr.map*,map*) arr.map*;AssignAddºArrAny   // arr.map += map
 AssignBitAnd(buf,buf) buf;ASSIGNPTR                         // buf &= buf
 AssignBitAnd(int,int) int;AssignBitAndºIntInt               // int &= int
+AssignBitAnd(obj,obj) obj;ASSIGNPTR                         // obj &= obj
 AssignBitAnd(set,set) set;ASSIGNPTR                         // set &= set
 AssignBitAndºArrArr(arr*,arr*) arr*;ASSIGNPTR               // arr &= arr
 AssignBitAndºMapMap(map*,map*) map*;ASSIGNPTR               // map &= map
@@ -126,6 +128,7 @@ ExpStr(str,bool) str;ExpStrºBool
 ExpStr(str,char) str;ExpStrºChar
 ExpStr(str,float) str;ExpStrºFloat
 ExpStr(str,int) str;ExpStrºInt
+ExpStr(str,obj) str;ExpStrºObj
 ExpStr(str,str) str;ADDSTR
 FileInfo(str) finfo;FileInfoºStr;er
 Find(str,str) int;FindºStrStr
@@ -158,6 +161,7 @@ int(str) int;intºStr;e
 int(time) int;intºTime
 IsArg(str) bool;IsArgºStr;r
 IsKeyAuto(map*,str) bool;IsKeyºMapStr
+IsNil(obj) bool;IsNil
 KeyAuto(map*,int) str;KeyºMapInt;e
 Left(str,int) str;LeftºStrInt
 LenºArr(arr*) int;LEN                   // *arr
@@ -243,6 +247,7 @@ str(buf) str;strºBuf
 str(char) str;strºChar
 str(float) str;strºFloat
 str(int) str;strºInt
+str(obj) str;strºObj
 str(set) str;strºSet
 Sub(float,float) float;SUBFLOAT         // float - float
 Sub(float,int) float;SubºFloatInt       // float - int
@@ -262,6 +267,7 @@ Trim(str,str) str;TrimºStr
 TrimLeft(str,str) str;TrimLeftºStr
 TrimRight(str,str) str;TrimRightºStr
 TrimSpace(str) str;TrimSpaceºStr
+Type(obj) str;Type
 UnBase64(str) buf;UnBase64ºStr;e
 UnHex(str) buf;UnHexºStr;e
 Unlock();Unlock;r

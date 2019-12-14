@@ -1,3 +1,16 @@
+run str {
+  obj o1 = obj(10)
+  obj o2 &= o1
+  obj o3 = o1
+  o1 = obj(`ok`)
+  return `%{o1} %{o2} %{o3}`
+}
+===== ok ok 10
+run str {
+  obj o
+  return `%{IsNil(o)} %{IsNil(obj(34))} %{Type(o)} %{Type(obj(true))} %{Type(obj(`me`))}` 
+}
+===== true false nil bool str
 run arr.obj {
   arr.obj ret = {obj(-10), obj(true), obj(`my string`), obj(0.333)}
   if bool(ret[1]) {
