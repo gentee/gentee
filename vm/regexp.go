@@ -47,9 +47,9 @@ func RegExpºStrStr(src, rePattern string) (ret string, err error) {
 	if err != nil {
 		return
 	}
-	list := re.FindAllStringSubmatch(src, -1)
-	if len(list) > 0 && len(list[0]) > 1 {
-		ret = list[0][1]
+	list := re.FindStringSubmatch(src)
+	if len(list) > 1 {
+		ret = list[1]
 	}
 	return
 }

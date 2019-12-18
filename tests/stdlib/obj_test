@@ -1,3 +1,30 @@
+run obj {
+  arr.arr.int a1 = {{0, 7}, {8, 9, 10}}
+  map.map.int m1 = {`e`:{`a`:1, `b`:2}, `f`:{`c`:3, `d`:4}}
+  obj o1 = a1
+  obj o2 = m1
+  arr.obj ret = {o1, o2}
+  a1[0][0] = 77
+  return obj(ret)
+}
+===== [[[0 7] [8 9 10]] map[e:map[a:1 b:2] f:map[c:3 d:4]]]
+run arr.obj {
+  obj o1 = 123
+  obj o2 = 7.65
+  obj o3 = `the end`
+  obj o4 = 1==1
+  arr.obj ret = {o1, o2, o3, o4}
+  return ret
+}
+===== [123 7.65 the end true]
+run obj {
+  arr.map.int a1 = {{`a`:1, `b`:2}, {`c`:3, `d`:4}}
+  map.arr.str m1 = {`e`:{`7`, `8`}, `f`:{`9`, `10`}}
+  arr.obj ret = {obj(a1), obj(m1)}
+  m1[`f`] += `11`
+  return obj(ret)
+}
+===== [[map[a:1 b:2] map[c:3 d:4]] map[e:[7 8] f:[9 10]]]
 run str {
   obj o1 = obj(10)
   obj o2 &= o1

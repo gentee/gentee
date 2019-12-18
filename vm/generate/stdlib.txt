@@ -26,7 +26,13 @@ Assign(char,char) char;ASSIGN                   // char = char
 Assign(float,float) float;ASSIGN                // float = float
 Assign(int,char) int;ASSIGN                     // int = char
 Assign(int,int) int;ASSIGN                      // int = int
+Assign(obj,arr*) obj;AssignºObjAny              // obj = arr
+Assign(obj,bool) obj;AssignºObjBool             // obj = bool
+Assign(obj,float) obj;AssignºObjAny             // obj = float
+Assign(obj,int) obj;AssignºObjAny               // obj = int
+Assign(obj,map*) obj;AssignºObjAny              // obj = map
 Assign(obj,obj) obj;ASSIGN                      // obj = obj
+Assign(obj,str) obj;AssignºObjAny               // obj = str
 Assign(set,set) set;ASSIGN                      // set = set
 Assign(str,bool) str;AssignºStrBool             // str = bool
 Assign(str,int) str;AssignºStrInt               // str = int
@@ -197,9 +203,11 @@ NewKeyValue(int,int) keyval;NOP         // key: value
 NewRange(int,int) range;RANGE           // ..
 Not(bool) bool;NOT                      // !bool
 Now() time;Now;r
+obj(arr*) obj;objºArrMap;e
 obj(bool) obj;objºBool
 obj(float) obj;objºAny
 obj(int) obj;objºAny
+obj(map*) obj;objºArrMap;e
 obj(str) obj;objºAny
 Open(str);OpenºStr;e
 OpenWith(str,str);OpenWithºStr;e

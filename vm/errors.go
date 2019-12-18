@@ -63,6 +63,8 @@ const (
 	ErrThread
 	// ErrObjNil is returned when the object value is undefined
 	ErrObjNil
+	// ErrObjType is returned when the value has incompatible type
+	ErrObjType
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -121,6 +123,7 @@ var (
 		ErrMainThread:   `%s must be called in the main thread`,
 		ErrThread:       `%s cannot be called in the main thread`,
 		ErrObjNil:       `obj is undefined (nil)`,
+		ErrObjType:      `type is incompatible to object`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

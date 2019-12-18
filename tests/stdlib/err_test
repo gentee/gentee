@@ -1,3 +1,9 @@
+run obj {
+  map.set s
+  s[`1`] = set(`111001`)
+  return obj(s)
+}
+===== [4:10] type is incompatible to object
 run bool {
   obj o
   return bool(o)
@@ -7,6 +13,7 @@ run {
    go {
      WaitGroup(10)
    }
+   WaitAll()
 }
 ===== [3:6] WaitGroup must be called in the main thread
 run {
@@ -14,6 +21,7 @@ run {
   go {
     WaitAll()
   }
+  WaitAll()
 }
 ===== [4:5] WaitAll must be called in the main thread
 run {
