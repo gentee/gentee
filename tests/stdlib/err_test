@@ -13,7 +13,7 @@ run {
    go {
      WaitGroup(10)
    }
-   WaitAll()
+   sleep(200)
 }
 ===== [3:6] WaitGroup must be called in the main thread
 run {
