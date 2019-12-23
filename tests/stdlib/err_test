@@ -1,3 +1,18 @@
+run {
+  obj o = 5
+  o[1] = 10
+}
+===== [3:5] index out of range
+run {
+  obj o
+  o[1]
+}
+===== [3:5] index out of range
+run int {
+  obj o
+  return int(o)
+}
+===== [3:10] value of the object has wrong type
 run obj {
   map.set s
   s[`1`] = set(`111001`)

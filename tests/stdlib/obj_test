@@ -1,3 +1,15 @@
+run int {
+  arr.map.int a1 = {{`a`:1, `b`:2}, {`c`:3, `d`:4}}
+  obj o1 = a1
+  int ret = *o1
+  for v, i in o1 {
+    for mv, j in v {
+      ret += (3-j) * int(mv) + i
+    }
+  }
+  return ret
+}
+===== 28
 run obj {
   arr.arr.int a1 = {{0, 7}, {8, 9, 10}}
   map.map.int m1 = {`e`:{`a`:1, `b`:2}, `f`:{`c`:3, `d`:4}}

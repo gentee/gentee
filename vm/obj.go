@@ -50,6 +50,25 @@ func ExpStrºObj(left string, right *core.Obj) string {
 	return left + strºObj(right)
 }
 
+// intºObj converts object to integer
+func intºObj(val *core.Obj) (ret int64, err error) {
+	switch v := val.Data.(type) {
+	case int64:
+		ret = v
+	case bool:
+		if v {
+			ret = 1
+		}
+	case float64:
+		ret = intºFloat(v)
+	case string:
+		ret, err = intºStr(v)
+	default:
+		err = fmt.Errorf(ErrorText(ErrObjValue))
+	}
+	return
+}
+
 // IsNil returns true if the object is undefined
 func IsNil(val *core.Obj) int64 {
 	if val.Data == nil {

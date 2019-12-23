@@ -53,6 +53,8 @@ const (
 	ErrThreadClosed
 	// ErrPlatform is generated when the function is not supported on the current platform
 	ErrPlatform
+	// ErrObjValue is returned when obj has wrong type
+	ErrObjValue
 	// ErrCustom is generated when there is an invalid custom declaration
 	ErrCustom
 	// ErrCRC is returned when Exec was compiled with different stdlib or custom functions
@@ -118,6 +120,7 @@ var (
 		ErrThreadIndex:  `invalid thread`,
 		ErrThreadClosed: `thread has been closed`,
 		ErrPlatform:     `unsupported platform`,
+		ErrObjValue:     `value of the object has wrong type`,
 		ErrCustom:       `invalid custom declaration`,
 		ErrCRC:          `different CRC of stdlib or custom functions`,
 		ErrMainThread:   `%s must be called in the main thread`,

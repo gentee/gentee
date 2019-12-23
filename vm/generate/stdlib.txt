@@ -163,6 +163,7 @@ Insert(buf,int,buf) buf;InsertºBufIntBuf
 int(bool) int;NOP
 int(char) int;NOP
 int(float) int;intºFloat
+int(obj) int;intºObj;e
 int(str) int;intºStr;e
 int(time) int;intºTime
 IsArg(str) bool;IsArgºStr;r
@@ -173,6 +174,7 @@ Left(str,int) str;LeftºStrInt
 LenºArr(arr*) int;LEN                   // *arr
 Len(buf) int;LEN                        // *buf
 LenºMap(map*) int;LEN                   // *map
+Len(obj) int;LEN                        // *obj
 Len(set) int;LEN		                // *set
 Len(str) int;LEN                        // *str
 Less(char,char) bool;LessºCharChar      // char < char

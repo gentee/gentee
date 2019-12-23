@@ -52,7 +52,10 @@ func InitTypes(ws *core.Workspace) {
 		if len(item.index) > 0 {
 			indexOf = ws.StdLib().FindType(item.index)
 		}
-		ws.StdLib().NewType(item.name, item.original, indexOf)
+		tobj := ws.StdLib().NewType(item.name, item.original, indexOf)
+		if item.name == `obj` {
+			tobj.(*core.TypeObject).IndexOf = tobj.(*core.TypeObject)
+		}
 	}
 	// Define aliases
 	ws.StdLib().NameSpace[`@arr`] = ws.StdLib().NameSpace[`@arr.str`]

@@ -53,6 +53,8 @@ const (
 	ErrThreadClosed
 	// ErrPlatform is generated when the function is not supported on the current platform
 	ErrPlatform
+	// ErrObjValue is returned when obj has wrong type
+	ErrObjValue
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254

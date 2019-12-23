@@ -375,3 +375,36 @@ func NewObj() *Obj {
 		Data: nil,
 	}
 }
+
+// Len is part of sort.Interface.
+func (obj *Obj) Len() int {
+	switch v := obj.Data.(type) {
+	case *Array:
+		return v.Len()
+	case *Map:
+		return v.Len()
+	}
+	return 0
+}
+
+// GetIndex is part of Indexer interface.
+func (obj *Obj) GetIndex(index interface{}) (interface{}, bool) {
+	switch v := obj.Data.(type) {
+	case *Array:
+		return v.GetIndex(index)
+	case *Map:
+		return v.GetIndex(index)
+	}
+	return nil, false
+}
+
+// SetIndex is part of Indexer interface.
+func (obj *Obj) SetIndex(index, value interface{}) int {
+	switch v := obj.Data.(type) {
+	case *Array:
+		return v.SetIndex(index, value)
+	case *Map:
+		return v.SetIndex(index, value)
+	}
+	return ErrObjValue
+}
