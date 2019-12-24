@@ -1,3 +1,18 @@
+run float {
+  obj o1 = 23.987
+  obj o2 = 33
+  obj o3 = `124.013`
+  return float(o1) + float(o2) + float(o3)
+}
+===== 181
+run int {
+  arr.int a1 = {2, 7, 8}
+  map.int m1 = {`a`:1, `b`:2, `c`:3, `d`:4}
+  obj o1 = a1
+  obj o2 = m1
+  return int(o1[2]) + int(o2[`c`]) + int(o2[`d`]) + int(o1[1]) + int(o2[0])
+}
+===== 23
 run int {
   arr.map.int a1 = {{`a`:1, `b`:2}, {`c`:3, `d`:4}}
   obj o1 = a1

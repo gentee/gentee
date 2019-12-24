@@ -333,19 +333,18 @@ main:
 				case core.STACKANY:
 					value, ok = ptr.(core.Indexer).GetIndex(index)
 					if !ok {
-						if key, ok := index.(string); ok {
+						if iErr, ok := value.(int); ok {
+							errHandle(i, iErr)
+						} else if key, ok := index.(string); ok {
 							errHandle(i, ErrMapIndex, key)
-							//err = runtimeError(rt, i, ErrMapIndex, key)
 						} else {
 							errHandle(i, ErrIndexOut)
-							//err = runtimeError(rt, i, ErrIndexOut)
 						}
 						continue main
 					}
 					if value == nil {
 						errHandle(i, ErrUndefined)
 						continue main
-						//						return nil, runtimeError(rt, i, ErrUndefined)
 					}
 				default:
 					fmt.Printf("INDEX ANY %x\n", typeVar)

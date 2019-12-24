@@ -50,6 +50,21 @@ func ExpStrºObj(left string, right *core.Obj) string {
 	return left + strºObj(right)
 }
 
+// floatºObj converts object to float
+func floatºObj(val *core.Obj) (ret float64, err error) {
+	switch v := val.Data.(type) {
+	case int64:
+		ret = floatºInt(v)
+	case float64:
+		ret = v
+	case string:
+		ret, err = floatºStr(v)
+	default:
+		err = fmt.Errorf(ErrorText(ErrObjValue))
+	}
+	return
+}
+
 // intºObj converts object to integer
 func intºObj(val *core.Obj) (ret int64, err error) {
 	switch v := val.Data.(type) {

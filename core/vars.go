@@ -391,18 +391,22 @@ func (obj *Obj) Len() int {
 func (obj *Obj) GetIndex(index interface{}) (interface{}, bool) {
 	switch v := obj.Data.(type) {
 	case *Array:
-		return v.GetIndex(index)
+		if _, ok := index.(int64); ok {
+			return v.GetIndex(index)
+		}
 	case *Map:
 		return v.GetIndex(index)
 	}
-	return nil, false
+	return ErrObjValue, false
 }
 
 // SetIndex is part of Indexer interface.
 func (obj *Obj) SetIndex(index, value interface{}) int {
 	switch v := obj.Data.(type) {
 	case *Array:
-		return v.SetIndex(index, value)
+		if _, ok := index.(int64); ok {
+			return v.SetIndex(index, value)
+		}
 	case *Map:
 		return v.SetIndex(index, value)
 	}

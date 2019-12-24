@@ -140,6 +140,7 @@ FileInfo(str) finfo;FileInfoºStr;er
 Find(str,str) int;FindºStrStr
 FindRegExp(str,str) arr.arr.str;FindRegExpºStrStr;e
 float(int) float;floatºInt
+float(obj) float;floatºObj;e
 float(str) float;floatºStr;e
 Floor(float) int;FloorºFloat
 Format(str) str;FormatºStr;v

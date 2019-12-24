@@ -662,7 +662,11 @@ func setIndex(cmpl *compiler) error {
 			typeObject.GetName())
 	}
 	index := cmpl.exp[len(cmpl.exp)-1]
-	if index.GetResult() != varIndex {
+	indexResult := index.GetResult()
+	if typeObject.Original == reflect.TypeOf(core.Obj{}) && indexResult == cmpl.getStrType() {
+		varIndex = cmpl.getStrType()
+	}
+	if indexResult != varIndex {
 		return cmpl.ErrorPos(cmpl.pos, ErrTypeIndex, varIndex.GetName())
 	}
 	(*cmdVar).Indexes = append((*cmdVar).Indexes, core.CmdRet{Cmd: index, Type: typeObject.IndexOf})
