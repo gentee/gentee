@@ -91,6 +91,7 @@ bool(buf) bool;boolºBuf
 bool(float) bool;boolºFloat
 bool(int) bool;boolºInt
 bool(obj) bool;boolºObj;e 
+bool(obj,bool) bool;boolºObjDef;e
 bool(map*) bool;boolºMap
 bool(str) bool;boolºStr
 buf(str) buf;bufºStr
@@ -141,6 +142,7 @@ Find(str,str) int;FindºStrStr
 FindRegExp(str,str) arr.arr.str;FindRegExpºStrStr;e
 float(int) float;floatºInt
 float(obj) float;floatºObj;e
+float(obj,float) float;floatºObjDef;e
 float(str) float;floatºStr;e
 Floor(float) int;FloorºFloat
 Format(str) str;FormatºStr;v
@@ -165,6 +167,7 @@ int(bool) int;NOP
 int(char) int;NOP
 int(float) int;intºFloat
 int(obj) int;intºObj;e
+int(obj,int) int;intºObjDef;e
 int(str) int;intºStr;e
 int(time) int;intºTime
 IsArg(str) bool;IsArgºStr;r
@@ -259,6 +262,7 @@ str(char) str;strºChar
 str(float) str;strºFloat
 str(int) str;strºInt
 str(obj) str;strºObj
+str(obj,str) str;strºObjDef
 str(set) str;strºSet
 Sub(float,float) float;SUBFLOAT         // float - float
 Sub(float,int) float;SubºFloatInt       // float - int

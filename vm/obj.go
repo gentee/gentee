@@ -45,6 +45,14 @@ func boolºObj(val *core.Obj) (ret int64, err error) {
 	return
 }
 
+// boolºObjDef converts object to boolean value
+func boolºObjDef(val *core.Obj, def int64) (int64, error) {
+	if val.Data == nil {
+		return def, nil
+	}
+	return boolºObj(val)
+}
+
 // ExpStrºObj adds string and obj in string expression
 func ExpStrºObj(left string, right *core.Obj) string {
 	return left + strºObj(right)
@@ -65,6 +73,14 @@ func floatºObj(val *core.Obj) (ret float64, err error) {
 	return
 }
 
+// floatºObjDef converts object to float
+func floatºObjDef(val *core.Obj, def float64) (float64, error) {
+	if val.Data == nil {
+		return def, nil
+	}
+	return floatºObj(val)
+}
+
 // intºObj converts object to integer
 func intºObj(val *core.Obj) (ret int64, err error) {
 	switch v := val.Data.(type) {
@@ -82,6 +98,14 @@ func intºObj(val *core.Obj) (ret int64, err error) {
 		err = fmt.Errorf(ErrorText(ErrObjValue))
 	}
 	return
+}
+
+// intºObjDef converts object to integer
+func intºObjDef(val *core.Obj, def int64) (int64, error) {
+	if val.Data == nil {
+		return def, nil
+	}
+	return intºObj(val)
 }
 
 // IsNil returns true if the object is undefined
@@ -129,6 +153,14 @@ func Type(val *core.Obj) string {
 // strºObj converts object value to string
 func strºObj(val *core.Obj) string {
 	return fmt.Sprint(val.Data)
+}
+
+// strºObjDef converts object value to string
+func strºObjDef(val *core.Obj, def string) string {
+	if val.Data == nil {
+		return def
+	}
+	return strºObj(val)
 }
 
 // objType converts variable to object

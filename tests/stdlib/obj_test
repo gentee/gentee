@@ -1,3 +1,12 @@
+run str {
+  obj o1 = 23.98
+  obj o2 = 33
+  obj o3 = `test`
+  obj o4 o5 o6
+  str s = "\{ float(o1, 2.0)} \{int(o2,3)} \{str(o3, `aaa`)}" 
+  return s + " \{float(o4, 3.0)} \{int(o5,7)} \{str(o6, `end`)}"
+}
+===== 23.98 33 test 3 7 end
 run float {
   obj o1 = 23.987
   obj o2 = 33
