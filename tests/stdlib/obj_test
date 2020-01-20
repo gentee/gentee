@@ -1,4 +1,17 @@
 run str {
+  arr a = {`abc`, `def`, `ghi`}
+  obj o2
+  obj o = a
+  return item(o, 0).str(`ooops`) + item(o, 3).str(`none`) + item(o2, 3).str(`unknown`)
+}
+===== abcnoneunknown
+run str {
+  map m1 = {`a`:`1`, `b`:`2`, `c`:`3`}
+  obj o = m1
+  return item(o, `b`).str(`ooops`) + item(o, `d`).str(`none`)
+}
+===== 2none
+run str {
   obj o1 = 23.98
   obj o2 = 33
   obj o3 = `test`

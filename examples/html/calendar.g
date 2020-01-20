@@ -1,5 +1,5 @@
 #!/usr/local/bin/gentee
-# stdin = 2019
+# stdin = 2020
 
 // Copyright 2019 Alexey Krivonogov. All rights reserved.
 // Use of this source code is governed by a MIT license

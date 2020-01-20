@@ -47,7 +47,7 @@ func boolºObj(val *core.Obj) (ret int64, err error) {
 
 // boolºObjDef converts object to boolean value
 func boolºObjDef(val *core.Obj, def int64) (int64, error) {
-	if val.Data == nil {
+	if val == nil || val.Data == nil {
 		return def, nil
 	}
 	return boolºObj(val)
@@ -75,7 +75,7 @@ func floatºObj(val *core.Obj) (ret float64, err error) {
 
 // floatºObjDef converts object to float
 func floatºObjDef(val *core.Obj, def float64) (float64, error) {
-	if val.Data == nil {
+	if val == nil || val.Data == nil {
 		return def, nil
 	}
 	return floatºObj(val)
@@ -102,7 +102,7 @@ func intºObj(val *core.Obj) (ret int64, err error) {
 
 // intºObjDef converts object to integer
 func intºObjDef(val *core.Obj, def int64) (int64, error) {
-	if val.Data == nil {
+	if val == nil || val.Data == nil {
 		return def, nil
 	}
 	return intºObj(val)
@@ -114,6 +114,38 @@ func IsNil(val *core.Obj) int64 {
 		return 1
 	}
 	return 0
+}
+
+// itemºObjInt returns an item from array object
+func itemºObjInt(val *core.Obj, ind int64) (ret *core.Obj, err error) {
+	if val == nil || val.Data == nil {
+		return
+	}
+	switch v := val.Data.(type) {
+	case *core.Array:
+		if ind >= 0 && ind < int64(len(v.Data)) {
+			ret = v.Data[ind].(*core.Obj)
+		}
+	default:
+		err = fmt.Errorf(ErrorText(ErrObjValue))
+	}
+	return
+}
+
+// itemºObjStr returns an item from map object
+func itemºObjStr(val *core.Obj, key string) (ret *core.Obj, err error) {
+	if val == nil || val.Data == nil {
+		return
+	}
+	switch v := val.Data.(type) {
+	case *core.Map:
+		if item, ok := v.Data[key]; ok {
+			ret = item.(*core.Obj)
+		}
+	default:
+		err = fmt.Errorf(ErrorText(ErrObjValue))
+	}
+	return
 }
 
 // objºBool converts boolean value to object
@@ -157,7 +189,7 @@ func strºObj(val *core.Obj) string {
 
 // strºObjDef converts object value to string
 func strºObjDef(val *core.Obj, def string) string {
-	if val.Data == nil {
+	if val == nil || val.Data == nil {
 		return def
 	}
 	return strºObj(val)

@@ -1,0 +1,46 @@
+const {
+    S = `{
+         "int": 1234,
+         "str": "value",
+         "float": -45.67,
+          "list":[{"on": true},
+            "sub 2",
+            "sub 3",
+            {
+                "q": "OK"
+            }]
+    }`
+}
+run str {
+  return Json(JsonToObj(S))
+}
+===== {"float":-45.67,"int":1234,"list":[{"on":true},"sub 2","sub 3",{"q":"OK"}],"str":"value"}
+const {
+    S = `[
+            {"on": true},
+            "sub 2",
+            "sub 3",
+            {
+                "q": "OK"
+            }
+        ]`
+}
+run str {
+  obj o = JsonToObj(S)
+  return str(o) + ?(item(o,0).item(`on`).bool(), "X", "x" )
+}
+===== [map[on:true] sub 2 sub 3 map[q:OK]]X
+const {
+    S = `{
+        "val": 23,
+        "val2": -27,
+        "f": 12.234,
+        "s": "my string"
+    }`
+}
+run str {
+  str s 
+  obj o = JsonToObj(S)
+  return "\{item(o,`val`).int() + int(item(o,`val2`))} \{item(o, `f`).float()} + \{item(o, `s`)}"
+}
+===== -4 12.234 + my string

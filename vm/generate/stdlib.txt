@@ -162,6 +162,8 @@ HTTPGet(str) buf;HTTPGet;e
 HTTPPage(str) str;HTTPPage;e
 Join(arr.str,str) str;JoinºArrStr
 JoinPath() str;JoinPath;v
+Json(obj) str;Json;e
+JsonToObj(str) obj;JsonToObj;e
 Insert(buf,int,buf) buf;InsertºBufIntBuf
 int(bool) int;NOP
 int(char) int;NOP
@@ -173,6 +175,8 @@ int(time) int;intºTime
 IsArg(str) bool;IsArgºStr;r
 IsKeyAuto(map*,str) bool;IsKeyºMapStr
 IsNil(obj) bool;IsNil
+item(obj,int) obj;itemºObjInt;e
+item(obj,str) obj;itemºObjStr;e
 KeyAuto(map*,int) str;KeyºMapInt;e
 Left(str,int) str;LeftºStrInt
 LenºArr(arr*) int;LEN                   // *arr
