@@ -40,19 +40,28 @@ func ChDirºStr(dirname string) error {
 	return os.Chdir(dirname)
 }
 
+// ChModeºStr change the file mode.
+func ChModeºStr(name string, mode int64) error {
+	return os.Chmod(name, os.FileMode(mode))
+}
+
 // CopyFileºStrStr copies a file
 func CopyFileºStrStr(src, dest string) (int64, error) {
 	srcFile, err := os.Open(src)
 	if err != nil {
 		return 0, err
 	}
+	finfo, err := srcFile.Stat()
 	defer srcFile.Close()
 	destFile, err := os.Create(dest)
 	if err != nil {
 		return 0, err
 	}
 	defer destFile.Close()
-	return io.Copy(destFile, srcFile)
+	ret, err := io.Copy(destFile, srcFile)
+	//	if finfo.Size() != ret {
+	destFile.Chmod(finfo.Mode())
+	return ret, err
 }
 
 // CreateDirºStr creates the directory(s)
@@ -82,6 +91,15 @@ func FileInfoºStr(rt *Runtime, name string) (*Struct, error) {
 		return finfo, err
 	}
 	return fromFileInfo(fileInfo, finfo), nil
+}
+
+// FileModeºStr returns the file mode.
+func FileModeºStr(name string) (int64, error) {
+	fStat, err := os.Stat(name)
+	if err != nil {
+		return 0, err
+	}
+	return int64(fStat.Mode()), nil
 }
 
 // GetCurDir returns the current directory

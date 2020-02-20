@@ -1,4 +1,18 @@
 run str {
+    str src = "./examples/hello.g"
+    str ftemp = JoinPath(TempDir(), `hello.g`)
+    int mode = FileMode(src)
+    CopyFile(src, ftemp)
+    if mode != FileMode(ftemp) {
+      return "fail"
+    }
+    ChMode(ftemp, 0777)
+    str ret = Format("%o", FileMode(ftemp))
+    Remove(ftemp)
+    return ret
+}
+===== 777
+run str {
     str ftemp = TempDir() + `/tmphash.txt`
     WriteFile( ftemp, `This is a test ººº 01234`)
     WriteFile( ftemp, Sha256File(ftemp))

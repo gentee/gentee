@@ -97,6 +97,7 @@ bool(str) bool;boolºStr
 buf(str) buf;bufºStr
 Ceil(float) int;CeilºFloat
 ChDir(str);ChDirºStr;e
+ChMode(str,int);ChModeºStr;e
 Command(str);Command;e                  // $ str 
 CommandOutput(str) str;CommandOutput;e  // $ str 
 CopyFile(str,str) int;CopyFileºStrStr;e
@@ -138,6 +139,7 @@ ExpStr(str,int) str;ExpStrºInt
 ExpStr(str,obj) str;ExpStrºObj
 ExpStr(str,str) str;ADDSTR
 FileInfo(str) finfo;FileInfoºStr;er
+FileMode(str) int;FileModeºStr;e
 Find(str,str) int;FindºStrStr
 FindRegExp(str,str) arr.arr.str;FindRegExpºStrStr;e
 float(int) float;floatºInt
