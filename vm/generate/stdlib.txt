@@ -132,6 +132,7 @@ ErrID(error) int;ErrID
 error(int,str);errorºIntStr;ev
 ErrText(error) str;ErrText
 ErrTrace(error) arr.trace;ErrTrace;r
+exit(int);exit;er
 ExpStr(str,bool) str;ExpStrºBool
 ExpStr(str,char) str;ExpStrºChar
 ExpStr(str,float) str;ExpStrºFloat

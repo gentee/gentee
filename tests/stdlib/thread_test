@@ -1,3 +1,17 @@
+run int {
+  for i in 1..10 {
+    go (ind: i) {
+      int sum
+      for i in 1..ind {
+        sum += i
+      }
+      if ind == 5 : exit(sum*10)
+    }
+  }
+  sleep(1000)
+  return 0
+}
+===== 150
 run str {
   int count = 6
   sval #= Repeat(`0`, count + 3)

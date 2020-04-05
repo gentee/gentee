@@ -1413,3 +1413,11 @@ main:
 	}
 	return
 }
+
+// exit terminates the script execution
+func exit(rt *Runtime, code int64) error {
+	return &RuntimeError{
+		ID:      int(code),
+		Message: ErrorText(ErrExit),
+	}
+}

@@ -67,6 +67,10 @@ const (
 	ErrObjNil
 	// ErrObjType is returned when the value has incompatible type
 	ErrObjType
+	// ErrInterrupted is returned when the script has been interrupted by owner
+	ErrInterrupted
+	// ErrExit is returned when exit function has been called
+	ErrExit
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -127,6 +131,8 @@ var (
 		ErrThread:       `%s cannot be called in the main thread`,
 		ErrObjNil:       `obj is undefined (nil)`,
 		ErrObjType:      `type is incompatible to object`,
+		ErrInterrupted:  `code execution has been interrupted`,
+		ErrExit:         `exit`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

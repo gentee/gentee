@@ -1,3 +1,31 @@
+func ok {
+    exit(7)
+}
+run {
+  try {
+    ok()
+  } catch err : exit(ErrID(err) + 1)
+} 
+===== 8
+func sub(str par) str {
+  local inner str {
+    if par == "ok" : exit(5)
+    return "success"
+  }
+  return "ok \{inner()} \{par}"
+}
+func f str : return sub("ok")
+run str {
+  return f()
+}
+===== 5
+run str {
+  for i in 1..100 {
+     if i== 50 : exit(33)
+  }
+  return `ok result`
+}
+===== 33
 run obj {
   obj o = 2
   return item(o, 1)

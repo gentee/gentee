@@ -201,6 +201,10 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		default:
 		}
 	}
+	if err, ok := errResult.(*RuntimeError); ok && err.Message == ErrorText(ErrExit) {
+		result = err.ID
+		errResult = nil
+	}
 	vm.ChCount <- 0
 	close(vm.Runtimes[0].Thread.Chan)
 	close(vm.ChCount)
