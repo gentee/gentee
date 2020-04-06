@@ -15,6 +15,12 @@ import (
 	"github.com/gentee/gentee/vm"
 )
 
+const (
+	SysSuspend   = vm.SysSuspend
+	SysResume    = vm.SysResume
+	SysTerminate = vm.SysTerminate
+)
+
 // Exec is a structure with a bytecode that is ready to run
 type Exec struct {
 	*core.Exec

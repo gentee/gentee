@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"hash/crc64"
 	"io/ioutil"
@@ -18,9 +19,48 @@ import (
 
 // To run: go run tests/manual/manual.go
 
+func sysChan(ws *gentee.Gentee) error {
+	var (
+		settings gentee.Settings
+	)
+
+	finished := make(chan error)
+	settings.SysChan = make(chan int)
+	exec, _, err := ws.CompileFile(`tests/scripts/syschan.g`)
+	if err != nil {
+		return err
+	}
+	go func() {
+		_, err = exec.Run(settings)
+		finished <- err
+	}()
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println(`Press one of the following number and Enter
+1 - for suspend
+2 - for resume
+3 - for terminate
+any other - for exit`)
+
+	x := int64(1)
+	for x == 1 || x == 2 {
+		ret, _ := reader.ReadString('\n')
+		x, _ = strconv.ParseInt(strings.TrimSpace(ret), 0, 64)
+		if x == 1 || x == 2 || x == 3 {
+			settings.SysChan <- int(x)
+		}
+	}
+	result := <-finished
+	fmt.Println(`res`, result)
+	return nil
+}
+
 func main() {
 	workspace := gentee.New()
 
+	if err := sysChan(workspace); err != nil {
+		fmt.Println(`ERROR:`, err)
+		return
+	}
 	result, err := workspace.CompileAndRun(`tests/scripts/readinput.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)

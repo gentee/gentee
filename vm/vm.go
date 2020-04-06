@@ -21,11 +21,19 @@ const (
 	DEPTH = uint32(1000)
 )
 
+const (
+	sysClose = iota
+	SysSuspend
+	SysResume
+	SysTerminate
+)
+
 type Settings struct {
 	CmdLine []string
-	Input   []byte // stdin
-	Cycle   uint64 // limit of loops
-	Depth   uint32 // limit of blocks stack
+	Input   []byte   // stdin
+	Cycle   uint64   // limit of loops
+	Depth   uint32   // limit of blocks stack
+	SysChan chan int // system chan
 }
 
 type Const struct {
@@ -46,6 +54,7 @@ type VM struct {
 	Context     map[string]string
 	Count       int64 // count of active threads
 	WaitCount   int64
+	Stopped     bool
 	ChCount     chan int64
 	ChError     chan error
 	ChWait      chan int64
@@ -187,7 +196,29 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 			}
 		}
 	}()
+	if settings.SysChan != nil {
+		go func() {
+		sysChan:
+			for {
+				x := <-settings.SysChan
+				switch x {
+				case sysClose:
+					break sysChan
+				case SysSuspend:
+					vm.Stopped = true
+				case SysResume:
+					vm.Stopped = false
+				case SysTerminate:
+					rt.Owner.ChError <- fmt.Errorf(ErrorText(ErrTerminated))
+					vm.Stopped = false // if it has been suspended
+				}
+			}
+		}()
+	}
 	result, errResult := rt.Run(0)
+	if settings.SysChan != nil {
+		settings.SysChan <- sysClose
+	}
 	if errResult != nil {
 		vm.closeAll()
 	}

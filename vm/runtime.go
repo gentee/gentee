@@ -1345,7 +1345,18 @@ main:
 		step := SleepStep
 		check := len(rt.Owner.Runtimes) > 1
 		for check || rt.Thread.Status == ThPaused || rt.Thread.Status == ThWait ||
-			rt.Thread.Sleep > 0 {
+			rt.Thread.Sleep > 0 || rt.Owner.Stopped {
+			if rt.Owner.Stopped {
+				if rt.ThreadID == 0 {
+					select {
+					case err = <-rt.Owner.ChError:
+						return nil, err
+					default:
+					}
+				}
+				time.Sleep(750) // May be it is better to use one more chan
+				continue
+			}
 			var x int
 			if rt.ThreadID == 0 {
 				select {

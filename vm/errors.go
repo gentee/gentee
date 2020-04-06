@@ -67,8 +67,8 @@ const (
 	ErrObjNil
 	// ErrObjType is returned when the value has incompatible type
 	ErrObjType
-	// ErrInterrupted is returned when the script has been interrupted by owner
-	ErrInterrupted
+	// ErrTerminated is returned when the script has been terminated by owner
+	ErrTerminated
 	// ErrExit is returned when exit function has been called
 	ErrExit
 
@@ -131,7 +131,7 @@ var (
 		ErrThread:       `%s cannot be called in the main thread`,
 		ErrObjNil:       `obj is undefined (nil)`,
 		ErrObjType:      `type is incompatible to object`,
-		ErrInterrupted:  `code execution has been interrupted`,
+		ErrTerminated:   `code execution has been terminated`,
 		ErrExit:         `exit`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
