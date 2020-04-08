@@ -98,6 +98,7 @@ buf(str) buf;bufºStr
 Ceil(float) int;CeilºFloat
 ChDir(str);ChDirºStr;e
 ChMode(str,int);ChModeºStr;e
+ClearCarriage(str) str;ClearCarriage 
 Command(str);Command;e                  // $ str 
 CommandOutput(str) str;CommandOutput;e  // $ str 
 CopyFile(str,str) int;CopyFileºStrStr;e
@@ -228,6 +229,7 @@ ParseTime(str,str) time;ParseTimeºStrStr;re
 Print() int;Print;ev
 Println() int;Println;ev
 PrintShift(str) int;PrintShiftºStr;e
+Random(int) int;Random
 ReadDir(str) arr.finfo;ReadDirºStr;re
 ReadFile(str) str;ReadFileºStr;e
 ReadFile(str,buf) buf;ReadFileºStrBuf;e

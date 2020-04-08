@@ -19,6 +19,64 @@ import (
 
 // To run: go run tests/manual/manual.go
 
+func stdInOut(ws *gentee.Gentee) error {
+	var (
+		settings   gentee.Settings
+		rIn, wIn   *os.File
+		rOut, wOut *os.File
+		console    *os.File
+	)
+
+	chNum := make(chan string, 10)
+	exec, _, err := ws.CompileFile(`tests/scripts/stdinout.g`)
+	if err != nil {
+		return err
+	}
+	console = os.Stdout
+	rIn, wIn, _ = os.Pipe()
+	settings.Stdin = rIn
+	rOut, wOut, _ = os.Pipe()
+	settings.Stdout = wOut
+	var (
+		got   string
+		count int
+	)
+	go func() {
+		for {
+			buf := make([]byte, 1024)
+			n, err := rOut.Read(buf)
+			if err != nil {
+				got += err.Error()
+				break
+			}
+			console.Write(buf)
+			if strings.HasPrefix(string(buf), `Enter `) {
+				chNum <- string(buf[6 : n-1])
+			} else {
+				got += string(buf)
+			}
+		}
+	}()
+	go func() {
+		var num, buf string
+		for {
+			num = <-chNum
+			buf = fmt.Sprintf("%s\n", num)
+			got += `=` + num
+			count++
+			if count > 5 {
+				buf = "100\n"
+			}
+			wIn.Write([]byte(buf))
+		}
+	}()
+
+	_, err = exec.Run(settings)
+
+	fmt.Println("\n" + got) //strings.ReplaceAll(got, "\r", "\n"))
+	return nil
+}
+
 func sysChan(ws *gentee.Gentee) error {
 	var (
 		settings gentee.Settings
@@ -55,13 +113,21 @@ any other - for exit`)
 }
 
 func main() {
+	var (
+		err    error
+		result interface{}
+	)
 	workspace := gentee.New()
 
-	if err := sysChan(workspace); err != nil {
+	if err = stdInOut(workspace); err != nil {
 		fmt.Println(`ERROR:`, err)
 		return
 	}
-	result, err := workspace.CompileAndRun(`tests/scripts/readinput.g`)
+	if err = sysChan(workspace); err != nil {
+		fmt.Println(`ERROR:`, err)
+		return
+	}
+	result, err = workspace.CompileAndRun(`tests/scripts/readinput.g`)
 	if err != nil {
 		fmt.Println(`ERROR:`, err)
 		return

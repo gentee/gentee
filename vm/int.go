@@ -6,6 +6,7 @@ package vm
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 )
 
@@ -137,6 +138,11 @@ func MinºIntInt(left, right int64) int64 {
 		return right
 	}
 	return left
+}
+
+// Random returns a random number from 0 to parameter's value [0, limit)
+func Random(limit int64) int64 {
+	return int64(rand.Intn(int(limit)))
 }
 
 // strºInt converts integer value to string

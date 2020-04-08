@@ -71,6 +71,7 @@ func TestCli(t *testing.T) {
 	}
 
 	testList := []testItem{
+		{"Progress: 100%\nCompleteProgress: 100%\nComplete", []string{`conout.g`}},
 		{``, []string{`-t`, `h.g`}},
 		{``, []string{`-t`, `ok.g`}},
 		{``, []string{`-t`, `struct.g`}},

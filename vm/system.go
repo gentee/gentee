@@ -12,6 +12,24 @@ import (
 	"strings"
 )
 
+// ClearCarriage deletes output before carriage return character
+func ClearCarriage(input string) string {
+	var start int
+	runes := []rune(string(input))
+	out := make([]rune, 0, len(runes))
+	for _, char := range []rune(runes) {
+		if char == 0xd {
+			out = out[:start]
+		} else {
+			out = append(out, char)
+			if char == 0xa {
+				start = len(out)
+			}
+		}
+	}
+	return string(out)
+}
+
 // Command executes the command line
 func Command(cmdLine string) error {
 	cmd, err := splitCmdLine(cmdLine)
@@ -36,7 +54,7 @@ func CommandOutput(cmdLine string) (string, error) {
 	if err != nil {
 		err = fmt.Errorf(err.Error())
 	}
-	return string(stdout), err
+	return ClearCarriage(string(stdout)), err
 }
 
 // GetEnv return the value of the environment variable

@@ -6,6 +6,7 @@ package vm
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/gentee/gentee/core"
@@ -30,6 +31,8 @@ const (
 
 type Settings struct {
 	CmdLine []string
+	Stdin   *os.File
+	Stdout  *os.File
 	Input   []byte   // stdin
 	Cycle   uint64   // limit of loops
 	Depth   uint32   // limit of blocks stack
@@ -132,6 +135,17 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	}
 	if vm.Settings.Depth == 0 {
 		vm.Settings.Depth = DEPTH
+	}
+	var (
+		pStdin, pStdout *os.File
+	)
+	if vm.Settings.Stdin != nil {
+		pStdin = os.Stdin
+		os.Stdin = vm.Settings.Stdin
+	}
+	if vm.Settings.Stdout != nil {
+		pStdout = os.Stdout
+		os.Stdout = vm.Settings.Stdout
 	}
 	//	fmt.Println(`CODE`, vm.Exec.Code)
 	//fmt.Println(`POS`, vm.Exec.Pos)
@@ -240,7 +254,12 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	close(vm.Runtimes[0].Thread.Chan)
 	close(vm.ChCount)
 	close(vm.ChError)
-
+	if pStdin != nil {
+		os.Stdin = pStdin
+	}
+	if pStdout != nil {
+		os.Stdout = pStdout
+	}
 	return result, errResult
 
 }

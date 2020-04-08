@@ -1,4 +1,8 @@
 run str {
+  return ClearCarriage("1\r\n2\r3\n4\n\r5\r6")
+}
+===== \n3\n4\n6
+run str {
   ||`ABC
   DEF`
   int n = ||`ABC
