@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gentee/gentee/compiler"
@@ -181,6 +182,159 @@ func (g *Gentee) Unit(unitID int) Unit {
 // Run executes the bytecode.
 func (exec *Exec) Run(settings Settings) (interface{}, error) {
 	return vm.Run(exec.Exec, settings.Settings)
+}
+
+// Go2GenteeType converts go type to gentee type
+func Go2GenteeType(goval interface{}, gtype ...string) (interface{}, error) {
+	var (
+		types   []string
+		vtype   string
+		subtype string
+		val     interface{}
+		err     error
+	)
+	if len(gtype) > 0 && len(gtype[0]) > 0 {
+		vtype = gtype[0]
+		types = strings.Split(gtype[0], `.`)
+		if len(types) > 1 {
+			subtype = strings.Join(types[1:], `.`)
+		}
+		if vtype == `obj` {
+			val, err = Go2GenteeType(goval)
+			return &core.Obj{Data: val}, err
+		}
+	}
+	switch v := goval.(type) {
+	case int64, uint64, uint32, int32, uint8, int8, int:
+		val, err = strconv.ParseInt(fmt.Sprint(v), 10, 64)
+	case float64:
+		val = v
+	case string:
+		val = v
+	case bool:
+		if v {
+			val = int64(1)
+		} else {
+			val = int64(0)
+		}
+	case []byte:
+		if vtype == `set` {
+			set := core.NewSet()
+			for i, b := range v {
+				if b != 0 {
+					set.Set(int64(i), true)
+				}
+			}
+			val = set
+		} else {
+			buf := core.NewBuffer()
+			buf.Data = make([]byte, len(v))
+			copy(buf.Data, v)
+			val = buf
+		}
+	default:
+		rval := reflect.ValueOf(goval)
+		switch reflect.TypeOf(goval).Kind() {
+		case reflect.Slice:
+			arr := core.NewArray()
+			for i := 0; i < rval.Len(); i++ {
+				tmp, err := Go2GenteeType(rval.Index(i).Interface(), subtype)
+				if err != nil {
+					return nil, err
+				}
+				arr.Data = append(arr.Data, tmp)
+			}
+			val = arr
+		case reflect.Map:
+			keys := rval.MapKeys()
+			gmap := core.NewMap()
+			for _, key := range keys {
+				tmp, err := Go2GenteeType(rval.MapIndex(key).Interface(), subtype)
+				if err != nil {
+					return nil, err
+				}
+				gmap.SetIndex(key.String(), tmp)
+			}
+			val = gmap
+		}
+	}
+	if val == nil {
+		err = fmt.Errorf(`Cannot convert %T to any Gentee type`, goval)
+	}
+	return val, err
+}
+
+// Gentee2GoType converts Gentee type to go standard type
+func Gentee2GoType(gval interface{}, gtype ...string) interface{} {
+	var (
+		types   []string
+		subtype string
+	)
+	if len(gtype) > 0 && len(gtype[0]) > 0 {
+		types = strings.Split(gtype[0], `.`)
+		if len(types) > 1 {
+			subtype = strings.Join(types[1:], `.`)
+		}
+	}
+	switch v := gval.(type) {
+	case int64:
+		if len(types) == 0 {
+			return v
+		}
+		switch types[0] {
+		case `bool`:
+			if v == 0 {
+				return false
+			} else {
+				return true
+			}
+		case `char`:
+			return rune(v)
+		default:
+			return v
+		}
+	case float64:
+		return v
+	case string:
+		return v
+	case *core.Array:
+		ret := make([]interface{}, len(v.Data))
+		for i := 0; i < len(v.Data); i++ {
+			ret[i] = Gentee2GoType(v.Data[i], subtype)
+		}
+		return ret
+	case *core.Map:
+		ret := make(map[string]interface{})
+		for _, key := range v.Keys {
+			ret[key] = Gentee2GoType(v.Data[key], subtype)
+		}
+		return ret
+	case *core.Buffer:
+		ret := make([]byte, len(v.Data))
+		copy(ret, v.Data)
+		return ret
+	case *core.Set:
+		ret := make([]byte, len(v.Data)<<6)
+		for i := 0; i < len(v.Data); i++ {
+			for j := 0; j < 64; j++ {
+				if v.Data[i]&(1<<j) == 0 {
+					ret[i<<6+j] = 0
+				} else {
+					ret[i<<6+j] = 1
+				}
+			}
+		}
+		return ret
+	case *vm.Struct:
+		ret := make(map[string]interface{})
+		for i, key := range v.Type.Keys {
+			ret[key] = Gentee2GoType(v.Values[i])
+		}
+		return ret
+	case *core.Obj:
+		return Gentee2GoType(v.Data)
+	}
+	return nil
 }
 
 // Version returns the current version of the Gentee compiler.

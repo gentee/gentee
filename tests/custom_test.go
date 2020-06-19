@@ -7,6 +7,7 @@ package test
 import (
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -114,7 +115,97 @@ func rtStrStack(rt *vm.Runtime, a string, b ...string) (*core.Array, error) {
 	return ret, nil
 }
 
+func errConvert() error {
+	_, err := gentee.Go2GenteeType(&struct {
+		Par1 string
+		Par2 int
+	}{Par1: `OK`, Par2: 100})
+	return err
+}
+
+func cnv1(in *core.Map) (*core.Map, error) {
+	my := gentee.Gentee2GoType(in).(map[string]interface{})
+	for key, a := range my {
+		for i, v := range a.([]interface{}) {
+			a.([]interface{})[i] = v.(int64) + 1
+		}
+		delete(my, key)
+		my[key+`2`] = a
+	}
+	ret, err := gentee.Go2GenteeType(my)
+	return ret.(*core.Map), err
+}
+
+func cnv2(in *core.Array) (*core.Array, error) {
+	my := gentee.Gentee2GoType(in).([]interface{})
+	for i, v := range my {
+		k, err := strconv.ParseInt(v.(string), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		my[i] = k + 1
+	}
+	ret, err := gentee.Go2GenteeType(my)
+	return ret.(*core.Array), err
+}
+
+func cnv3(in *core.Array) (*core.Array, error) {
+	my := gentee.Gentee2GoType(in).([]interface{})
+	for i, v := range my {
+		k := v.(int64)
+		if k == 1 {
+			k = 0
+		} else {
+			k++
+		}
+		my[i] = k
+	}
+	ret, err := gentee.Go2GenteeType(my, `arr.int`)
+	return ret.(*core.Array), err
+}
+
+func cnv4(in *core.Obj) (string, error) {
+	my := gentee.Gentee2GoType(in).(string)
+	ret, err := gentee.Go2GenteeType(my)
+	return strings.ToUpper(ret.(string)), err
+}
+
+func cnv5(in *core.Set) (*core.Set, error) {
+	my := gentee.Gentee2GoType(in).([]byte)
+	for i, b := range my {
+		if i > 10 {
+			break
+		}
+		if b == 0 {
+			my[i] = 1
+		} else {
+			my[i] = b - 1
+		}
+	}
+	ret, err := gentee.Go2GenteeType(my, `set`)
+	return ret.(*core.Set), err
+}
+
+func cnv6(in *core.Array) (*core.Map, error) {
+	my := gentee.Gentee2GoType(in).([]interface{})
+	ret, err := gentee.Go2GenteeType(my[0], `map`)
+	mymap := ret.(*core.Map)
+	for _, key := range []string{`a`, `b`, `c`} {
+		val, _ := mymap.GetIndex(key)
+		vm.DelºMapStr(mymap, key)
+		mymap.SetIndex(key, val)
+	}
+	return mymap, err
+}
+
 var customLib = []gentee.EmbedItem{
+	{Prototype: `cnv6(arr*) map`, Object: cnv6},
+	{Prototype: `cnv5(set) set`, Object: cnv5},
+	{Prototype: `cnv4(obj) str`, Object: cnv4},
+	{Prototype: `cnv3(arr.bool) arr.int`, Object: cnv3},
+	{Prototype: `cnv2(arr.str) arr.int`, Object: cnv2},
+	{Prototype: `cnv1(map.arr.int) map.arr.int`, Object: cnv1},
+	{Prototype: `ErrConvert()`, Object: errConvert},
 	{Prototype: `nopars()`, Object: noPars},
 	{Prototype: `retStr() str`, Object: retStr},
 	{Prototype: `ParStr(str) str`, Object: parStr},

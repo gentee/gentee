@@ -104,7 +104,7 @@ func replace(rt *Runtime, input []rune, stack *[]string) ([]rune, error) {
 		if r != CtxChar {
 			if isName {
 				name = append(name, r)
-				if len(name) > CtxChar {
+				if len(name) > CtxLength {
 					result = append(append(result, CtxChar), name...)
 					isName = false
 					name = name[:0]
