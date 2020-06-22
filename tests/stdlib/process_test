@@ -1,3 +1,8 @@
+run str {
+    return SplitCmdLine(`param1 "second par" "qwert\"y" 100 'oo ps'
+-lastparam`).Join(`=`)
+}
+===== param1=second par=qwert"y=100=oo ps=-lastparam
 func first(int i) str {
     return str(i) + Format(`%v`, Trace())
 }

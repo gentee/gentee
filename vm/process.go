@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/shlex"
+
 	"github.com/gentee/gentee/core"
 )
 
@@ -157,6 +159,20 @@ func IsArgºStr(rt *Runtime, flag string) int64 {
 		return 1
 	}
 	return 0
+}
+
+// SplitCmdLine splits the command line parameters to the array of strings
+func SplitCmdLine(cmdline string) (ret *core.Array, err error) {
+	var pars []string
+	ret = core.NewArray()
+	pars, err = shlex.Split(cmdline)
+	if err != nil {
+		return
+	}
+	for _, par := range pars {
+		ret.Data = append(ret.Data, par)
+	}
+	return
 }
 
 // sysRun executes the process.

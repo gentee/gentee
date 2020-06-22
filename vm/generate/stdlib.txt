@@ -265,6 +265,7 @@ sleep(int);sleepºInt;r
 SliceAuto(arr*,int,int) arr*;SliceºArr;er
 Sort(arr.str) arr.str;SortºArr
 Split(str,str) arr.str;SplitºStrStr
+SplitCmdLine(str) arr.str;SplitCmdLine;e
 str(bool) str;strºBool
 str(buf) str;strºBuf
 str(char) str;strºChar
