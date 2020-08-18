@@ -25,7 +25,10 @@ const (
 	// ConstScript is the script path
 	ConstScript = `SCRIPT`
 	// ConstVersion is the version of Gentee compiler
-	ConstVersion = `VERSION`
+	ConstVersion   = `VERSION`
+	ConstRecursive = `RECURSIVE`
+	ConstOnlyFiles = `ONLYFILES`
+	ConstRegExp    = `REGEXP`
 
 	// NotIota means that constant doesn't use IOTA
 	NotIota = -1

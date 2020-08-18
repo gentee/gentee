@@ -26,7 +26,7 @@ func InitStdlib(ws *core.Workspace) {
 	})
 	NewStructType(ws, `finfo`, []string{
 		`Name:str`, `Size:int`, `Mode:int`,
-		`Time:time`, `IsDir:bool`,
+		`Time:time`, `IsDir:bool`, `Dir:str`,
 	})
 	NewStructType(ws, `trace`, []string{
 		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
@@ -38,6 +38,11 @@ func InitStdlib(ws *core.Workspace) {
 	stdlib.NewConst(core.ConstCycle, int64(16000000), true)
 	stdlib.NewConst(core.ConstScript, ``, true)
 	stdlib.NewConst(core.ConstVersion, core.Version, false)
+
+	// For flag param of ReadDir(str, int, str)
+	stdlib.NewConst(core.ConstRecursive, int64(vm.Recursive), false)
+	stdlib.NewConst(core.ConstOnlyFiles, int64(vm.OnlyFiles), false)
+	stdlib.NewConst(core.ConstRegExp, int64(vm.RegExp), false)
 
 	src := `
 	pub	func Run(str cmd, str args...) {

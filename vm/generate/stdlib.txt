@@ -231,6 +231,7 @@ Println() int;Println;ev
 PrintShift(str) int;PrintShiftºStr;e
 Random(int) int;Random
 ReadDir(str) arr.finfo;ReadDirºStr;re
+ReadDir(str,int,str) arr.finfo;ReadDirºStrIntStr;re
 ReadFile(str) str;ReadFileºStr;e
 ReadFile(str,buf) buf;ReadFileºStrBuf;e
 ReadFile(str,int,int) buf;ReadFileºStrIntInt;e

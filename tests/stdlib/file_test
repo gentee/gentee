@@ -1,3 +1,61 @@
+run arr.str {
+    arr.str ret
+    arr.str files = {`01aaa.txt`, `тест.pdf`, `not folder`}
+    str ftemp = TempDir(``, `eonza`)
+    for fname in files {
+        WriteFile(JoinPath(ftemp, fname), ``)
+    }
+    CreateDir(JoinPath(ftemp, `subdir`))
+    CreateDir(JoinPath(ftemp, `subdir`, `folder 2`))
+    CreateDir(JoinPath(ftemp, `folder 1`))
+    CreateDir(JoinPath(ftemp, `empty`))
+    arr files1 = {`another.txt`, `new.pdf`}
+    for fname in files1 {
+        WriteFile(JoinPath(ftemp, `subdir`, fname), ``)
+    }
+    arr files2 = {`my application`, `pattern.pdf`}
+    for fname in files2 {
+        WriteFile(JoinPath(ftemp, `subdir`, `folder 2`, fname), ``)
+    }
+    arr files3 = {`q1.sh`, `q2.sh`}
+    for fname in files3 {
+        WriteFile(JoinPath(ftemp, `folder 1`, fname), ``)
+    }
+    for item in ReadDir(ftemp, RECURSIVE | ONLYFILES, ``) {
+        ret += item.Name
+    } 
+    for item in ReadDir(ftemp, RECURSIVE, `*fold*`) {
+        ret += item.Name
+    } 
+    for item in ReadDir(ftemp, RECURSIVE | ONLYFILES | REGEXP, `.*\.pdf`) {
+        ret += item.Name
+    } 
+    RemoveDir(ftemp)
+    return Sort(ret)
+}
+===== [01aaa.txt another.txt folder 1 folder 2 my application new.pdf new.pdf not folder not folder pattern.pdf pattern.pdf q1.sh q2.sh тест.pdf тест.pdf]
+run arr.str {
+    arr.str ret
+    arr.str files = {`aaa.txt`, `01df.doc`, `тест.pdf`, `noext`}
+    str ftemp = TempDir(``, `eonza`)
+    for fname in files {
+        WriteFile(JoinPath(ftemp, fname), ``)
+    }
+    CreateDir(JoinPath(ftemp, `tmpdir`))
+    arr.finfo list = ReadDir(ftemp)
+    for item in list {
+        ret += item.Name
+    }
+    for item in ReadDir(ftemp, 0, ``) {
+        if item.Dir != ftemp {
+            break
+        }
+        ret += item.Name
+    } 
+    RemoveDir(ftemp)
+    return Sort(ret)
+}
+===== [01df.doc 01df.doc aaa.txt aaa.txt noext noext tmpdir tmpdir тест.pdf тест.pdf]
 run str {
     str src = "./examples/hello.g"
     str ftemp = JoinPath(TempDir(), `hello.g`)

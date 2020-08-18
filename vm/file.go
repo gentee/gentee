@@ -11,8 +11,15 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/gentee/gentee/core"
+)
+
+const (
+	Recursive = 0x01
+	OnlyFiles = 0x02
+	RegExp    = 0x04
 )
 
 func appendFile(filename string, data []byte) error {
@@ -75,6 +82,7 @@ func fromFileInfo(fileInfo os.FileInfo, finfo *Struct) *Struct {
 	finfo.Values[2] = fileInfo.Mode()
 	fromTime(finfo.Values[3].(*Struct), fileInfo.ModTime())
 	finfo.Values[4] = fileInfo.IsDir()
+	finfo.Values[5] = ``
 	return finfo
 }
 
@@ -133,6 +141,55 @@ func ReadDirºStr(rt *Runtime, dirname string) (*core.Array, error) {
 			NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT])))
 	}
 	return ret, nil
+}
+
+func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, pattern string) error {
+	fileList, err := ioutil.ReadDir(dirname)
+	if err != nil {
+		return err
+	}
+	for _, fileInfo := range fileList {
+		if fileInfo.IsDir() {
+			if flags&Recursive != 0 {
+				err = readDir(rt, ret, filepath.Join(dirname, fileInfo.Name()), flags, pattern)
+				if err != nil {
+					return err
+				}
+			}
+			if flags&OnlyFiles != 0 {
+				continue
+			}
+		}
+		if len(pattern) > 0 {
+			var ok int64
+			if flags&RegExp != 0 {
+				if ok, err = MatchºStrStr(fileInfo.Name(), pattern); err != nil {
+					return err
+				}
+			} else if ok, err = MatchPath(pattern, fileInfo.Name()); err != nil {
+				return err
+			}
+			if ok == 0 {
+				continue
+			}
+		}
+		finfo := fromFileInfo(fileInfo, NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT]))
+		finfo.Values[5] = dirname
+		ret.Data = append(ret.Data, finfo)
+	}
+	return nil
+}
+
+// ReadDirºStrIntStr reads a directory with additional settings
+func ReadDirºStrIntStr(rt *Runtime, dirname string, flags int64, pattern string) (*core.Array, error) {
+	var err error
+	ret := core.NewArray()
+	dirname, err = filepath.Abs(dirname)
+	if err != nil {
+		return ret, err
+	}
+	err = readDir(rt, ret, dirname, flags, pattern)
+	return ret, err
 }
 
 // ReadFileºStr reads a file
