@@ -1,3 +1,14 @@
+run str {
+    str temp = TempDir(``, `gentee_test`)
+    str fname = temp + `/tmp`
+    WriteFile(fname, `TEST`)
+    finfo fi = FileInfo(fname)
+    str out = str(fi.IsDir)
+    fi = FileInfo(temp)
+    RemoveDir(temp)
+    return out + str(fi.IsDir)
+}
+===== falsetrue
 run arr.str {
     arr.str ret
     arr.str files = {`01aaa.txt`, `тест.pdf`, `not folder`}

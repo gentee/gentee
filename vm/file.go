@@ -81,7 +81,11 @@ func fromFileInfo(fileInfo os.FileInfo, finfo *Struct) *Struct {
 	finfo.Values[1] = fileInfo.Size()
 	finfo.Values[2] = fileInfo.Mode()
 	fromTime(finfo.Values[3].(*Struct), fileInfo.ModTime())
-	finfo.Values[4] = fileInfo.IsDir()
+	if fileInfo.IsDir() {
+		finfo.Values[4] = int64(1)
+	} else {
+		finfo.Values[4] = int64(0)
+	}
 	finfo.Values[5] = ``
 	return finfo
 }
