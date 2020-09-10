@@ -76,6 +76,32 @@ func CreateDirºStr(dirname string) error {
 	return os.MkdirAll(dirname, os.ModePerm)
 }
 
+// CreateFileºStrBool creates an empty file
+func CreateFileºStrBool(filename string, always int64) error {
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	if always != 0 {
+		if err = f.Truncate(0); err != nil {
+			return err
+		}
+	}
+	f.Close()
+	return nil
+}
+
+// ExistFile returns true if the file or directory exists
+func ExistFile(filename string) (int64, error) {
+	if _, err := os.Stat(filename); err != nil {
+		if os.IsNotExist(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return 1, nil
+}
+
 func fromFileInfo(fileInfo os.FileInfo, finfo *Struct) *Struct {
 	finfo.Values[0] = fileInfo.Name()
 	finfo.Values[1] = fileInfo.Size()

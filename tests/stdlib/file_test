@@ -1,6 +1,22 @@
 run str {
     str temp = TempDir(``, `gentee_test`)
     str fname = temp + `/tmp`
+    str out = str(ExistFile(fname)) + str(ExistFile(temp))
+    CreateFile(fname, true)
+    WriteFile(fname, `TEST`)
+    CreateFile(fname, false)
+    out += str(ExistFile(fname))
+    finfo fi = FileInfo(fname)
+    out += ` ` + str(fi.Size) + ` `
+    CreateFile(fname, true)
+    fi = FileInfo(fname)
+    RemoveDir(temp)
+    return out + str(fi.Size)
+}
+===== falsetruetrue 4 0
+run str {
+    str temp = TempDir(``, `gentee_test`)
+    str fname = temp + `/tmp`
     WriteFile(fname, `TEST`)
     finfo fi = FileInfo(fname)
     str out = str(fi.IsDir)

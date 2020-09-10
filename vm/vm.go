@@ -33,6 +33,7 @@ type Settings struct {
 	CmdLine []string
 	Stdin   *os.File
 	Stdout  *os.File
+	Stderr  *os.File
 	Input   []byte   // stdin
 	Cycle   uint64   // limit of loops
 	Depth   uint32   // limit of blocks stack
@@ -137,7 +138,7 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		vm.Settings.Depth = DEPTH
 	}
 	var (
-		pStdin, pStdout *os.File
+		pStdin, pStdout, pStderr *os.File
 	)
 	if vm.Settings.Stdin != nil {
 		pStdin = os.Stdin
@@ -146,6 +147,10 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	if vm.Settings.Stdout != nil {
 		pStdout = os.Stdout
 		os.Stdout = vm.Settings.Stdout
+	}
+	if vm.Settings.Stderr != nil {
+		pStderr = os.Stderr
+		os.Stderr = vm.Settings.Stderr
 	}
 	//	fmt.Println(`CODE`, vm.Exec.Code)
 	//fmt.Println(`POS`, vm.Exec.Pos)
@@ -259,6 +264,9 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	}
 	if pStdout != nil {
 		os.Stdout = pStdout
+	}
+	if pStderr != nil {
+		os.Stderr = pStderr
 	}
 	return result, errResult
 

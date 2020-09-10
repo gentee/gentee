@@ -103,6 +103,7 @@ Command(str);Command;e                  // $ str
 CommandOutput(str) str;CommandOutput;e  // $ str 
 CopyFile(str,str) int;CopyFileºStrStr;e
 CreateDir(str);CreateDirºStr;e
+CreateFile(str,bool);CreateFileºStrBool;e
 Ctx(str) str;CtxºStr;er
 CtxGet(str) str;CtxGetºStr;er
 CtxIs(str) bool;CtxIsºStr;r
@@ -133,6 +134,7 @@ ErrID(error) int;ErrID
 error(int,str);errorºIntStr;ev
 ErrText(error) str;ErrText
 ErrTrace(error) arr.trace;ErrTrace;r
+ExistFile(str) bool;ExistFile;e
 exit(int);exit;er
 ExpStr(str,bool) str;ExpStrºBool
 ExpStr(str,char) str;ExpStrºChar
