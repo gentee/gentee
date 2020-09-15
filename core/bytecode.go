@@ -119,7 +119,7 @@ const (
 	SUB       // int - int
 	MUL       // int * int
 	DIV       // int / int
-	MOD       // int % int
+	MOD       // int % int     10
 	BITOR     // int | int
 	BITXOR    // int ^ int
 	BITAND    // int & int
@@ -129,7 +129,7 @@ const (
 	SIGN      // -int
 	EQ        // int == int
 	LT        // int < int
-	GT        // int > int
+	GT        // int > int      20
 	NOT       // logical not 1 => 0, 0 => 1
 	ADDFLOAT  // float + float
 	SUBFLOAT  // float - float
@@ -139,7 +139,7 @@ const (
 	EQFLOAT   // float == float
 	LTFLOAT   // float < float
 	GTFLOAT   // float > float
-	ADDSTR    // str + str
+	ADDSTR    // str + str      30
 	EQSTR     // str == str
 	LTSTR     // str < str
 	GTSTR     // str > str
@@ -149,7 +149,7 @@ const (
 	POP       // & (type<<16) pop top
 	CYCLE     // cycle counter
 	JMP       // + int32 jump
-	JZE       // + int32 jump if the top value is zero
+	JZE       // + int32 jump if the top value is zero     40
 	JNZ       // + int32 jump if the top value is not zero
 	JEQ       // & (type<<16) + int32 jump if equals for case statement
 	JMPOPT    // & (idvar<<16) jump if defined
@@ -160,7 +160,7 @@ const (
 	INITOBJ   // & (count<<16) create a new object + int16 type +int16 type item
 	RANGE     // create range
 	ARRAY     // &(count<<16) create array + int32 types
-	LEN       // & (type<<16) length
+	LEN       // & (type<<16) length                        50
 	FORINC    // & (index<<16) increment counter
 	BREAK     // break
 	CONTINUE  // continue
@@ -170,7 +170,7 @@ const (
 	END       // end of the function
 	CONSTBYID // + int32 id of the object
 	CALLBYID  // & (par count<<16) + int32 id of the object
-	GOBYID    // & (par count<<16) + int32 id of the object new thread + int32 type of pars
+	GOBYID    // & (par count<<16) + int32 id of the object new thread + int32 type of pars   60
 	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
 	LOCAL // & (par count << 16)+ int32 offset

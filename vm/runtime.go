@@ -1172,11 +1172,18 @@ main:
 			}
 			i = int64(top.Offset)
 		case core.END:
+			k := len(rt.Calls) - 1
+			for ; k >= 0; k-- {
+				if rt.Calls[k].IsFunc || rt.Calls[k].IsLocal {
+					break
+				}
+			}
+			rt.Calls = rt.Calls[:k+1]
 			if len(rt.Calls) == 0 {
 				break main
 			}
-			top = rt.Calls[len(rt.Calls)-1]
-			rt.Calls = rt.Calls[:len(rt.Calls)-1]
+			top = rt.Calls[k]
+			rt.Calls = rt.Calls[:k]
 			i = int64(top.Offset)
 		case core.CONSTBYID:
 			i++
