@@ -166,6 +166,7 @@ HasSuffix(str,str) bool;HasSuffixºStrStr
 Hex(buf) str;HexºBuf
 HTTPGet(str) buf;HTTPGet;e
 HTTPPage(str) str;HTTPPage;e
+HTTPRequest(str,str,map.str,map.str) str;HTTPRequest;e
 Join(arr.str,str) str;JoinºArrStr
 JoinPath() str;JoinPath;v
 Json(obj) str;Json;e
