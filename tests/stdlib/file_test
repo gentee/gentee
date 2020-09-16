@@ -141,6 +141,7 @@ run str {
     out += str(fi.Size == 6) + str(tm < fi.Time)
     SetFileTime(fname, tm)
     fi = FileInfo(fname)
+    str s = str(fi.Mode)
     RemoveDir(temp)
     return out + str(tm == fi.Time)
 }

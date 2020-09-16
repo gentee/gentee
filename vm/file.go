@@ -105,7 +105,7 @@ func ExistFile(filename string) (int64, error) {
 func fromFileInfo(fileInfo os.FileInfo, finfo *Struct) *Struct {
 	finfo.Values[0] = fileInfo.Name()
 	finfo.Values[1] = fileInfo.Size()
-	finfo.Values[2] = fileInfo.Mode()
+	finfo.Values[2] = int64(fileInfo.Mode())
 	fromTime(finfo.Values[3].(*Struct), fileInfo.ModTime())
 	if fileInfo.IsDir() {
 		finfo.Values[4] = int64(1)
