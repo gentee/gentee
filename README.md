@@ -6,6 +6,8 @@
 
 Gentee is a free open source script programming language. The Gentee programming language is designed to create scripts to automate repetitive actions and processes on your computer. If you use or plan to use .bat files, bash, PowerShell or special programs to automate actions, then try doing the same thing with Gentee. 
 
+Want to see a sample application that successfully uses the Gentee programming language? Take a look at **[Eonza](https://www.eonza.org/)**, a free cross-platform program for easy creation and management of scripts.
+
 ## Documentation
 
 - [Gentee programming language (English)](https://docs.gentee.org/)
