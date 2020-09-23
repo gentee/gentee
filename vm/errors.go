@@ -79,6 +79,12 @@ const (
 	ErrPlayEnv
 	// ErrPlayAccess is returned on access denied error in Playground mode
 	ErrPlayAccess
+	// ErrPlayCount is returned when files count limit is exceeded in Playground mode
+	ErrPlayCount
+	// ErrPlaySize is returned when the file size limit reached in Playground mode
+	ErrPlaySize
+	// ErrPlayAllSize is returned when the summary files size limit reached in Playground mode
+	ErrPlayAllSize
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -145,6 +151,9 @@ var (
 		ErrPlayRun:      `[Playground] starting any processes is disabled`,
 		ErrPlayEnv:      `[Playground] setting the environment variable is disabled`,
 		ErrPlayAccess:   `[Playground] access denied`,
+		ErrPlayCount:    `[Playground] file limit reached`,
+		ErrPlaySize:     `[Playground] file size limit reached`,
+		ErrPlayAllSize:  `[Playground] summary files size limit reached`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

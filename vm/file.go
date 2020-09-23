@@ -22,7 +22,12 @@ const (
 	RegExp    = 0x04
 )
 
-func appendFile(filename string, data []byte) error {
+func appendFile(rt *Runtime, filename string, data []byte) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, len(data)); err != nil {
+			return err
+		}
+	}
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -33,13 +38,13 @@ func appendFile(filename string, data []byte) error {
 }
 
 // AppendFileºStrBuf appends a buffer to a file
-func AppendFileºStrBuf(filename string, buf *core.Buffer) error {
-	return appendFile(filename, buf.Data)
+func AppendFileºStrBuf(rt *Runtime, filename string, buf *core.Buffer) error {
+	return appendFile(rt, filename, buf.Data)
 }
 
 // AppendFileºStrStr appends a string to a file
-func AppendFileºStrStr(filename, s string) error {
-	return appendFile(filename, []byte(s))
+func AppendFileºStrStr(rt *Runtime, filename, s string) error {
+	return appendFile(rt, filename, []byte(s))
 }
 
 // ChDirºStr change the current directory

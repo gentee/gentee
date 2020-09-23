@@ -139,6 +139,9 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		ChError:  make(chan error, 16),
 		ChWait:   make(chan int64, 16),
 	}
+	if settings.IsPlayground {
+		vm.Playground.Files = make(map[string]int)
+	}
 	if vm.Settings.Cycle == 0 {
 		vm.Settings.Cycle = CYCLE
 	}

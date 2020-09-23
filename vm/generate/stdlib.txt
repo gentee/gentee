@@ -10,8 +10,8 @@ Add(int,int) int;ADD                            // int + int
 Add(str,char) str;AddºStrChar                   // str + char
 Add(str,str) str;ADDSTR                         // str + str
 AddHours(time,int) time;AddHoursºTimeInt;r
-AppendFile(str,buf);AppendFileºStrBuf;e
-AppendFile(str,str);AppendFileºStrStr;e
+AppendFile(str,buf);AppendFileºStrBuf;er
+AppendFile(str,str);AppendFileºStrStr;er
 Arg(str) str;ArgºStr;r
 Arg(str, int) int;ArgºStrInt;er
 Arg(str, str) str;ArgºStrStr;r

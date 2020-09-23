@@ -20,15 +20,14 @@ type Playground struct {
 	SizeLimit    int    // file size limit. In default, 5MB
 }
 
-type FSFile struct {
+/*type FSFile struct {
 	IsDir bool
 	Size  int
-}
+}*/
 
 type PlaygroundFS struct {
-	SummarySize int // summary of files size
-	FilesCount  int // count of files
-	Files       map[string]FSFile
+	Size  int // summary of files size
+	Files map[string]int
 }
 
 // InitPlayground inits playground settings
@@ -68,4 +67,32 @@ func PlaygroundAbsPath(vm *VM, fname string) (ret string, err error) {
 		}
 	}
 	return
+}
+
+func CheckPlaygroundLimits(vm *VM, fname string, size int) error {
+	var (
+		curSize int
+		ok      bool
+	)
+	ret, err := PlaygroundAbsPath(vm, fname)
+	if err != nil {
+		return err
+	}
+	name := ret[len(vm.Settings.Playground.Path):]
+	if curSize, ok = vm.Playground.Files[name]; !ok {
+		vm.Playground.Files[name] = size
+	} else {
+		vm.Playground.Files[name] += size
+	}
+	if len(vm.Playground.Files) > vm.Settings.Playground.FilesLimit {
+		return fmt.Errorf(`%s [%d]`, ErrorText(ErrPlayCount), vm.Settings.Playground.FilesLimit)
+	}
+	vm.Playground.Size += size
+	if curSize+size > vm.Settings.Playground.SizeLimit {
+		return fmt.Errorf(`%s [%d MB]`, ErrorText(ErrPlaySize), vm.Settings.Playground.SizeLimit>>20)
+	}
+	if vm.Playground.Size > vm.Settings.Playground.AllSizeLimit {
+		return fmt.Errorf(`%s [%d MB]`, ErrorText(ErrPlayAllSize), vm.Settings.Playground.AllSizeLimit>>20)
+	}
+	return nil
 }

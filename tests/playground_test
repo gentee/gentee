@@ -1,3 +1,15 @@
+run {
+    AppendFile("out.txt", "this is a test message")
+    str data = Repeat("this is a test message", 10000)
+    for i in 1..700 {
+        AppendFile("out.txt", data)
+    }
+}
+===== [5:9] [Playground] file size limit reached [5 MB]
+run {
+    AppendFile("../out.txt", "this is a test message")
+}
+===== [2:5] [Playground] access denied [../out.txt]
 run bool {
     return Dir(Dir(AbsPath("test"))) == TempDir()
 }
