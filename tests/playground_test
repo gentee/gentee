@@ -1,4 +1,38 @@
 run {
+    str data = Repeat("this is a test message", 20000)
+    for i in 1..20 {
+        CreateFile(`out.txt`, true)
+        AppendFile(`out.txt`, data)
+    }
+    for i in 1..15 {
+        CreateFile(`out.txt`, false)
+        AppendFile(`out.txt`, data)
+    }
+}
+===== [9:9] [Playground] file size limit reached [5 MB]
+run {
+    CreateFile("../some.txt", false)
+}
+===== [2:5] [Playground] access denied [../some.txt]
+run {
+    CreateDir("../some/thing")
+}
+===== [2:5] [Playground] access denied [../some/thing]
+run str {
+    str dir = GetCurDir()
+    CreateDir("../\{BaseName(dir)}/some/thing")
+    ChDir("some/thing")
+    CreateFile(`test.txt`, true)
+    return BaseName(GetCurDir())
+}
+===== thing
+run str {
+    CreateDir("some/thing")
+    ChDir("some/thing")
+    return BaseName(GetCurDir())
+}
+===== thing
+run {
     WriteFile("ok", "OK")
     CopyFile("ok", "/tmp/test.txt")
 }

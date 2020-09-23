@@ -13,6 +13,11 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+const (
+	NoLimit   = -1
+	ClearSize = -2
+)
+
 type Playground struct {
 	Path         string // path to the temporary folder if it's empty then TempDir is used.
 	AllSizeLimit int64  // all files size limit. In default, 10MB
@@ -78,11 +83,19 @@ func CheckPlaygroundLimits(vm *VM, fname string, size int64) error {
 	if err != nil {
 		return err
 	}
-	if size == -1 {
+	if size == NoLimit {
 		return nil
 	}
 	name := ret[len(vm.Settings.Playground.Path):]
-	if curSize, ok = vm.Playground.Files[name]; !ok {
+	curSize, ok = vm.Playground.Files[name]
+	if size == ClearSize {
+		if ok {
+			vm.Playground.Size -= curSize
+			vm.Playground.Files[name] = 0
+		}
+		size = 0
+	}
+	if !ok {
 		vm.Playground.Files[name] = size
 	} else {
 		vm.Playground.Files[name] += size

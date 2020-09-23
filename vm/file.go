@@ -99,12 +99,26 @@ func CopyFileºStrStr(rt *Runtime, src, dest string) (int64, error) {
 }
 
 // CreateDirºStr creates the directory(s)
-func CreateDirºStr(dirname string) error {
+func CreateDirºStr(rt *Runtime, dirname string) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, dirname, 0); err != nil {
+			return err
+		}
+	}
 	return os.MkdirAll(dirname, os.ModePerm)
 }
 
 // CreateFileºStrBool creates an empty file
-func CreateFileºStrBool(filename string, always int64) error {
+func CreateFileºStrBool(rt *Runtime, filename string, always int64) error {
+	if rt.Owner.Settings.IsPlayground {
+		var trunc int64
+		if always != 0 {
+			trunc = ClearSize
+		}
+		if err := CheckPlaygroundLimits(rt.Owner, filename, trunc); err != nil {
+			return err
+		}
+	}
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
