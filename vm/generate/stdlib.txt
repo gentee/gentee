@@ -240,8 +240,8 @@ ReadFile(str,buf) buf;ReadFileºStrBuf;er
 ReadFile(str,int,int) buf;ReadFileºStrIntInt;er
 ReadString(str) str;ReadString;er
 RegExp(str,str) str;RegExpºStrStr;e
-Remove(str);RemoveºStr;e
-RemoveDir(str);RemoveDirºStr;e
+Remove(str);RemoveºStr;er
+RemoveDir(str);RemoveDirºStr;er
 Rename(str,str);RenameºStrStr;e
 Repeat(str,int) str;RepeatºStrInt
 Replace(str,str,str) str;ReplaceºStrStrStr

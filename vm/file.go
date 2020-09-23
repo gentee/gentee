@@ -361,12 +361,22 @@ func ReadFileºStrIntInt(rt *Runtime, filename string, off int64, length int64) 
 }
 
 // RemoveºStr removes a file or an empty directory
-func RemoveºStr(filename string) error {
+func RemoveºStr(rt *Runtime, filename string) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, DeleteSize); err != nil {
+			return err
+		}
+	}
 	return os.Remove(filename)
 }
 
 // RemoveDirºStr removes a directory
-func RemoveDirºStr(dirname string) error {
+func RemoveDirºStr(rt *Runtime, dirname string) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, dirname, DeleteAllSize); err != nil {
+			return err
+		}
+	}
 	return os.RemoveAll(dirname)
 }
 

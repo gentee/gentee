@@ -1,3 +1,25 @@
+run  {
+    RemoveDir(`..`)
+}
+===== [2:5] [Playground] access denied [..]
+run str {
+    str dir = GetCurDir()
+    RemoveDir(dir)
+    return GetCurDir()
+}
+===== [4:12] getwd: no such file or directory
+run  {
+    Remove(`/home/rem.txt`)
+}
+===== [2:5] [Playground] access denied [/home/rem.txt]
+run bool {
+    for i in 1..510 {
+        WriteFile(`rem.txt`, `OK`)
+        Remove(`rem.txt`)
+    }
+    return true
+}
+===== true
 run {
     buf b = ReadFile(`../тест`, 0, 100)
 }
