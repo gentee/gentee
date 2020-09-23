@@ -1,3 +1,13 @@
+run {
+    SetEnv("MYPATH", true)
+}
+===== [2:5] [Playground] Setting the environment variable is disabled
+run str {
+    str s = $PATH
+    $MYPATH = "test"
+    return s
+}
+===== [3:13] [Playground] Setting the environment variable is disabled
 run str {
     str s = $ echo "ooops"
     return s

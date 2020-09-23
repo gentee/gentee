@@ -255,9 +255,9 @@ RShift(int,int) int;RSHIFT;e            // int >> int
 set(arr.int) set;setºArr;e
 Set(set,int) set;SetºSet;e
 set(str) set;setºStr;e
-SetEnv(str,str) str;SetEnv;e                // $name = str
-SetEnv(str,int) str;SetEnv;e	            // $name = int
-SetEnv(str,bool) str;SetEnvBool;e           // $name = bool
+SetEnv(str,str) str;SetEnv;er                // $name = str
+SetEnv(str,int) str;SetEnv;er	            // $name = int
+SetEnv(str,bool) str;SetEnvBool;er           // $name = bool
 SetFileTime(str,time);SetFileTimeºStrTime;e
 Sha256(buf) buf;Sha256ºBuf
 Sha256(str) buf;Sha256ºStr

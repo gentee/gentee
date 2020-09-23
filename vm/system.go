@@ -69,14 +69,20 @@ func GetEnv(name string) string {
 }
 
 // SetEnv assign the value to the environment variable
-func SetEnv(name string, value interface{}) (string, error) {
+func SetEnv(rt *Runtime, name string, value interface{}) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		return ``, fmt.Errorf(ErrorText(ErrPlayEnv))
+	}
 	ret := fmt.Sprint(value)
 	err := os.Setenv(name, ret)
 	return ret, err
 }
 
 // SetEnvBool assign the value to the environment variable
-func SetEnvBool(name string, value int64) (string, error) {
+func SetEnvBool(rt *Runtime, name string, value int64) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		return ``, fmt.Errorf(ErrorText(ErrPlayEnv))
+	}
 	ret := strºBool(value)
 	err := os.Setenv(name, ret)
 	return ret, err
