@@ -24,7 +24,7 @@ const (
 
 func appendFile(rt *Runtime, filename string, data []byte) error {
 	if rt.Owner.Settings.IsPlayground {
-		if err := CheckPlaygroundLimits(rt.Owner, filename, len(data)); err != nil {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, int64(len(data))); err != nil {
 			return err
 		}
 	}
@@ -48,23 +48,45 @@ func AppendFileºStrStr(rt *Runtime, filename, s string) error {
 }
 
 // ChDirºStr change the current directory
-func ChDirºStr(dirname string) error {
+func ChDirºStr(rt *Runtime, dirname string) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, dirname, -1); err != nil {
+			return err
+		}
+	}
 	return os.Chdir(dirname)
 }
 
 // ChModeºStr change the file mode.
-func ChModeºStr(name string, mode int64) error {
+func ChModeºStr(rt *Runtime, name string, mode int64) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, name, -1); err != nil {
+			return err
+		}
+	}
 	return os.Chmod(name, os.FileMode(mode))
 }
 
 // CopyFileºStrStr copies a file
-func CopyFileºStrStr(src, dest string) (int64, error) {
+func CopyFileºStrStr(rt *Runtime, src, dest string) (int64, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, src, -1); err != nil {
+			return 0, err
+		}
+	}
+
 	srcFile, err := os.Open(src)
 	if err != nil {
 		return 0, err
 	}
 	finfo, err := srcFile.Stat()
 	defer srcFile.Close()
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, dest, finfo.Size()); err != nil {
+			return 0, err
+		}
+	}
+
 	destFile, err := os.Create(dest)
 	if err != nil {
 		return 0, err

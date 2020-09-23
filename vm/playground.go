@@ -15,9 +15,9 @@ import (
 
 type Playground struct {
 	Path         string // path to the temporary folder if it's empty then TempDir is used.
-	AllSizeLimit int    // all files size limit. In default, 10MB
+	AllSizeLimit int64  // all files size limit. In default, 10MB
 	FilesLimit   int    // count of files limit. In default, 1000
-	SizeLimit    int    // file size limit. In default, 5MB
+	SizeLimit    int64  // file size limit. In default, 5MB
 }
 
 /*type FSFile struct {
@@ -26,8 +26,8 @@ type Playground struct {
 }*/
 
 type PlaygroundFS struct {
-	Size  int // summary of files size
-	Files map[string]int
+	Size  int64 // summary of files size
+	Files map[string]int64
 }
 
 // InitPlayground inits playground settings
@@ -69,14 +69,17 @@ func PlaygroundAbsPath(vm *VM, fname string) (ret string, err error) {
 	return
 }
 
-func CheckPlaygroundLimits(vm *VM, fname string, size int) error {
+func CheckPlaygroundLimits(vm *VM, fname string, size int64) error {
 	var (
-		curSize int
+		curSize int64
 		ok      bool
 	)
 	ret, err := PlaygroundAbsPath(vm, fname)
 	if err != nil {
 		return err
+	}
+	if size == -1 {
+		return nil
 	}
 	name := ret[len(vm.Settings.Playground.Path):]
 	if curSize, ok = vm.Playground.Files[name]; !ok {

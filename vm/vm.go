@@ -140,7 +140,7 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		ChWait:   make(chan int64, 16),
 	}
 	if settings.IsPlayground {
-		vm.Playground.Files = make(map[string]int)
+		vm.Playground.Files = make(map[string]int64)
 	}
 	if vm.Settings.Cycle == 0 {
 		vm.Settings.Cycle = CYCLE

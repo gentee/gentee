@@ -1,4 +1,52 @@
 run {
+    WriteFile("ok", "OK")
+    CopyFile("ok", "/tmp/test.txt")
+}
+===== [3:5] [Playground] access denied [/tmp/test.txt]
+run {
+    CopyFile("../ok", "test.txt")
+}
+===== [2:5] [Playground] access denied [../ok]
+run str {
+    str fname = "in.txt" 
+    str out = "out.txt" 
+    WriteFile(fname, "Initial line")
+    CopyFile(fname, out)
+    return ReadFile(out)
+}
+===== Initial line
+run {
+    ChMode("../../test", 0754)
+}
+===== [2:5] [Playground] access denied [../../test]
+run int {
+    CreateFile("test", false)
+    ChMode("test", 0754)
+    return FileMode("test")
+}
+===== 492
+run str {
+    CreateDir("test")
+    ChDir("test")
+    return BaseName(GetCurDir())
+}
+===== test
+run {
+    ChDir("/tmp")
+}
+===== [2:5] [Playground] access denied [/tmp]
+run {
+    ChDir("../temp")
+}
+===== [2:5] [Playground] access denied [../temp]
+run str {
+    str fname = "out.txt" 
+    WriteFile(fname, "Initial line")
+    AppendFile(fname, "this is a test message")
+    return ReadFile(fname)
+}
+===== Initial linethis is a test message
+run {
     AppendFile("out.txt", "this is a test message")
     str data = Repeat("this is a test message", 10000)
     for i in 1..700 {

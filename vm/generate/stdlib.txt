@@ -96,12 +96,12 @@ bool(map*) bool;boolºMap
 bool(str) bool;boolºStr
 buf(str) buf;bufºStr
 Ceil(float) int;CeilºFloat
-ChDir(str);ChDirºStr;e
-ChMode(str,int);ChModeºStr;e
+ChDir(str);ChDirºStr;er
+ChMode(str,int);ChModeºStr;er
 ClearCarriage(str) str;ClearCarriage 
 Command(str);Command;er                  // $ str 
 CommandOutput(str) str;CommandOutput;er  // $ str 
-CopyFile(str,str) int;CopyFileºStrStr;e
+CopyFile(str,str) int;CopyFileºStrStr;er
 CreateDir(str);CreateDirºStr;e
 CreateFile(str,bool);CreateFileºStrBool;e
 Ctx(str) str;CtxºStr;er
