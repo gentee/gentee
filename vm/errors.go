@@ -140,8 +140,8 @@ var (
 		ErrTerminated:   `code execution has been terminated`,
 		ErrExit:         `exit`,
 		ErrPlayCycle:    `[Playground] maximum cycle count has been reached`,
-		ErrPlayRun:      `[Playground] Starting any processes is disabled`,
-		ErrPlayEnv:      `[Playground] Setting the environment variable is disabled`,
+		ErrPlayRun:      `[Playground] starting any processes is disabled`,
+		ErrPlayEnv:      `[Playground] setting the environment variable is disabled`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

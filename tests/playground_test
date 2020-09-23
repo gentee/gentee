@@ -1,22 +1,38 @@
 run {
+    OpenWith("firefox", "index.html")
+}
+===== [2:5] [Playground] starting any processes is disabled
+run {
+    Open("index.html")
+}
+===== [2:5] [Playground] starting any processes is disabled
+run {
+    Start("./myapp")
+}
+===== [13:3] [Playground] starting any processes is disabled
+run {
+    Run("./myapp")
+}
+===== [6:3] [Playground] starting any processes is disabled
+run {
     SetEnv("MYPATH", true)
 }
-===== [2:5] [Playground] Setting the environment variable is disabled
+===== [2:5] [Playground] setting the environment variable is disabled
 run str {
     str s = $PATH
     $MYPATH = "test"
     return s
 }
-===== [3:13] [Playground] Setting the environment variable is disabled
+===== [3:13] [Playground] setting the environment variable is disabled
 run str {
     str s = $ echo "ooops"
     return s
 }
-===== [2:13] [Playground] Starting any processes is disabled
+===== [2:13] [Playground] starting any processes is disabled
 run {
     $ echo "ooops"
 }
-===== [2:5] [Playground] Starting any processes is disabled
+===== [2:5] [Playground] starting any processes is disabled
 run {
     for i in 1..2000 {
     }

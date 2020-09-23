@@ -119,9 +119,12 @@ func ArgsTail(rt *Runtime) *core.Array {
 }
 
 // OpenºStr runs corresponding application with the specified file.
-func OpenºStr(fname string) error {
+func OpenºStr(rt *Runtime, fname string) error {
 	var err error
 
+	if rt.Owner.Settings.IsPlayground {
+		return fmt.Errorf(ErrorText(ErrPlayRun))
+	}
 	switch runtime.GOOS {
 	case "linux":
 		err = exec.Command("xdg-open", fname).Start()
@@ -136,9 +139,12 @@ func OpenºStr(fname string) error {
 }
 
 // OpenWithºStr runs the application with the specified file.
-func OpenWithºStr(app, fname string) error {
+func OpenWithºStr(rt *Runtime, app, fname string) error {
 	var err error
 
+	if rt.Owner.Settings.IsPlayground {
+		return fmt.Errorf(ErrorText(ErrPlayRun))
+	}
 	switch runtime.GOOS {
 	case "linux":
 		err = exec.Command(app, fname).Start()
@@ -176,12 +182,15 @@ func SplitCmdLine(cmdline string) (ret *core.Array, err error) {
 }
 
 // sysRun executes the process.
-func sysRun(cmd string, start int64, stdin *core.Buffer, stdout *core.Buffer, stderr *core.Buffer,
+func sysRun(rt *Runtime, cmd string, start int64, stdin *core.Buffer, stdout *core.Buffer, stderr *core.Buffer,
 	args *core.Array) error {
 	var (
 		pars                  []string
 		bufOut, bufIn, bufErr bytes.Buffer
 	)
+	if rt.Owner.Settings.IsPlayground {
+		return fmt.Errorf(ErrorText(ErrPlayRun))
+	}
 	for _, arg := range args.Data {
 		pars = append(pars, fmt.Sprint(arg))
 	}

@@ -226,8 +226,8 @@ obj(float) obj;objºAny
 obj(int) obj;objºAny
 obj(map*) obj;objºArrMap;e
 obj(str) obj;objºAny
-Open(str);OpenºStr;e
-OpenWith(str,str);OpenWithºStr;e
+Open(str);OpenºStr;er
+OpenWith(str,str);OpenWithºStr;er
 ParseTime(str,str) time;ParseTimeºStrStr;re
 Print() int;Print;ev
 Println() int;Println;ev
@@ -285,7 +285,7 @@ Sub(int,int) int;SUB                    // int - int
 Substr(str,int,int) str;SubstrºStrIntInt;e
 suspend(thread);suspendºThread;er
 sysBufNil() buf;sysBufNil
-sysRun(str,bool,buf,buf,buf,arr.str);sysRun;e
+sysRun(str,bool,buf,buf,buf,arr.str);sysRun;er
 TempDir() str;TempDir
 TempDir(str, str) str;TempDirºStrStr;e
 terminate(thread);terminateºThread;er
