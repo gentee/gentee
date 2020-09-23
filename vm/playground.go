@@ -5,8 +5,10 @@
 package vm
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gentee/gentee/core"
 )
@@ -37,7 +39,7 @@ func InitPlayground(settings *Settings) (err error) {
 	if settings.Playground.Path, err = filepath.Abs(settings.Playground.Path); err != nil {
 		return
 	}
-	settings.Playground.Path = filepath.Join(settings.Playground.Path, core.RandName())
+	settings.Playground.Path = filepath.Join(settings.Playground.Path, strings.ToLower(core.RandName()))
 	if err = os.MkdirAll(settings.Playground.Path, os.ModePerm); err != nil {
 		return
 	}
@@ -50,10 +52,20 @@ func InitPlayground(settings *Settings) (err error) {
 	if settings.Playground.SizeLimit == 0 {
 		settings.Playground.SizeLimit = 5 << 20 // 5MB
 	}
-	return
+	return os.Chdir(settings.Playground.Path)
 }
 
 // DeinitPlayground removes playground files
 func DeinitPlayground(vm *VM) {
 	os.RemoveAll(vm.Settings.Playground.Path)
+}
+
+func PlaygroundAbsPath(vm *VM, fname string) (ret string, err error) {
+	ret, err = filepath.Abs(fname)
+	if err == nil {
+		if !strings.HasPrefix(strings.ToLower(ret), strings.ToLower(vm.Settings.Playground.Path)) {
+			return ``, fmt.Errorf(`%s [%s]`, ErrorText(ErrPlayAccess), fname)
+		}
+	}
+	return
 }

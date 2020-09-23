@@ -1,5 +1,5 @@
 Abs(int)int;AbsºInt
-AbsPath(str) str;AbsPath;e
+AbsPath(str) str;AbsPath;er
 Add(buf,buf) buf;AddºBufBuf                     // buf + buf
 Add(char,char) str;AddºCharChar                 // char + char
 Add(char,str) str;AddºCharStr                   // char + str

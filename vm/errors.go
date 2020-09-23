@@ -77,6 +77,8 @@ const (
 	ErrPlayRun
 	// ErrPlayEnv is returned on setting environment in Playground mode
 	ErrPlayEnv
+	// ErrPlayAccess is returned on access denied error in Playground mode
+	ErrPlayAccess
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -142,6 +144,7 @@ var (
 		ErrPlayCycle:    `[Playground] maximum cycle count has been reached`,
 		ErrPlayRun:      `[Playground] starting any processes is disabled`,
 		ErrPlayEnv:      `[Playground] setting the environment variable is disabled`,
+		ErrPlayAccess:   `[Playground] access denied`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

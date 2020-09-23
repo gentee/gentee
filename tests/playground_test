@@ -1,3 +1,11 @@
+run bool {
+    return Dir(Dir(AbsPath("test"))) == TempDir()
+}
+===== true
+run str {
+    return AbsPath("../test")
+}
+===== [2:12] [Playground] access denied [../test]
 run {
     OpenWith("firefox", "index.html")
 }

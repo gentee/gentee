@@ -11,7 +11,10 @@ import (
 )
 
 // AbsPath returns an absolute representation of path.
-func AbsPath(fname string) (string, error) {
+func AbsPath(rt *Runtime, fname string) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		return PlaygroundAbsPath(rt.Owner, fname)
+	}
 	return filepath.Abs(fname)
 }
 
