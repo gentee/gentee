@@ -235,9 +235,9 @@ PrintShift(str) int;PrintShiftºStr;e
 Random(int) int;Random
 ReadDir(str) arr.finfo;ReadDirºStr;re
 ReadDir(str,int,str) arr.finfo;ReadDirºStrIntStr;re
-ReadFile(str) str;ReadFileºStr;e
-ReadFile(str,buf) buf;ReadFileºStrBuf;e
-ReadFile(str,int,int) buf;ReadFileºStrIntInt;e
+ReadFile(str) str;ReadFileºStr;er
+ReadFile(str,buf) buf;ReadFileºStrBuf;er
+ReadFile(str,int,int) buf;ReadFileºStrIntInt;er
 ReadString(str) str;ReadString;er
 RegExp(str,str) str;RegExpºStrStr;e
 Remove(str);RemoveºStr;e

@@ -1,4 +1,39 @@
 run {
+    buf b = ReadFile(`../тест`, 0, 100)
+}
+===== [2:13] [Playground] access denied [../тест]
+run {
+    buf b
+    ReadFile(`../ok`, b)
+}
+===== [3:5] [Playground] access denied [../ok]
+run {
+    ReadFile(`/tmp/ok`)
+}
+===== [2:5] [Playground] access denied [/tmp/ok]
+run {
+    ReadDir(`/tmp`, RECURSIVE, ``)
+}
+===== [2:5] [Playground] access denied [/tmp]
+run {
+    ReadDir(`../temp`)
+}
+===== [2:5] [Playground] access denied [../temp]
+run str {
+    WriteFile(`md.txt`, `OK`)
+    arr.finfo ret = ReadDir(GetCurDir())
+    str out
+    for item in ret {
+       out += item.Name
+    }
+    ret = ReadDir(`.`, RECURSIVE, ``)
+    for item in ret {
+       out += item.Name
+    }
+    return out
+}
+===== md.txtmd.txt
+run {
     Md5File("./../fi.txt")
 }
 ===== [2:5] [Playground] access denied [./../fi.txt]

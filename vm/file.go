@@ -222,6 +222,11 @@ func Md5FileºStr(rt *Runtime, filename string) (string, error) {
 
 // ReadDirºStr reads a directory
 func ReadDirºStr(rt *Runtime, dirname string) (*core.Array, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, dirname, NoLimit); err != nil {
+			return nil, err
+		}
+	}
 	ret := core.NewArray()
 	fileList, err := ioutil.ReadDir(dirname)
 	if err != nil {
@@ -274,6 +279,11 @@ func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, pattern 
 // ReadDirºStrIntStr reads a directory with additional settings
 func ReadDirºStrIntStr(rt *Runtime, dirname string, flags int64, pattern string) (*core.Array, error) {
 	var err error
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, dirname, NoLimit); err != nil {
+			return nil, err
+		}
+	}
 	ret := core.NewArray()
 	dirname, err = filepath.Abs(dirname)
 	if err != nil {
@@ -284,7 +294,12 @@ func ReadDirºStrIntStr(rt *Runtime, dirname string, flags int64, pattern string
 }
 
 // ReadFileºStr reads a file
-func ReadFileºStr(filename string) (string, error) {
+func ReadFileºStr(rt *Runtime, filename string) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, NoLimit); err != nil {
+			return ``, err
+		}
+	}
 	out, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return ``, err
@@ -293,7 +308,12 @@ func ReadFileºStr(filename string) (string, error) {
 }
 
 // ReadFileºStrBuf reads a file to buffer
-func ReadFileºStrBuf(filename string, buf *core.Buffer) (*core.Buffer, error) {
+func ReadFileºStrBuf(rt *Runtime, filename string, buf *core.Buffer) (*core.Buffer, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, NoLimit); err != nil {
+			return nil, err
+		}
+	}
 	out, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return buf, err
@@ -303,11 +323,16 @@ func ReadFileºStrBuf(filename string, buf *core.Buffer) (*core.Buffer, error) {
 }
 
 // ReadFileºStrIntInt reads a part of the file to the buffer
-func ReadFileºStrIntInt(filename string, off int64, length int64) (buf *core.Buffer, err error) {
+func ReadFileºStrIntInt(rt *Runtime, filename string, off int64, length int64) (buf *core.Buffer, err error) {
 	var (
 		fhandle *os.File
 		n       int
 	)
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, NoLimit); err != nil {
+			return nil, err
+		}
+	}
 	buf = core.NewBuffer()
 	if fhandle, err = os.Open(filename); err != nil {
 		return
