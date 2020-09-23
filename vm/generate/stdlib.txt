@@ -134,7 +134,7 @@ ErrID(error) int;ErrID
 error(int,str);errorºIntStr;ev
 ErrText(error) str;ErrText
 ErrTrace(error) arr.trace;ErrTrace;r
-ExistFile(str) bool;ExistFile;e
+ExistFile(str) bool;ExistFile;er
 exit(int);exit;er
 ExpStr(str,bool) str;ExpStrºBool
 ExpStr(str,char) str;ExpStrºChar
@@ -143,7 +143,7 @@ ExpStr(str,int) str;ExpStrºInt
 ExpStr(str,obj) str;ExpStrºObj
 ExpStr(str,str) str;ADDSTR
 FileInfo(str) finfo;FileInfoºStr;er
-FileMode(str) int;FileModeºStr;e
+FileMode(str) int;FileModeºStr;er
 Find(str,str) int;FindºStrStr
 FindRegExp(str,str) arr.arr.str;FindRegExpºStrStr;e
 float(int) float;floatºInt
@@ -208,7 +208,7 @@ Max(float,float) float;MaxºFloatFloat
 Max(int,int) int;MaxºIntInt
 Md5(buf) buf;Md5ºBuf
 Md5(str) buf;Md5ºStr
-Md5File(str) str;Md5FileºStr;e
+Md5File(str) str;Md5FileºStr;er
 Min(float,float) float;MinºFloatFloat
 Min(int,int) int;MinºIntInt
 Mod(int,int) int;MOD;e                  // int % int

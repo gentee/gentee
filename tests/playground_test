@@ -1,4 +1,25 @@
 run {
+    Md5File("./../fi.txt")
+}
+===== [2:5] [Playground] access denied [./../fi.txt]
+run str {
+    WriteFile(`md.txt`, `OK`)
+    return Md5File(`md.txt`)
+}
+===== e0aa021e21dddbd6d8cecec71e9cf564
+run {
+    int mode = FileMode("/home/fi.txt")
+}
+===== [2:16] [Playground] access denied [/home/fi.txt]
+run {
+    finfo fi = FileInfo("/home/fi.txt")
+}
+===== [2:16] [Playground] access denied [/home/fi.txt]
+run {
+    ExistFile("../esome.txt")
+}
+===== [2:5] [Playground] access denied [../esome.txt]
+run {
     str data = Repeat("this is a test message", 20000)
     for i in 1..20 {
         CreateFile(`out.txt`, true)
@@ -23,9 +44,10 @@ run str {
     CreateDir("../\{BaseName(dir)}/some/thing")
     ChDir("some/thing")
     CreateFile(`test.txt`, true)
-    return BaseName(GetCurDir())
+    finfo fi = FileInfo(`test.txt`)
+    return BaseName(GetCurDir()) + str(ExistFile(`test.txt`))
 }
-===== thing
+===== thingtrue
 run str {
     CreateDir("some/thing")
     ChDir("some/thing")

@@ -133,7 +133,12 @@ func CreateFileºStrBool(rt *Runtime, filename string, always int64) error {
 }
 
 // ExistFile returns true if the file or directory exists
-func ExistFile(filename string) (int64, error) {
+func ExistFile(rt *Runtime, filename string) (int64, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, NoLimit); err != nil {
+			return 0, err
+		}
+	}
 	if _, err := os.Stat(filename); err != nil {
 		if os.IsNotExist(err) {
 			return 0, nil
@@ -159,6 +164,11 @@ func fromFileInfo(fileInfo os.FileInfo, finfo *Struct) *Struct {
 
 // FileInfoºStr returns the finfo describing the named file.
 func FileInfoºStr(rt *Runtime, name string) (*Struct, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, name, NoLimit); err != nil {
+			return nil, err
+		}
+	}
 	finfo := NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT])
 	handle, err := os.Open(name)
 	if err != nil {
@@ -173,7 +183,12 @@ func FileInfoºStr(rt *Runtime, name string) (*Struct, error) {
 }
 
 // FileModeºStr returns the file mode.
-func FileModeºStr(name string) (int64, error) {
+func FileModeºStr(rt *Runtime, name string) (int64, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, name, NoLimit); err != nil {
+			return 0, err
+		}
+	}
 	fStat, err := os.Stat(name)
 	if err != nil {
 		return 0, err
@@ -187,7 +202,12 @@ func GetCurDir() (string, error) {
 }
 
 // Md5FileºStr returns md5 hash of the file as a hex string
-func Md5FileºStr(filename string) (string, error) {
+func Md5FileºStr(rt *Runtime, filename string) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, NoLimit); err != nil {
+			return ``, err
+		}
+	}
 	file, err := os.Open(filename)
 	if err != nil {
 		return ``, err
