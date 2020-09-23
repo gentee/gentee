@@ -175,7 +175,7 @@ func coFor(cmpl *compiler) error {
 		}
 		cmpl.newPos++
 	} else {
-		if err := coVarToken(cmpl, randName()); err != nil {
+		if err := coVarToken(cmpl, core.RandName()); err != nil {
 			return err
 		}
 	}

@@ -31,7 +31,10 @@ func ClearCarriage(input string) string {
 }
 
 // Command executes the command line
-func Command(cmdLine string) error {
+func Command(rt *Runtime, cmdLine string) error {
+	if rt.Owner.Settings.IsPlayground {
+		return fmt.Errorf(ErrorText(ErrPlayRun))
+	}
 	cmd, err := splitCmdLine(cmdLine)
 	if err != nil {
 		return err
@@ -45,7 +48,10 @@ func Command(cmdLine string) error {
 }
 
 // CommandOutput executes the command line and returns the standard output
-func CommandOutput(cmdLine string) (string, error) {
+func CommandOutput(rt *Runtime, cmdLine string) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		return ``, fmt.Errorf(ErrorText(ErrPlayRun))
+	}
 	cmd, err := splitCmdLine(cmdLine)
 	if err != nil {
 		return ``, err

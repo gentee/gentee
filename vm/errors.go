@@ -71,6 +71,10 @@ const (
 	ErrTerminated
 	// ErrExit is returned when exit function has been called
 	ErrExit
+	// ErrPlayCycle is returned when maximum cycle count has been reached in Playground mode
+	ErrPlayCycle
+	// ErrPlayRun is returned on starting any processes in Playground mode
+	ErrPlayRun
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -133,6 +137,8 @@ var (
 		ErrObjType:      `type is incompatible to object`,
 		ErrTerminated:   `code execution has been terminated`,
 		ErrExit:         `exit`,
+		ErrPlayCycle:    `[Playground] maximum cycle count has been reached`,
+		ErrPlayRun:      `[Playground] Starting any processes is disabled`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

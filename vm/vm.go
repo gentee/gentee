@@ -30,14 +30,16 @@ const (
 )
 
 type Settings struct {
-	CmdLine []string
-	Stdin   *os.File
-	Stdout  *os.File
-	Stderr  *os.File
-	Input   []byte   // stdin
-	Cycle   uint64   // limit of loops
-	Depth   uint32   // limit of blocks stack
-	SysChan chan int // system chan
+	CmdLine      []string
+	Stdin        *os.File
+	Stdout       *os.File
+	Stderr       *os.File
+	Input        []byte   // stdin
+	Cycle        uint64   // limit of loops
+	Depth        uint32   // limit of blocks stack
+	SysChan      chan int // system chan
+	IsPlayground bool
+	Playground   Playground
 }
 
 type Const struct {
@@ -62,6 +64,7 @@ type VM struct {
 	ChCount     chan int64
 	ChError     chan error
 	ChWait      chan int64
+	Playground  PlaygroundFS
 }
 
 type OptValue struct {
@@ -120,6 +123,11 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	}
 	if exec.CRCStdlib != CRCStdlib || (exec.CRCCustom != 0 && exec.CRCCustom != CRCCustom) {
 		return nil, fmt.Errorf(ErrorText(ErrCRC))
+	}
+	if settings.IsPlayground {
+		if err := InitPlayground(&settings); err != nil {
+			return nil, err
+		}
 	}
 	vm := &VM{
 		Settings: settings,
@@ -267,6 +275,9 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 	}
 	if pStderr != nil {
 		os.Stderr = pStderr
+	}
+	if vm.Settings.IsPlayground {
+		DeinitPlayground(vm)
 	}
 	return result, errResult
 

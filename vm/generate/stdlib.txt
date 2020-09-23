@@ -99,8 +99,8 @@ Ceil(float) int;CeilºFloat
 ChDir(str);ChDirºStr;e
 ChMode(str,int);ChModeºStr;e
 ClearCarriage(str) str;ClearCarriage 
-Command(str);Command;e                  // $ str 
-CommandOutput(str) str;CommandOutput;e  // $ str 
+Command(str);Command;er                  // $ str 
+CommandOutput(str) str;CommandOutput;er  // $ str 
 CopyFile(str,str) int;CopyFileºStrStr;e
 CreateDir(str);CreateDirºStr;e
 CreateFile(str,bool);CreateFileºStrBool;e

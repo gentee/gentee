@@ -5,7 +5,6 @@
 package compiler
 
 import (
-	"math/rand"
 	"strconv"
 	"strings"
 	"unicode"
@@ -45,16 +44,6 @@ func isCapital(name string) bool {
 		}
 	}
 	return true
-}
-
-func randName() string {
-	alpha := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	length := len(alpha)
-	b := make([]rune, 16)
-	for i := range b {
-		b[i] = alpha[rand.Intn(length)]
-	}
-	return string(b)
 }
 
 func unNewLine(in string) (string, error) {

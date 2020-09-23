@@ -48,6 +48,17 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+// RandName returns random latin name
+func RandName() string {
+	alpha := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	length := len(alpha)
+	b := make([]rune, 16)
+	for i := range b {
+		b[i] = alpha[rand.Intn(length)]
+	}
+	return string(b)
+}
+
 // NewVM returns a new virtual machine
 func NewVM(Embedded []Embed) *Workspace {
 	ws := Workspace{

@@ -1,0 +1,14 @@
+run str {
+    str s = $ echo "ooops"
+    return s
+}
+===== [2:13] [Playground] Starting any processes is disabled
+run {
+    $ echo "ooops"
+}
+===== [2:5] [Playground] Starting any processes is disabled
+run {
+    for i in 1..2000 {
+    }
+}
+===== [2:5] [Playground] maximum cycle count has been reached [1000]

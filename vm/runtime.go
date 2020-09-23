@@ -670,9 +670,12 @@ main:
 			rt.Calls[lenCalls].Cycle--
 			//			fmt.Println(`CYCLE`, rt.Calls[lenCalls].Cycle, rt.SInt[:top.Int], rt.SStr[:top.Str], rt.SAny[:top.Any])
 			if rt.Calls[lenCalls].Cycle == 0 {
-				errHandle(i, ErrCycle)
+				if rt.Owner.Settings.IsPlayground {
+					errHandle(i, ErrPlayCycle, rt.Owner.Settings.Cycle)
+				} else {
+					errHandle(i, ErrCycle)
+				}
 				continue main
-				//return nil, runtimeError(rt, i, ErrCycle)
 			}
 		case core.JMP:
 			i += int64(int16(code[i+1]))
