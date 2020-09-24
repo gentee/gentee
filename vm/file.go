@@ -381,18 +381,40 @@ func RemoveDirºStr(rt *Runtime, dirname string) error {
 }
 
 // RenameºStrStr renames a file or a directory
-func RenameºStrStr(oldname, newname string) error {
+func RenameºStrStr(rt *Runtime, oldname, newname string) error {
+	if rt.Owner.Settings.IsPlayground {
+		size, err := PlaygroundSize(rt.Owner, oldname)
+		if err != nil {
+			return err
+		}
+		if err = CheckPlaygroundLimits(rt.Owner, oldname, DeleteSize); err != nil {
+			return err
+		}
+		if err = CheckPlaygroundLimits(rt.Owner, newname, size); err != nil {
+			return err
+		}
+	}
 	return os.Rename(oldname, newname)
 }
 
 // SetFileTimeºStrTime changes the modification time of the named file
-func SetFileTimeºStrTime(name string, ftime *Struct) error {
+func SetFileTimeºStrTime(rt *Runtime, name string, ftime *Struct) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, name, NoLimit); err != nil {
+			return err
+		}
+	}
 	mtime := toTime(ftime)
 	return os.Chtimes(name, mtime, mtime)
 }
 
 // Sha256FileºStr returns sha256 hash of the file as a hex string
-func Sha256FileºStr(filename string) (string, error) {
+func Sha256FileºStr(rt *Runtime, filename string) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, NoLimit); err != nil {
+			return ``, err
+		}
+	}
 	file, err := os.Open(filename)
 	if err != nil {
 		return ``, err
@@ -411,16 +433,35 @@ func TempDir() string {
 }
 
 // TempDirºStrStr creates a directory in the temporary directory
-func TempDirºStrStr(dir, prefix string) (string, error) {
+func TempDirºStrStr(rt *Runtime, dir, prefix string) (string, error) {
+	if rt.Owner.Settings.IsPlayground {
+		tmp := dir
+		if len(tmp) == 0 {
+			tmp = TempDir()
+		}
+		if err := CheckPlaygroundLimits(rt.Owner, filepath.Join(tmp, prefix+`_`), NoLimit); err != nil {
+			return ``, err
+		}
+	}
 	return ioutil.TempDir(dir, prefix)
 }
 
 // WriteFileºStrBuf writes a buffer to a file
-func WriteFileºStrBuf(filename string, buf *core.Buffer) error {
+func WriteFileºStrBuf(rt *Runtime, filename string, buf *core.Buffer) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, int64(len(buf.Data))); err != nil {
+			return err
+		}
+	}
 	return ioutil.WriteFile(filename, buf.Data, os.ModePerm)
 }
 
 // WriteFileºStrStr writes a string to a file
-func WriteFileºStrStr(filename, in string) error {
+func WriteFileºStrStr(rt *Runtime, filename, in string) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, int64(len(in))); err != nil {
+			return err
+		}
+	}
 	return ioutil.WriteFile(filename, []byte(in), os.ModePerm)
 }

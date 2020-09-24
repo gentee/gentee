@@ -242,7 +242,7 @@ ReadString(str) str;ReadString;er
 RegExp(str,str) str;RegExpºStrStr;e
 Remove(str);RemoveºStr;er
 RemoveDir(str);RemoveDirºStr;er
-Rename(str,str);RenameºStrStr;e
+Rename(str,str);RenameºStrStr;er
 Repeat(str,int) str;RepeatºStrInt
 Replace(str,str,str) str;ReplaceºStrStrStr
 ReplaceRegExp(str,str,str) str;ReplaceRegExpºStrStr;e
@@ -258,10 +258,10 @@ set(str) set;setºStr;e
 SetEnv(str,str) str;SetEnv;er                // $name = str
 SetEnv(str,int) str;SetEnv;er	            // $name = int
 SetEnv(str,bool) str;SetEnvBool;er           // $name = bool
-SetFileTime(str,time);SetFileTimeºStrTime;e
+SetFileTime(str,time);SetFileTimeºStrTime;er
 Sha256(buf) buf;Sha256ºBuf
 Sha256(str) buf;Sha256ºStr
-Sha256File(str) str;Sha256FileºStr;e
+Sha256File(str) str;Sha256FileºStr;er
 Shift(str) str;ShiftºStr
 Sign(float) float;SIGNFLOAT
 Sign(int) int;SIGN                      // -int
@@ -287,7 +287,7 @@ suspend(thread);suspendºThread;er
 sysBufNil() buf;sysBufNil
 sysRun(str,bool,buf,buf,buf,arr.str);sysRun;er
 TempDir() str;TempDir
-TempDir(str, str) str;TempDirºStrStr;e
+TempDir(str, str) str;TempDirºStrStr;er
 terminate(thread);terminateºThread;er
 time(int) time;timeºInt;r
 Toggle(set,int) bool;ToggleºSetInt
@@ -308,6 +308,6 @@ WaitAll();WaitAll;re
 WaitDone();WaitDone;re
 WaitGroup(int);WaitGroup;re
 Weekday(time) int;WeekdayºTime;r
-WriteFile(str,buf);WriteFileºStrBuf;e
-WriteFile(str,str);WriteFileºStrStr;e
+WriteFile(str,buf);WriteFileºStrBuf;er
+WriteFile(str,str);WriteFileºStrStr;er
 YearDay(time) int;YearDayºTime

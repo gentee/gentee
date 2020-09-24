@@ -32,6 +32,7 @@ func TestPlayground(t *testing.T) {
 			}
 			var settings gentee.Settings
 			settings.Cycle = 1000
+			settings.Depth = 100
 			settings.IsPlayground = true
 			result, err := exec.Run(settings)
 			if err == nil {

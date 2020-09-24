@@ -1,4 +1,45 @@
 run  {
+    WriteFile(`../path`, `pref`)
+}
+===== [2:5] [Playground] access denied [../path]
+run  {
+    TempDir(``, `pref`)
+}
+===== [2:5] [Playground] access denied [/tmp/pref_]
+run  {
+    TempDir(`../temp`, `pref`)
+}
+===== [2:5] [Playground] access denied [../temp/pref_]
+run  str {
+    str path = TempDir(GetCurDir(), `tmp`)
+    return Substr(BaseName(path), 0, 3)
+}
+===== tmp
+run  {
+    Sha256File(`/../../temp`)
+}
+===== [2:5] [Playground] access denied [/../../temp]
+run  {
+    SetFileTime(`./../temp`, Now())
+}
+===== [2:5] [Playground] access denied [./../temp]
+run  str {
+    WriteFile(`temp`, `OK`)
+    Rename(`temp`, `out.txt`)
+    str sha = Sha256File(`out.txt`)
+    SetFileTime(`out.txt`, Now())
+    return ReadFile(`out.txt`) + str(*sha)
+}
+===== OK64
+run  {
+    Rename(`temp`,`../test`)
+}
+===== [2:5] [Playground] access denied [../test]
+run  {
+    Rename(`../test`, `temp`)
+}
+===== [2:5] [Playground] access denied [../test]
+run  {
     RemoveDir(`..`)
 }
 ===== [2:5] [Playground] access denied [..]
