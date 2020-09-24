@@ -85,6 +85,8 @@ const (
 	ErrPlaySize
 	// ErrPlayAllSize is returned when the summary files size limit reached in Playground mode
 	ErrPlayAllSize
+	// ErrPlayDepth is returned when maximum depth of recursion has been reached om Playground mode
+	ErrPlayDepth
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -154,6 +156,7 @@ var (
 		ErrPlayCount:    `[Playground] file limit reached`,
 		ErrPlaySize:     `[Playground] file size limit reached`,
 		ErrPlayAllSize:  `[Playground] summary files size limit reached`,
+		ErrPlayDepth:    `[Playground] maximum depth of recursion has been reached`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

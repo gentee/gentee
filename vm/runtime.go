@@ -1226,9 +1226,12 @@ main:
 			})
 			rt.Optional = nil
 			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
-				errHandle(i, ErrDepth)
+				if rt.Owner.Settings.IsPlayground {
+					errHandle(i, ErrPlayDepth, rt.Owner.Settings.Depth)
+				} else {
+					errHandle(i, ErrDepth)
+				}
 				continue main
-				//return nil, runtimeError(rt, i, ErrDepth)
 			}
 			i = int64(rt.Owner.Exec.Funcs[id])
 			continue
@@ -1336,9 +1339,12 @@ main:
 				Any:     top.Any,
 			})
 			if uint32(len(rt.Calls)) >= rt.Owner.Settings.Depth {
-				errHandle(i, ErrDepth)
+				if rt.Owner.Settings.IsPlayground {
+					errHandle(i, ErrPlayDepth, rt.Owner.Settings.Depth)
+				} else {
+					errHandle(i, ErrDepth)
+				}
 				continue main
-				//return nil, runtimeError(rt, i, ErrDepth)
 			}
 			i += int64(shift)
 			continue

@@ -1,3 +1,12 @@
+func rec(int i) {
+    if i < 110 {
+        rec(i+1)
+    }
+}
+run  {
+    rec(0)
+}
+===== [3:9] [Playground] maximum depth of recursion has been reached [100]
 run  {
     WriteFile(`../path`, `pref`)
 }
