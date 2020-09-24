@@ -1,3 +1,16 @@
+run  {
+    str data = Repeat("this is a test message", 20000)
+    for i in 1..25 {
+        WriteFile(`%{i}.txt`, data)
+    }
+}
+===== [4:9] [Playground] summary files size limit reached [10 MB]
+run  {
+    for i in 1..210 {
+        CreateFile(`%{i}.txt`, false)
+    }
+}
+===== [3:9] [Playground] file limit reached [200]
 func rec(int i) {
     if i < 110 {
         rec(i+1)
