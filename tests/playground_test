@@ -1,7 +1,7 @@
 run {
     for i in 1..55 {
-        HTTPGet(`https://www.eonza.org/`)
-        HTTPPage(`https://www.eonza.org/`)
+        HTTPGet(`https://www.eonza.com/`)
+        HTTPPage(`https://www.eonza.com/`)
     }
 }
 ===== [3:9] [Playground] file limit reached [100]
