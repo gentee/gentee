@@ -118,7 +118,7 @@ Days(time) int;DaysºTime
 Del(buf,int,int) buf;DelºBufIntInt
 DelAuto(map*,str) map*;DelºMapStr
 Dir(str) str;Dir
-Download(str,str) int;Download;e
+Download(str,str) int;Download;er
 Ext(str) str;Ext
 Div(float,float) float;DIVFLOAT;e       // float / float
 Div(float,int) float;DivºFloatInt;e     // float / int
@@ -163,10 +163,11 @@ Greater(str,str) bool;GTSTR                 // str > str
 Greater(time,time) bool;GreaterºTimeTime    // time > time
 HasPrefix(str,str) bool;HasPrefixºStrStr
 HasSuffix(str,str) bool;HasSuffixºStrStr
+HeadInfo(str) hinfo;HeadInfo;er
 Hex(buf) str;HexºBuf
-HTTPGet(str) buf;HTTPGet;e
-HTTPPage(str) str;HTTPPage;e
-HTTPRequest(str,str,map.str,map.str) str;HTTPRequest;e
+HTTPGet(str) buf;HTTPGet;er
+HTTPPage(str) str;HTTPPage;er
+HTTPRequest(str,str,map.str,map.str) str;HTTPRequest;er
 Join(arr.str,str) str;JoinºArrStr
 JoinPath() str;JoinPath;v
 Json(obj) str;Json;e

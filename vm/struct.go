@@ -15,6 +15,7 @@ const (
 	TRACESTRUCT = iota
 	TIMESTRUCT
 	FINFOSTRUCT
+	HINFOSTRUCT
 )
 
 // Struct is used for custom struct types

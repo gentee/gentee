@@ -17,6 +17,8 @@ func testrequest() {
 
 run str {
 //    testrequest()
+    hinfo hi = HeadInfo(`https://github.com/gentee/gentee/`)
+    if hi.Status!= 200 : error(103,`HeadInfo status`)
     str page = HTTPPage(README)
     if Find(page, TITLE) < 0 : error(100, `HTTPPage`)
     buf bufPage = HTTPGet(README)

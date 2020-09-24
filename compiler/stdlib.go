@@ -19,6 +19,9 @@ func InitStdlib(ws *core.Workspace) {
 	ws.Units = append(ws.Units, stdlib)
 	ws.UnitNames[core.DefName] = len(ws.Units) - 1
 	InitTypes(ws)
+	NewStructType(ws, `trace`, []string{
+		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
+	})
 	NewStructType(ws, `time`, []string{
 		`Year:int`, `Month:int`, `Day:int`,
 		`Hour:int`, `Minute:int`, `Second:int`,
@@ -28,8 +31,8 @@ func InitStdlib(ws *core.Workspace) {
 		`Name:str`, `Size:int`, `Mode:int`,
 		`Time:time`, `IsDir:bool`, `Dir:str`,
 	})
-	NewStructType(ws, `trace`, []string{
-		`Path:str`, `Entry:str`, `Func:str`, `Line:int`, `Pos:int`,
+	NewStructType(ws, `hinfo`, []string{
+		`Status:int`, `Length:int`, `Type:str`,
 	})
 	InitEmbed(ws)
 

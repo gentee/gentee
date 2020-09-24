@@ -1,3 +1,41 @@
+run {
+    for i in 1..55 {
+        HTTPGet(`https://www.eonza.org/`)
+        HTTPPage(`https://www.eonza.org/`)
+    }
+}
+===== [3:9] [Playground] file limit reached [100]
+run {
+    HTTPGet(`https://github.com/gentee/gentee/releases/download/v1.13.0/gentee-1.13.0-linux-amd64.zip`)
+}
+===== [2:5] [Playground] file size limit reached [5 MB]
+run bool {
+    buf out = HTTPGet(`https://www.eonza.org`)
+    return *out > 5000
+}
+===== true
+run  {
+    map empty
+    HTTPRequest(`https://www.eonza.org/`, "GET", empty, empty)
+}
+===== [3:5] [Playground] calling the HTTPRequest function is prohibited
+run  {
+    Download("https://github.com/gentee/gentee/releases/download/v1.13.0/gentee-1.13.0-linux-amd64.zip", "my.zip")
+}
+===== [2:5] [Playground] file size limit reached [5 MB]
+run  {
+    Download("https://golang.org/dl/go1.15.2.src.tar.gz", "my.zip")
+}
+===== [2:5] [Playground] file size limit reached [5 MB]
+run  {
+    Download("https://github.com/gentee/gentee/archive/v1.13.0.zip", "my.zip")
+    finfo fi = FileInfo("my.zip")
+    if fi.Size < 10000 {
+        error(101,`error download size`)
+    }
+    Download("https://github.com/gentee/gentee/archive/v1.13.0.zip", "../my.zip")
+}
+===== [7:5] [Playground] access denied [../my.zip]
 run  {
     str data = Repeat("this is a test message", 20000)
     for i in 1..25 {
@@ -6,11 +44,11 @@ run  {
 }
 ===== [4:9] [Playground] summary files size limit reached [10 MB]
 run  {
-    for i in 1..210 {
+    for i in 1..110 {
         CreateFile(`%{i}.txt`, false)
     }
 }
-===== [3:9] [Playground] file limit reached [200]
+===== [3:9] [Playground] file limit reached [100]
 func rec(int i) {
     if i < 110 {
         rec(i+1)

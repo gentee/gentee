@@ -350,6 +350,7 @@ func genBytecode(ws *core.Workspace, idObj int32) *core.Bytecode {
 	type2Code(ws.StdLib().FindType(`trace`).(*core.TypeObject), bcode)
 	type2Code(ws.StdLib().FindType(`time`).(*core.TypeObject), bcode)
 	type2Code(ws.StdLib().FindType(`finfo`).(*core.TypeObject), bcode)
+	type2Code(ws.StdLib().FindType(`hinfo`).(*core.TypeObject), bcode)
 
 	cmd2Code(&Linker{Lex: ws.Objects[idObj].GetLex()}, block, bcode)
 	if isConst {

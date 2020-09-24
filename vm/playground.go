@@ -23,7 +23,7 @@ const (
 type Playground struct {
 	Path         string // path to the temporary folder if it's empty then TempDir is used.
 	AllSizeLimit int64  // all files size limit. In default, 10MB
-	FilesLimit   int    // count of files limit. In default, 200
+	FilesLimit   int    // count of files limit. In default, 100
 	SizeLimit    int64  // file size limit. In default, 5MB
 }
 
@@ -53,7 +53,7 @@ func InitPlayground(settings *Settings) (err error) {
 		settings.Playground.AllSizeLimit = 10 << 20 // 10MB
 	}
 	if settings.Playground.FilesLimit == 0 {
-		settings.Playground.FilesLimit = 200
+		settings.Playground.FilesLimit = 100
 	}
 	if settings.Playground.SizeLimit == 0 {
 		settings.Playground.SizeLimit = 5 << 20 // 5MB

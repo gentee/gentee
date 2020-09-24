@@ -7,18 +7,31 @@ package vm
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gentee/gentee/core"
 )
 
 // Download downloads and saves the file by url.
-func Download(url, filename string) (int64, error) {
+func Download(rt *Runtime, url, filename string) (int64, error) {
+	var size int64
+	if rt.Owner.Settings.IsPlayground {
+		hinfo, err := HeadInfo(rt, url)
+		if err != nil {
+			return 0, err
+		}
+		size = hinfo.Values[1].(int64)
+		if err = CheckPlaygroundLimits(rt.Owner, filename, size); err != nil {
+			return 0, err
+		}
+	}
 	resp, err := http.Get(url)
 	if err != nil {
 		return 0, err
@@ -29,30 +42,92 @@ func Download(url, filename string) (int64, error) {
 		return 0, err
 	}
 	defer out.Close()
+	if rt.Owner.Settings.IsPlayground {
+		written, err := io.CopyN(out, resp.Body, rt.Owner.Settings.Playground.SizeLimit)
+		if err != nil && err != io.EOF {
+			return written, err
+		}
+		if written >= rt.Owner.Settings.Playground.SizeLimit {
+			return written, fmt.Errorf(`%s [%d MB]`, ErrorText(ErrPlaySize),
+				rt.Owner.Settings.Playground.SizeLimit>>20)
+		}
+		if size == 0 {
+			if err = CheckPlaygroundLimits(rt.Owner, filename, written); err != nil {
+				return 0, err
+			}
+		}
+		return written, nil
+	}
 	return io.Copy(out, resp.Body)
 }
 
+// HeadInfo function read the header of url
+func HeadInfo(rt *Runtime, url string) (*Struct, error) {
+	hinfo := NewStruct(rt, &rt.Owner.Exec.Structs[HINFOSTRUCT])
+	resp, err := http.Head(url)
+	if err != nil {
+		return hinfo, err
+	}
+	hinfo.Values[0] = int64(resp.StatusCode)
+	size, _ := strconv.Atoi(resp.Header.Get("Content-Length"))
+	hinfo.Values[1] = int64(size)
+	hinfo.Values[2] = resp.Header.Get("Content-Type")
+	return hinfo, nil
+}
+
 // HTTPGet issues a GET to the specified URL.
-func HTTPGet(url string) (buf *core.Buffer, err error) {
+func HTTPGet(rt *Runtime, url string) (buf *core.Buffer, err error) {
 	var res *http.Response
 	buf = core.NewBuffer()
 	res, err = http.Get(url)
 	if err == nil {
-		buf.Data, err = ioutil.ReadAll(res.Body)
+		if rt.Owner.Settings.IsPlayground {
+			out := bytes.NewBuffer(nil)
+			written, err := io.CopyN(out, res.Body, rt.Owner.Settings.Playground.SizeLimit)
+			if err != nil && err != io.EOF {
+				return nil, err
+			}
+			if written >= rt.Owner.Settings.Playground.SizeLimit {
+				return nil, fmt.Errorf(`%s [%d MB]`, ErrorText(ErrPlaySize),
+					rt.Owner.Settings.Playground.SizeLimit>>20)
+			}
+			if err = CheckPlaygroundLimits(rt.Owner, core.RandName(), written); err != nil {
+				return nil, err
+			}
+			buf.Data = out.Bytes()
+		} else {
+			buf.Data, err = ioutil.ReadAll(res.Body)
+		}
 		res.Body.Close()
 	}
 	return
 }
 
 // HTTPPage issues a GET to the specified URL and returns a string result.
-func HTTPPage(url string) (string, error) {
+func HTTPPage(rt *Runtime, url string) (string, error) {
 	var (
 		ret string
 		buf []byte
 	)
 	res, err := http.Get(url)
 	if err == nil {
-		buf, err = ioutil.ReadAll(res.Body)
+		if rt.Owner.Settings.IsPlayground {
+			out := bytes.NewBuffer(nil)
+			written, err := io.CopyN(out, res.Body, rt.Owner.Settings.Playground.SizeLimit)
+			if err != nil && err != io.EOF {
+				return ``, err
+			}
+			if written >= rt.Owner.Settings.Playground.SizeLimit {
+				return ``, fmt.Errorf(`%s [%d MB]`, ErrorText(ErrPlaySize),
+					rt.Owner.Settings.Playground.SizeLimit>>20)
+			}
+			if err = CheckPlaygroundLimits(rt.Owner, core.RandName(), written); err != nil {
+				return ``, err
+			}
+			ret = out.String()
+		} else {
+			buf, err = ioutil.ReadAll(res.Body)
+		}
 		res.Body.Close()
 		if err == nil {
 			ret = string(buf)
@@ -62,7 +137,7 @@ func HTTPPage(url string) (string, error) {
 }
 
 // HTTPRequest send HTTP request to the specified URL and returns a string result.
-func HTTPRequest(urlPath string, method string, params *core.Map, headers *core.Map) (ret string,
+func HTTPRequest(rt *Runtime, urlPath string, method string, params *core.Map, headers *core.Map) (ret string,
 	err error) {
 	var (
 		req         *http.Request
@@ -71,6 +146,9 @@ func HTTPRequest(urlPath string, method string, params *core.Map, headers *core.
 		isForm      bool
 		body        io.Reader
 	)
+	if rt.Owner.Settings.IsPlayground {
+		return ``, fmt.Errorf(ErrorText(ErrPlayFunc), `HTTPRequest`)
+	}
 	for _, key := range headers.Keys {
 		if key == `Content-Type` {
 			contentType = headers.Data[key].(string)
