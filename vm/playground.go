@@ -22,9 +22,9 @@ const (
 
 type Playground struct {
 	Path         string // path to the temporary folder if it's empty then TempDir is used.
-	AllSizeLimit int64  // all files size limit. In default, 10MB
-	FilesLimit   int    // count of files limit. In default, 100
-	SizeLimit    int64  // file size limit. In default, 5MB
+	AllSizeLimit int64  // all files size limit. By default, 10MB
+	FilesLimit   int    // count of files limit. By default, 100
+	SizeLimit    int64  // file size limit. By default, 5MB
 }
 
 /*type FSFile struct {
