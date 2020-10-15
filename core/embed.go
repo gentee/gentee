@@ -126,6 +126,9 @@ func (unit *Unit) ImportEmbed(embed Embed) {
 	ind := len(unit.VM.Objects) - 1
 	if defFuncs[embed.Name] {
 		unit.NameSpace[embed.Name] = uint32(ind) | NSPub
+		if embed.Name == DefGetEnv {
+			unit.AddFunc(ind, obj, true)
+		}
 		return
 	}
 	if strings.HasSuffix(embed.Name, `Auto`) {

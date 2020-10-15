@@ -1,4 +1,9 @@
 run str {
+    $MYTEMP = "Test environment"
+    return GetEnv("MYTEMP")
+}
+===== Test environment
+run str {
     return SplitCmdLine(`param1 "second par" "qwert\"y" 100 'oo ps'
 -lastparam`).Join(`=`)
 }
