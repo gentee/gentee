@@ -8,9 +8,12 @@ run str {
 ===== +1.2.3
 run str {
     $MYTEMP = "Test environment"
-    return GetEnv("MYTEMP")
+    SetEnv("SETENVB", true)
+    SetEnv("SETENV", "OK")
+    SetEnv("SETENVI", 101)
+    return GetEnv("MYTEMP") + $SETENVB + $SETENV + GetEnv("SETENVI")
 }
-===== Test environment
+===== Test environmenttrueOK101
 run str {
     return SplitCmdLine(`param1 "second par" "qwert\"y" 100 'oo ps'
 -lastparam`).Join(`=`)

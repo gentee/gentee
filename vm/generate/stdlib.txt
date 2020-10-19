@@ -266,6 +266,7 @@ Sha256File(str) str;Sha256FileºStr;er
 Shift(str) str;ShiftºStr
 Sign(float) float;SIGNFLOAT
 Sign(int) int;SIGN                      // -int
+Size(int,str) str;SizeToStr
 sleep(int);sleepºInt;r
 SliceAuto(arr*,int,int) arr*;SliceºArr;er
 Sort(arr.str) arr.str;SortºArr

@@ -1,4 +1,8 @@
 run str {
+  return Size(567, ``) + Size(956348901, ` %.1f %s `) + Size(62, `%[2]s %.2[1]f `) + Size(123789, ``)  
+}
+===== 567B 912.0 MB B 62 120.89KB
+run str {
   str s = `фqwertyфt`
   return Trim(s, `фt`).TrimLeft(`qwr`) + Right(s, 3)
 }

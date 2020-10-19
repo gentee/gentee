@@ -13,6 +13,16 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+const ( // for SizeToStr function
+	sizeB  int64 = 1
+	sizeKB int64 = 1 << (10 * iota)
+	sizeMB
+	sizeGB
+	sizeTB
+	sizePB
+	sizeEB
+)
+
 // AssignºStrBool assigns boolean to string
 func AssignºStrBool(ptr *string, value interface{}) (string, error) {
 	*ptr = strºBool(value.(int64))
@@ -138,6 +148,45 @@ func ShiftºStr(par string) string {
 		lines[i] = strings.TrimSpace(v)
 	}
 	return strings.Join(lines, "\n")
+}
+
+// SizeToStr function returns the short string value of the size
+func SizeToStr(size int64, format string) string {
+	var (
+		base int64
+		ext  string
+	)
+	if len(format) == 0 {
+		format = "%.2f%s"
+	}
+	switch {
+	case size >= sizeEB:
+		base = sizeEB
+		ext = "EB"
+	case size >= sizePB:
+		base = sizePB
+		ext = "PB"
+	case size >= sizeTB:
+		base = sizeTB
+		ext = "TB"
+	case size >= sizeGB:
+		base = sizeGB
+		ext = "GB"
+	case size >= sizeMB:
+		base = sizeMB
+		ext = "MB"
+	case size >= sizeKB:
+		base = sizeKB
+		ext = "KB"
+	default:
+		base = sizeB
+		ext = "B"
+	}
+	ret := fmt.Sprintf(format, float64(size)/float64(base), ext)
+	if base == sizeB {
+		ret = strings.ReplaceAll(strings.ReplaceAll(ret, `.00`, ``), `.0`, ``)
+	}
+	return ret
 }
 
 // SplitºStrStr splits a string to a array of strings
