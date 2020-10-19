@@ -302,6 +302,7 @@ UnBase64(str) buf;UnBase64ºStr;e
 UnHex(str) buf;UnHexºStr;e
 Unlock();Unlock;r
 UnSet(set, int) set;UnSetºSet;e
+UnsetEnv(str);UnsetEnv;er
 Upper(str) str;UpperºStr
 UTC(time) time;UTCºTime;r
 wait(thread);waitºThread;er

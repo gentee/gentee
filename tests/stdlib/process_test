@@ -1,4 +1,12 @@
 run str {
+    str out
+    $MYVER = "1.2.3"
+    out = $MYVER
+    UnsetEnv("MYVER")
+    return GetEnv("MYVER") + `+` + out
+}
+===== +1.2.3
+run str {
     $MYTEMP = "Test environment"
     return GetEnv("MYTEMP")
 }

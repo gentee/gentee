@@ -88,6 +88,14 @@ func SetEnvBool(rt *Runtime, name string, value int64) (string, error) {
 	return ret, err
 }
 
+// UnsetEnv unsets the environment variable
+func UnsetEnv(rt *Runtime, name string) error {
+	if rt.Owner.Settings.IsPlayground {
+		return fmt.Errorf(ErrorText(ErrPlayEnv))
+	}
+	return os.Unsetenv(name)
+}
+
 func splitCmdLine(cmdLine string) (*exec.Cmd, error) {
 	var (
 		cmds      []string
