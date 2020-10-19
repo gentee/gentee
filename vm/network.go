@@ -20,16 +20,24 @@ import (
 )
 
 // Download downloads and saves the file by url.
-func Download(rt *Runtime, url, filename string) (int64, error) {
-	var size int64
-	if rt.Owner.Settings.IsPlayground {
+func Download(rt *Runtime, url, filename string) (written int64, err error) {
+	var (
+		size   int64
+		reader io.Reader
+		prog   *Progress
+	)
+	isProgress := rt.Owner.Settings.ProgressHandle != nil
+
+	if rt.Owner.Settings.IsPlayground || isProgress {
 		hinfo, err := HeadInfo(rt, url)
 		if err != nil {
 			return 0, err
 		}
 		size = hinfo.Values[1].(int64)
-		if err = CheckPlaygroundLimits(rt.Owner, filename, size); err != nil {
-			return 0, err
+		if rt.Owner.Settings.IsPlayground {
+			if err = CheckPlaygroundLimits(rt.Owner, filename, size); err != nil {
+				return 0, err
+			}
 		}
 	}
 	resp, err := http.Get(url)
@@ -42,8 +50,17 @@ func Download(rt *Runtime, url, filename string) (int64, error) {
 		return 0, err
 	}
 	defer out.Close()
+	if isProgress && size > 0 {
+		prog = NewProgress(rt, size, ProgressDownload)
+		prog.Start(url, filename)
+		reader = NewProgressReader(resp.Body, prog)
+	} else {
+		isProgress = false
+		reader = resp.Body
+	}
+
 	if rt.Owner.Settings.IsPlayground {
-		written, err := io.CopyN(out, resp.Body, rt.Owner.Settings.Playground.SizeLimit)
+		written, err = io.CopyN(out, reader, rt.Owner.Settings.Playground.SizeLimit)
 		if err != nil && err != io.EOF {
 			return written, err
 		}
@@ -56,9 +73,13 @@ func Download(rt *Runtime, url, filename string) (int64, error) {
 				return 0, err
 			}
 		}
-		return written, nil
+	} else {
+		written, err = io.Copy(out, reader)
 	}
-	return io.Copy(out, resp.Body)
+	if isProgress {
+		prog.Complete()
+	}
+	return
 }
 
 // HeadInfo function read the header of url

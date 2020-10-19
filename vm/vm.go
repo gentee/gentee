@@ -30,16 +30,17 @@ const (
 )
 
 type Settings struct {
-	CmdLine      []string
-	Stdin        *os.File
-	Stdout       *os.File
-	Stderr       *os.File
-	Input        []byte   // stdin
-	Cycle        uint64   // limit of loops
-	Depth        uint32   // limit of blocks stack
-	SysChan      chan int // system chan
-	IsPlayground bool
-	Playground   Playground
+	CmdLine        []string
+	Stdin          *os.File
+	Stdout         *os.File
+	Stderr         *os.File
+	Input          []byte   // stdin
+	Cycle          uint64   // limit of loops
+	Depth          uint32   // limit of blocks stack
+	SysChan        chan int // system chan
+	IsPlayground   bool
+	Playground     Playground
+	ProgressHandle ProgressFunc
 }
 
 type Const struct {

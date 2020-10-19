@@ -53,6 +53,9 @@ type Custom struct {
 	Embedded []EmbedItem
 }
 
+type Progress = vm.Progress
+type ProgressFunc = vm.ProgressFunc
+
 func str2type(in string) (ret uint16) {
 	switch in {
 	case ``:

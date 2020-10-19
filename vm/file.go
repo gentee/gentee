@@ -92,8 +92,21 @@ func CopyFileºStrStr(rt *Runtime, src, dest string) (int64, error) {
 		return 0, err
 	}
 	defer destFile.Close()
-	ret, err := io.Copy(destFile, srcFile)
-	//	if finfo.Size() != ret {
+	var (
+		prog   *Progress
+		reader io.Reader
+	)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog = NewProgress(rt, finfo.Size(), ProgressCopy)
+		prog.Start(src, dest)
+		reader = NewProgressReader(srcFile, prog)
+	} else {
+		reader = srcFile
+	}
+	ret, err := io.Copy(destFile, reader)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog.Complete()
+	}
 	destFile.Chmod(finfo.Mode())
 	return ret, err
 }

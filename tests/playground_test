@@ -6,7 +6,7 @@ run {
 }
 ===== [3:9] [Playground] file limit reached [100]
 run {
-    HTTPGet(`https://github.com/gentee/gentee/releases/download/v1.13.0/gentee-1.13.0-linux-amd64.zip`)
+    HTTPGet(`https://github.com/gentee/gentee/releases/download/v1.14.0/gentee-1.14.0-linux-amd64.zip`)
 }
 ===== [2:5] [Playground] file size limit reached [5 MB]
 run bool {
@@ -20,7 +20,7 @@ run  {
 }
 ===== [3:5] [Playground] calling the HTTPRequest function is prohibited
 run  {
-    Download("https://github.com/gentee/gentee/releases/download/v1.13.0/gentee-1.13.0-linux-amd64.zip", "my.zip")
+    Download("https://github.com/gentee/gentee/releases/download/v1.14.0/gentee-1.14.0-linux-amd64.zip", "my.zip")
 }
 ===== [2:5] [Playground] file size limit reached [5 MB]
 run  {

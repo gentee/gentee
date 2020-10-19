@@ -1,0 +1,19 @@
+run int {
+    str temp = TempDir(``, `gentee_test`)
+    str fname = temp + `/tmp`
+    str dest =  temp + `/dest`
+    WriteFile(fname, Repeat("This is a test string\n", 10000))
+    int ret = CopyFile(fname, dest)
+    RemoveDir(temp)
+    return ret
+}
+===== 220000
+run str {
+    str temp = TempDir(``, `gentee_test`)
+    str fname = temp + `/tmp`
+    Download("https://golang.org/dl/go1.15.2.src.tar.gz", temp + `/tmp.zip`)
+    RemoveDir(temp)
+    return `OK`
+}
+===== OK
+

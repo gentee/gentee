@@ -218,6 +218,24 @@ var customLib = []gentee.EmbedItem{
 	{Prototype: `rtStrStack(str) arr.str`, Object: rtStrStack},
 }
 
+var progressOut string
+
+func CustomProgress(prog *gentee.Progress) bool {
+	if prog.Status == 0 {
+		progressOut += fmt.Sprintf(`Start %d `, prog.Total)
+		prog.Custom = int(0)
+	} else if prog.Status == 2 {
+		progressOut += `End `
+	} else {
+		percent := int64(100.0 * prog.Ratio)
+		if percent >= 50 && prog.Custom.(int) == 0 {
+			prog.Custom = int(1)
+			progressOut += `50% `
+		}
+	}
+	return true
+}
+
 func TestCustom(t *testing.T) {
 	err := gentee.Customize(&gentee.Custom{
 		Embedded: []gentee.EmbedItem{{Prototype: `myfunc()`, Object: nil},
@@ -237,7 +255,7 @@ func TestCustom(t *testing.T) {
 
 	workspace := gentee.New()
 
-	testFile := func(filename string) error {
+	testFile := func(filename string, progress gentee.ProgressFunc) error {
 		src, err := loadTest(filename)
 		if err != nil {
 			return err
@@ -254,6 +272,7 @@ func TestCustom(t *testing.T) {
 				continue
 			}
 			var settings gentee.Settings
+			settings.ProgressHandle = progress
 			result, err := exec.Run(settings)
 			if err == nil {
 				if err = getWant(result, src[i].Want); err != nil {
@@ -265,8 +284,17 @@ func TestCustom(t *testing.T) {
 		}
 		return nil
 	}
-	if err := testFile(`custom_test`); err != nil {
+	if err := testFile(`custom_test`, nil); err != nil {
 		t.Error(err)
 		return
 	}
+	if err := testFile(`progress_test`, CustomProgress); err != nil {
+		t.Error(err)
+		return
+	}
+	if progressOut != `Start 23012667 50% End Start 220000 50% End ` {
+		t.Error(`progress`, progressOut)
+		return
+	}
+
 }
