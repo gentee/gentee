@@ -17,9 +17,9 @@ All documentation is available on [GitHub](https://github.com/gentee/docs-gentee
 
 ## Download
 
-- [Linux amd64](https://github.com/gentee/gentee/releases/download/v1.15.0/gentee-1.15.0-linux-amd64.zip)
-- [Windows amd64](https://github.com/gentee/gentee/releases/download/v1.15.0/gentee-1.15.0-windows-amd64.zip)
-- [macOS amd64](https://github.com/gentee/gentee/releases/download/v1.15.0/gentee-1.15.0-darwin-amd64.zip)
+- [Linux amd64](https://github.com/gentee/gentee/releases/download/v1.15.1/gentee-1.15.1-linux-amd64.zip)
+- [Windows amd64](https://github.com/gentee/gentee/releases/download/v1.15.1/gentee-1.15.1-windows-amd64.zip)
+- [macOS amd64](https://github.com/gentee/gentee/releases/download/v1.15.1/gentee-1.15.1-darwin-amd64.zip)
 
 You can download other binary distributions for Linux, macOS, Windows [here](https://github.com/gentee/gentee/releases).
 
