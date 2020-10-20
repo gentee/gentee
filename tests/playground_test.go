@@ -33,6 +33,8 @@ func TestPlayground(t *testing.T) {
 			var settings gentee.Settings
 			settings.Cycle = 1000
 			settings.Depth = 100
+			settings.Playground.AllSizeLimit = 5 * 1024 * 1024
+			settings.Playground.SizeLimit = 2 * 1024 * 1024
 			settings.IsPlayground = true
 			result, err := exec.Run(settings)
 			if err == nil {

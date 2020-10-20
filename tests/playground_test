@@ -6,9 +6,9 @@ run {
 }
 ===== [3:9] [Playground] file limit reached [100]
 run {
-    HTTPGet(`https://github.com/gentee/gentee/releases/download/v1.14.0/gentee-1.14.0-linux-amd64.zip`)
+    HTTPGet(`https://www.eonza.org/downloads/test/gentee-1.14.0-linux-amd64.zip`)
 }
-===== [2:5] [Playground] file size limit reached [5 MB]
+===== [2:5] [Playground] file size limit reached [2 MB]
 run bool {
     buf out = HTTPGet(`https://www.eonza.org`)
     return *out > 5000
@@ -20,20 +20,20 @@ run  {
 }
 ===== [3:5] [Playground] calling the HTTPRequest function is prohibited
 run  {
-    Download("https://github.com/gentee/gentee/releases/download/v1.14.0/gentee-1.14.0-linux-amd64.zip", "my.zip")
+    Download("https://www.eonza.org/downloads/test/gentee-1.14.0-linux-amd64.zip", "my.zip")
 }
-===== [2:5] [Playground] file size limit reached [5 MB]
+===== [2:5] [Playground] file size limit reached [2 MB]
 run  {
     Download("https://golang.org/dl/go1.15.2.src.tar.gz", "my.zip")
 }
-===== [2:5] [Playground] file size limit reached [5 MB]
+===== [2:5] [Playground] file size limit reached [2 MB]
 run  {
-    Download("https://github.com/gentee/gentee/archive/v1.13.0.zip", "my.zip")
+    Download("https://www.eonza.org/downloads/test/gentee-1.13.0.zip", "my.zip")
     finfo fi = FileInfo("my.zip")
     if fi.Size < 10000 {
         error(101,`error download size`)
     }
-    Download("https://github.com/gentee/gentee/archive/v1.13.0.zip", "../my.zip")
+    Download("https://www.eonza.org/downloads/test/gentee-1.13.0.zip", "../my.zip")
 }
 ===== [7:5] [Playground] access denied [../my.zip]
 run  {
@@ -42,7 +42,7 @@ run  {
         WriteFile(`%{i}.txt`, data)
     }
 }
-===== [4:9] [Playground] summary files size limit reached [10 MB]
+===== [4:9] [Playground] summary files size limit reached [5 MB]
 run  {
     for i in 1..110 {
         CreateFile(`%{i}.txt`, false)
@@ -188,7 +188,7 @@ run {
         AppendFile(`out.txt`, data)
     }
 }
-===== [9:9] [Playground] file size limit reached [5 MB]
+===== [9:9] [Playground] file size limit reached [2 MB]
 run {
     CreateFile("../some.txt", false)
 }
@@ -267,7 +267,7 @@ run {
         AppendFile("out.txt", data)
     }
 }
-===== [5:9] [Playground] file size limit reached [5 MB]
+===== [5:9] [Playground] file size limit reached [2 MB]
 run {
     AppendFile("../out.txt", "this is a test message")
 }
