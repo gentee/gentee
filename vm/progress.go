@@ -37,7 +37,7 @@ type Progress struct {
 type ProgressFunc func(*Progress) bool
 
 type ProgressReader struct {
-	Progress
+	*Progress
 	reader io.Reader
 }
 
@@ -52,7 +52,7 @@ func NewProgress(rt *Runtime, total int64, ptype int64) *Progress {
 
 func NewProgressReader(reader io.Reader, progress *Progress) *ProgressReader {
 	return &ProgressReader{
-		Progress: *progress,
+		Progress: progress,
 		reader:   reader,
 	}
 }
