@@ -44,61 +44,6 @@ type Thread struct {
 	Notify []int64 // who waits the end
 }
 
-/*
-// RootThread is a structure for thread management
-type RootThread struct {
-	ConstMutex  sync.RWMutex
-	CtxMutex    sync.RWMutex
-	ThreadMutex sync.RWMutex
-	Context     map[string]string
-	Threads     []*Thread
-	Count       int64 // count of active threads
-	ChCount     chan int64
-	ChError     chan error
-}
-
-func (rt *RunTime) newRootThread() {
-	rt.Threads = &RootThread{
-		Context: make(map[string]string),
-		Threads: make([]*Thread, 0, 32),
-		ChCount: make(chan int64, 16),
-		ChError: make(chan error, 16),
-	}
-	rt.newThread(ThWork)
-	go func() {
-		x := int64(1)
-		for x != 0 {
-			select {
-			case x = <-rt.Threads.ChCount:
-				if x != 0 {
-					rt.Threads.ThreadMutex.Lock()
-					rt.Threads.Count--
-					rt.Threads.ThreadMutex.Unlock()
-				}
-			}
-		}
-	}()
-}
-
-func (rt *RunTime) newThread(status byte) bool {
-	root := rt.Root.Threads
-	root.ThreadMutex.Lock()
-	defer root.ThreadMutex.Unlock()
-	if rt.Root.Thread != nil && rt.Root.Thread.Status >= ThFinished {
-		return false
-	}
-	rt.Thread = &Thread{
-		Status: status,
-		Chan:   make(chan int, 8),
-	}
-	root.Threads = append(root.Threads, rt.Thread)
-	rt.ThreadID = int64(len(root.Threads) - 1)
-	if status == ThQueue {
-		root.Count++
-	}
-	return true
-}
-*/
 func (rt *Runtime) setStatus(status byte) {
 	rt.Owner.ThreadMutex.Lock()
 	rt.Thread.Status = status

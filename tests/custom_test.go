@@ -222,10 +222,10 @@ var progressOut string
 
 func CustomProgress(prog *gentee.Progress) bool {
 	if prog.Status == 0 {
-		progressOut += fmt.Sprintf(`Start %d `, prog.Total)
+		progressOut += fmt.Sprintf(`+ %d %d `, prog.Total, prog.Type)
 		prog.Custom = int(0)
 	} else if prog.Status == 2 {
-		progressOut += `End `
+		progressOut += `= `
 	} else {
 		percent := int64(100.0 * prog.Ratio)
 		if percent >= 50 && prog.Custom.(int) == 0 {
@@ -292,7 +292,7 @@ func TestCustom(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if progressOut != `Start 23012667 50% End Start 220000 50% End ` {
+	if progressOut != `+ 23012667 1 50% = + 220000 0 50% = ` {
 		t.Error(`progress`, progressOut)
 		return
 	}

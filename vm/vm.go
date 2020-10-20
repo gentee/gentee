@@ -58,6 +58,7 @@ type VM struct {
 	ThreadMutex sync.RWMutex
 	LockMutex   sync.Mutex
 	WaitGroup   sync.WaitGroup
+	Unique      *sync.Map // now for progress
 	Context     map[string]string
 	Count       int64 // count of active threads
 	WaitCount   int64
@@ -139,6 +140,9 @@ func Run(exec *core.Exec, settings Settings) (interface{}, error) {
 		ChCount:  make(chan int64, 16),
 		ChError:  make(chan error, 16),
 		ChWait:   make(chan int64, 16),
+	}
+	if settings.ProgressHandle != nil {
+		vm.Unique = &sync.Map{}
 	}
 	if settings.IsPlayground {
 		vm.Playground.Files = make(map[string]int64)
