@@ -1,3 +1,15 @@
+run str {
+    int total = 200
+    int prog = ProgressStart(total, 100, `source`, ``)
+    str out
+    for i in 1..5 {
+        out += `.`
+        Progress(prog, 40)
+    }
+    ProgressEnd(prog)
+    return out
+}
+===== .....
 run int {
     str temp = TempDir(``, `gentee_test`)
     str fname = temp + `/tmp`
