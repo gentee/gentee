@@ -54,6 +54,7 @@ AssignAdd(buf,int) buf;AssignAddºBufInt;e           // buf += int
 AssignAdd(buf,str) buf;AssignAddºBufStr             // buf += str
 AssignAdd(float,float) float;AssignAddºFloatFloat   // float += float
 AssignAdd(int,int) int;AssignAddºIntInt             // int += int
+AssignAdd(obj,obj) obj;AssignAddºObj                // obj += obj
 AssignAdd(set,set) set;AssignAddºSetSet             // set += set
 AssignAdd(str,char) str;AssignAddºStrChar           // str += char
 AssignAdd(str,str) str;AssignAddºStrStr             // str += str

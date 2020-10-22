@@ -1,5 +1,18 @@
 run str {
   arr a = {`abc`, `def`, `ghi`}
+  map b = {`first`:`012`, `second`:`345`}
+  obj o = a
+  obj m = b
+  o[1] = 1
+  m[`third`] = 88
+  b[`first`] = `67`
+  o += obj(b)
+  return str(item(o, 1).int(777)) + str(item(m, `third`).int(111)) + item(m, `first`).str(``) + 
+       item(o, 3).item(`first`).str(`-`)
+}
+===== 18801267
+run str {
+  arr a = {`abc`, `def`, `ghi`}
   obj o2
   obj o = a
   return item(o, 0).str(`ooops`) + item(o, 3).str(`none`) + item(o2, 3).str(`unknown`)

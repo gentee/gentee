@@ -10,6 +10,22 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
+// AssignAddºObj appends an item to object array
+func AssignAddºObj(obj interface{}, value interface{}) (interface{}, error) {
+	var err error
+	if obj == nil {
+		return nil, fmt.Errorf(ErrorText(ErrObjNil))
+	}
+	val := obj.(*core.Obj)
+	switch v := val.Data.(type) {
+	case *core.Array:
+		v.Data = append(v.Data, value)
+	default:
+		err = fmt.Errorf(ErrorText(ErrObjValue))
+	}
+	return obj, err
+}
+
 // AssignºObjAny assigns integer, float, str, arr, map to obj
 func AssignºObjAny(ptr interface{}, value interface{}) (interface{}, error) {
 	return objType(value)
@@ -177,7 +193,7 @@ func Type(val *core.Obj) string {
 	case *core.Array:
 		return `arr.obj`
 	case *core.Map:
-		return `arr.map`
+		return `map.obj`
 	}
 	return `str`
 }
