@@ -1,3 +1,15 @@
+run str {
+  arr.int a = {10, 15, 17}
+  obj o = a
+  return str(IsMap(o)) + str(IsArray(o))
+}
+===== falsetrue
+run str {
+  map m = {"q": "first", "next": "second"}
+  obj o = m
+  return str(IsMap(o)) + str(IsArray(o))
+}
+===== truefalse
 run map.obj {
   map m = {"q": "first", "next": "second"}
   obj o = m

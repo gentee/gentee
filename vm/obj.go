@@ -136,6 +136,22 @@ func intºObjDef(val *core.Obj, def int64) (int64, error) {
 	return intºObj(val)
 }
 
+// IsArrayºObj returns true if the object is an array
+func IsArrayºObj(obj *core.Obj) int64 {
+	if Type(obj) == `arr.obj` {
+		return 1
+	}
+	return 0
+}
+
+// IsMapºObj returns true if the object is a map
+func IsMapºObj(obj *core.Obj) int64 {
+	if Type(obj) == `map.obj` {
+		return 1
+	}
+	return 0
+}
+
 // IsNil returns true if the object is undefined
 func IsNil(val *core.Obj) int64 {
 	if val.Data == nil {
