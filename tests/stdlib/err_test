@@ -1,3 +1,8 @@
+run map.obj {
+  obj o = "string"
+  return map(o)
+}
+===== [3:10] obj is not map
 run arr.obj {
   obj o = 2
   return arr(o)

@@ -67,6 +67,8 @@ const (
 	ErrObjNil
 	// ErrObjArr is returned when the object must contains array
 	ErrObjArr
+	// ErrObjMap is returned when the object must contains map
+	ErrObjMap
 	// ErrObjType is returned when the value has incompatible type
 	ErrObjType
 	// ErrTerminated is returned when the script has been terminated by owner
@@ -151,6 +153,7 @@ var (
 		ErrThread:       `%s cannot be called in the main thread`,
 		ErrObjNil:       `obj is undefined (nil)`,
 		ErrObjArr:       `obj is not array`,
+		ErrObjMap:       `obj is not map`,
 		ErrObjType:      `type is incompatible to object`,
 		ErrTerminated:   `code execution has been terminated`,
 		ErrExit:         `exit`,

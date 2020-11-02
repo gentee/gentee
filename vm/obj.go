@@ -37,6 +37,7 @@ func AssignºObjBool(ptr interface{}, value interface{}) (interface{}, error) {
 	return ptr, nil
 }
 
+// arrºObj returns array of the objects
 func arrºObj(obj *core.Obj) (*core.Array, error) {
 	if obj.Data == nil {
 		return nil, fmt.Errorf(ErrorText(ErrObjNil))
@@ -173,6 +174,18 @@ func ItemºObjStr(val *core.Obj, key string) (ret *core.Obj, err error) {
 		err = fmt.Errorf(ErrorText(ErrObjValue))
 	}
 	return
+}
+
+// mapºObj returns map of the objects
+func mapºObj(obj *core.Obj) (*core.Map, error) {
+	if obj.Data == nil {
+		return nil, fmt.Errorf(ErrorText(ErrObjNil))
+	}
+	ret, ok := obj.Data.(*core.Map)
+	if !ok {
+		return nil, fmt.Errorf(ErrorText(ErrObjMap))
+	}
+	return ret, nil
 }
 
 // objºBool converts boolean value to object

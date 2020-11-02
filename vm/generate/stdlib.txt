@@ -205,6 +205,7 @@ Lines(str) arr.str;LinesºStr
 Lock();Lock;r
 Lower(str) str;LowerºStr
 LShift(int,int) int;LSHIFT;e            // int << int
+map(obj) map.obj;mapºObj;e
 Match(str,str) bool;MatchºStrStr;e
 MatchPath(str, str) bool;MatchPath;e
 Max(float,float) float;MaxºFloatFloat

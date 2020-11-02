@@ -291,11 +291,11 @@ run {
 run {
     Start("./myapp")
 }
-===== [13:3] [Playground] starting any processes is disabled
+===== [37:3] [Playground] starting any processes is disabled
 run {
     Run("./myapp")
 }
-===== [6:3] [Playground] starting any processes is disabled
+===== [30:3] [Playground] starting any processes is disabled
 run {
     SetEnv("MYPATH", true)
 }

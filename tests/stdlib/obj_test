@@ -1,3 +1,9 @@
+run map.obj {
+  map m = {"q": "first", "next": "second"}
+  obj o = m
+  return map(o)
+}
+===== map[q:first next:second]
 func mySort(obj left, obj right) int {
   if str(left) < str(right) : return -1
   if str(left) > str(right) : return 1
