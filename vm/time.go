@@ -5,7 +5,6 @@
 package vm
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -141,7 +140,6 @@ func ParseTimeºStrStr(rt *Runtime, layout, value string) (*Struct, error) {
 	if err != nil {
 		return ret, err
 	}
-	fmt.Println(`T`, t.Location(), time.UTC, t)
 	return fromTime(ret, t.Local()), nil
 }
 

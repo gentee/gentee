@@ -48,6 +48,30 @@ func InitStdlib(ws *core.Workspace) {
 	stdlib.NewConst(core.ConstRegExp, int64(vm.RegExp), false)
 
 	src := `
+	pub fn cmpobjfunc(obj,obj) int
+	
+	func quicksort(arr.obj ain, int low high, cmpobjfunc cmpfunc) {
+		int i = low-1
+		int j = high+1
+		obj x = ain[(low + high) / 2]
+	
+		while true {
+			while cmpfunc(ain[++i],x) < 0 :
+			while cmpfunc(ain[--j],x) > 0 : 
+			if i >= j : break
+			obj tmp = ain[i]
+			ain[i] = ain[j]
+			ain[j] = tmp
+		}
+		if low < j : quicksort(ain, low, j, cmpfunc)
+		if j+1 < high : quicksort(ain, j+1, high, cmpfunc)
+	}
+	
+	pub func Sort(arr.obj ain, cmpobjfunc cmpfunc) arr.obj {
+	  if *ain > 0 : quicksort(ain, 0, *ain-1, cmpfunc)
+	  return ain
+	}
+	
 	pub	func Run(str cmd, str args...) {
 		buf ? stdin &= sysBufNil()
 		buf ? stdout &= sysBufNil()
@@ -63,8 +87,9 @@ func InitStdlib(ws *core.Workspace) {
 	  }
 	`
 	unitID, _ := Compile(ws, src, ``)
-	ws.Units[0].NameSpace[`?Run`] = ws.Units[unitID].NameSpace[`?Run`]
-	ws.Units[0].NameSpace[`?Start`] = ws.Units[unitID].NameSpace[`?Start`]
+	for _, name := range []string{`@cmpobjfunc`, `#Sort#arr.obj#cmpobjfunc`, `?Run`, `?Start`} {
+		ws.Units[0].NameSpace[name] = ws.Units[unitID].NameSpace[name]
+	}
 }
 
 // InitEmbed imports in-line functions

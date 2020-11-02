@@ -19,6 +19,7 @@ ArgCount() int;ArgCount;r
 Args() arr.str;Args;r
 Args(str) arr.str;ArgsºStr;r
 ArgsTail() arr.str;ArgsTail;r
+arr(obj) arr.obj;arrºObj;e
 arr(set) arr.int;arrºSet
 Assign(bool,bool) bool;ASSIGN                   // bool = bool
 Assign(buf,buf) buf;ASSIGN                      // buf = buf

@@ -37,6 +37,17 @@ func AssignºObjBool(ptr interface{}, value interface{}) (interface{}, error) {
 	return ptr, nil
 }
 
+func arrºObj(obj *core.Obj) (*core.Array, error) {
+	if obj.Data == nil {
+		return nil, fmt.Errorf(ErrorText(ErrObjNil))
+	}
+	ret, ok := obj.Data.(*core.Array)
+	if !ok {
+		return nil, fmt.Errorf(ErrorText(ErrObjArr))
+	}
+	return ret, nil
+}
+
 // boolºObj converts object to boolean value
 func boolºObj(val *core.Obj) (ret int64, err error) {
 	if val.Data == nil {

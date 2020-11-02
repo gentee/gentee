@@ -1,3 +1,8 @@
+run arr.obj {
+  obj o = 2
+  return arr(o)
+}
+===== [3:10] obj is not array
 func ok {
     exit(7)
 }
