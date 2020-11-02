@@ -1,3 +1,8 @@
+run bool {
+  time t = Now()
+  return str(t) == Format(`YYYY-MM-DD HH:mm:ss`, t)
+}
+===== true
 run arr.time {
   arr.time at = {Now(), Now()}
   time t 

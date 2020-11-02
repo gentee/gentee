@@ -143,6 +143,11 @@ func ParseTimeºStrStr(rt *Runtime, layout, value string) (*Struct, error) {
 	return fromTime(ret, t.Local()), nil
 }
 
+// StrºTime converts time to string
+func StrºTime(it *Struct) string {
+	return toTime(it).Format(`2006-01-02 15:04:05`)
+}
+
 // Now returns the current time
 func Now(rt *Runtime) *Struct {
 	return fromTime(newTime(rt), time.Now())
