@@ -1,9 +1,9 @@
 run str {
   arr.int a = {10, 15, 17}
   obj o = a
-  return str(IsMap(o)) + str(IsArray(o))
+  return str(IsMap(o)) + str(IsArray(o)) + Join(arrstr(o), `=`)
 }
-===== falsetrue
+===== falsetrue10=15=17
 run str {
   map m = {"q": "first", "next": "second"}
   obj o = m

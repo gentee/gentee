@@ -49,6 +49,23 @@ func arrºObj(obj *core.Obj) (*core.Array, error) {
 	return ret, nil
 }
 
+// arrstrºObj returns array of strings
+func arrstrºObj(val *core.Obj) (ret *core.Array, err error) {
+	if val.Data == nil {
+		return nil, fmt.Errorf(ErrorText(ErrObjNil))
+	}
+	ret = core.NewArray()
+	switch v := val.Data.(type) {
+	case *core.Array:
+		for _, item := range v.Data {
+			AssignAddºArrAny(ret, strºObj(item.(*core.Obj)))
+		}
+	default:
+		err = fmt.Errorf(ErrorText(ErrObjArr))
+	}
+	return
+}
+
 // boolºObj converts object to boolean value
 func boolºObj(val *core.Obj) (ret int64, err error) {
 	if val.Data == nil {

@@ -21,6 +21,7 @@ Args(str) arr.str;ArgsºStr;r
 ArgsTail() arr.str;ArgsTail;r
 arr(obj) arr.obj;arrºObj;e
 arr(set) arr.int;arrºSet
+arrstr(obj) arr.str;arrstrºObj;e
 Assign(bool,bool) bool;ASSIGN                   // bool = bool
 Assign(buf,buf) buf;ASSIGN                      // buf = buf
 Assign(char,char) char;ASSIGN                   // char = char
