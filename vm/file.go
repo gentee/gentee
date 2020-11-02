@@ -233,6 +233,20 @@ func Md5FileºStr(rt *Runtime, filename string) (string, error) {
 	return hex.EncodeToString(hash.Sum(nil)[:]), nil
 }
 
+// ObjºFinfo converts finfo structure to object.
+func ObjºFinfo(finfo *Struct) *core.Obj {
+	obj := core.NewObj()
+	val := core.NewMap()
+	val.SetIndex(`name`, objºAny(finfo.Values[0]))
+	val.SetIndex(`size`, objºAny(finfo.Values[1]))
+	val.SetIndex(`mode`, objºAny(finfo.Values[2]))
+	val.SetIndex(`time`, objºAny(StrºTime(finfo.Values[3].(*Struct))))
+	val.SetIndex(`isdir`, objºAny(finfo.Values[4].(int64) != 0))
+	val.SetIndex(`dir`, objºAny(finfo.Values[5]))
+	obj.Data = val
+	return obj
+}
+
 // ReadDirºStr reads a directory
 func ReadDirºStr(rt *Runtime, dirname string) (*core.Array, error) {
 	if rt.Owner.Settings.IsPlayground {

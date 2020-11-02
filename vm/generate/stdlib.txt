@@ -229,6 +229,7 @@ Not(bool) bool;NOT                      // !bool
 Now() time;Now;r
 obj(arr*) obj;objºArrMap;e
 obj(bool) obj;objºBool
+obj(finfo) obj;ObjºFinfo
 obj(float) obj;objºAny
 obj(int) obj;objºAny
 obj(map*) obj;objºArrMap;e

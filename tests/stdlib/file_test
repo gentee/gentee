@@ -7,13 +7,14 @@ run str {
     CreateFile(fname, false)
     out += str(ExistFile(fname))
     finfo fi = FileInfo(fname)
+    obj o = obj(fi)
     out += ` ` + str(fi.Size) + ` `
     CreateFile(fname, true)
     fi = FileInfo(fname)
     RemoveDir(temp)
-    return out + str(fi.Size)
+    return out + str(fi.Size) + item(o, "size").str() + item(o, "name").str()
 }
-===== falsetruetrue 4 0
+===== falsetruetrue 4 04tmp
 run str {
     str temp = TempDir(``, `gentee_test`)
     str fname = temp + `/tmp`
