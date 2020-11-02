@@ -143,8 +143,8 @@ func IsNil(val *core.Obj) int64 {
 	return 0
 }
 
-// itemºObjInt returns an item from array object
-func itemºObjInt(val *core.Obj, ind int64) (ret *core.Obj, err error) {
+// ItemºObjInt returns an item from array object
+func ItemºObjInt(val *core.Obj, ind int64) (ret *core.Obj, err error) {
 	if val == nil || val.Data == nil {
 		return
 	}
@@ -159,8 +159,8 @@ func itemºObjInt(val *core.Obj, ind int64) (ret *core.Obj, err error) {
 	return
 }
 
-// itemºObjStr returns an item from map object
-func itemºObjStr(val *core.Obj, key string) (ret *core.Obj, err error) {
+// ItemºObjStr returns an item from map object
+func ItemºObjStr(val *core.Obj, key string) (ret *core.Obj, err error) {
 	if val == nil || val.Data == nil {
 		return
 	}
