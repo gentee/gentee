@@ -247,6 +247,7 @@ ProgressEnd(int);ProgressEnd;r
 ProgressStart(int,int,str,str) int;ProgressStart;r
 Random(int) int;Random
 ReadDir(str) arr.finfo;ReadDirºStr;re
+ReadDir(str,int,arr.str,arr.str) arr.finfo;ReadDirºStrArr;re
 ReadDir(str,int,str) arr.finfo;ReadDirºStrIntStr;re
 ReadFile(str) str;ReadFileºStr;er
 ReadFile(str,buf) buf;ReadFileºStrBuf;er

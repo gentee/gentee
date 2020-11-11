@@ -1,3 +1,36 @@
+run arr.str {
+    arr.str ret
+    arr.str files = {`01234.txt`, `тест.pdf`, `test.log`}
+    str ftemp = TempDir(``, `eonza`)
+    for fname in files {
+        WriteFile(JoinPath(ftemp, fname), ``)
+    }
+    CreateDir(JoinPath(ftemp, `mydir`))
+    CreateDir(JoinPath(ftemp, `mydir`, `subdir`))
+    arr files1 = {`this is.txt`, `README.pdf`}
+    for fname in files1 {
+        WriteFile(JoinPath(ftemp, `mydir`, fname), ``)
+    }
+    arr files2 = {`abc23.txt`, `ok.pdf`}
+    for fname in files2 {
+        WriteFile(JoinPath(ftemp, `mydir`, `subdir`, fname), ``)
+    }
+    arr.str aempty
+    arr.str aignore = {`/txt/`, `*.pdf`}
+    for item in ReadDir(ftemp, RECURSIVE, aempty, aignore) {
+        ret += item.Name
+    } 
+    for item in ReadDir(ftemp, ONLYDIRS, aempty, aempty) {
+        ret += item.Name
+    } 
+    arr.str amatch = {`/\d+/`, `*.pd?`, `/di/`}
+    for item in ReadDir(ftemp, ONLYFILES | ONLYDIRS, amatch, aempty) {
+        ret += item.Name
+    }
+    RemoveDir(ftemp)
+    return Sort(ret)
+}
+===== [01234.txt mydir mydir mydir subdir test.log тест.pdf]
 run arr {
     arr ret    
     str temp = TempDir(``, `gentee_test`)

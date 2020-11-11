@@ -293,8 +293,38 @@ func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, patterns
 	if err != nil {
 		return err
 	}
-	//main:
+	isMatch := func(filename, pattern string) (ok int64, err error) {
+		if len(pattern) == 0 {
+			return 1, nil
+		}
+		isRegex := flags&RegExp != 0
+		if !isRegex {
+			if len(pattern) > 2 && pattern[0] == '/' && pattern[len(pattern)-1] == '/' {
+				isRegex = true
+				pattern = pattern[1 : len(pattern)-1]
+			}
+		}
+		if isRegex {
+			if ok, err = MatchºStrStr(filename, pattern); err != nil {
+				return
+			}
+		} else if ok, err = MatchPath(pattern, filename); err != nil {
+			return
+		}
+		return
+	}
+main:
 	for _, fileInfo := range fileList {
+		var ok int64
+		for _, item := range ignore.Data {
+			if pattern := item.(string); len(pattern) > 0 {
+				if ok, err = isMatch(fileInfo.Name(), pattern); err != nil {
+					return err
+				} else if ok != 0 {
+					continue main
+				}
+			}
+		}
 		if fileInfo.IsDir() {
 			if flags&Recursive != 0 {
 				err = readDir(rt, ret, filepath.Join(dirname, fileInfo.Name()), flags, patterns, ignore)
@@ -309,17 +339,8 @@ func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, patterns
 			continue
 		}
 		if len(patterns.Data) > 0 {
-			var ok int64
 			for _, item := range patterns.Data {
-				pattern := item.(string)
-				if len(pattern) == 0 {
-					continue
-				}
-				if flags&RegExp != 0 {
-					if ok, err = MatchºStrStr(fileInfo.Name(), pattern); err != nil {
-						return err
-					}
-				} else if ok, err = MatchPath(pattern, fileInfo.Name()); err != nil {
+				if ok, err = isMatch(fileInfo.Name(), item.(string)); err != nil {
 					return err
 				}
 				if ok != 0 {
