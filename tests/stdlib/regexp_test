@@ -1,3 +1,11 @@
+run arr {
+    arr.str a &= FindFirstRegExp(`This is a test string 1a2b3s`, `ab(.*)s`)
+    if *a == 0 {
+        a &= FindFirstRegExp(`This45i33s a isi777s inis1i2sg`, `is(\d*)i(\d+)s`)
+    }
+    return a
+}
+===== [is45i33s 45 33]
 run str {
     str input = "This is a string тестовое значение"
     return RegExp(input, `is (.{2})`) + RegExp(input, `(\".\")`) + RegExp(input, `е(.+?)е`)

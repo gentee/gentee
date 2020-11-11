@@ -28,6 +28,20 @@ func FindRegExpºStrStr(src, rePattern string) (*core.Array, error) {
 	return out, nil
 }
 
+// FindFirstRegExpºStrStr returns an array of the first successive matches of the expression
+func FindFirstRegExpºStrStr(src, rePattern string) (*core.Array, error) {
+	re, err := regexp.Compile(rePattern)
+	if err != nil {
+		return nil, err
+	}
+	list := re.FindStringSubmatch(src)
+	out := core.NewArray()
+	for _, sub := range list {
+		out.Data = append(out.Data, sub)
+	}
+	return out, nil
+}
+
 // MatchºStrStr reports whether the string s contains any match of the regular expression
 func MatchºStrStr(s string, rePattern string) (int64, error) {
 	re, err := regexp.Compile(rePattern)

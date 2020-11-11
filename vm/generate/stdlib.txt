@@ -148,6 +148,7 @@ ExpStr(str,str) str;ADDSTR
 FileInfo(str) finfo;FileInfoºStr;er
 FileMode(str) int;FileModeºStr;er
 Find(str,str) int;FindºStrStr
+FindFirstRegExp(str,str) arr.str;FindFirstRegExpºStrStr;e
 FindRegExp(str,str) arr.arr.str;FindRegExpºStrStr;e
 float(int) float;floatºInt
 float(obj) float;floatºObj;e
