@@ -287,15 +287,17 @@ func ReadDirºStr(rt *Runtime, dirname string) (*core.Array, error) {
 	return ret, nil
 }
 
-func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, pattern string) error {
+func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, patterns *core.Array,
+	ignore *core.Array) error {
 	fileList, err := ioutil.ReadDir(dirname)
 	if err != nil {
 		return err
 	}
+	//main:
 	for _, fileInfo := range fileList {
 		if fileInfo.IsDir() {
 			if flags&Recursive != 0 {
-				err = readDir(rt, ret, filepath.Join(dirname, fileInfo.Name()), flags, pattern)
+				err = readDir(rt, ret, filepath.Join(dirname, fileInfo.Name()), flags, patterns, ignore)
 				if err != nil {
 					return err
 				}
@@ -306,14 +308,23 @@ func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, pattern 
 		} else if flags&OnlyDirs != 0 {
 			continue
 		}
-		if len(pattern) > 0 {
+		if len(patterns.Data) > 0 {
 			var ok int64
-			if flags&RegExp != 0 {
-				if ok, err = MatchºStrStr(fileInfo.Name(), pattern); err != nil {
+			for _, item := range patterns.Data {
+				pattern := item.(string)
+				if len(pattern) == 0 {
+					continue
+				}
+				if flags&RegExp != 0 {
+					if ok, err = MatchºStrStr(fileInfo.Name(), pattern); err != nil {
+						return err
+					}
+				} else if ok, err = MatchPath(pattern, fileInfo.Name()); err != nil {
 					return err
 				}
-			} else if ok, err = MatchPath(pattern, fileInfo.Name()); err != nil {
-				return err
+				if ok != 0 {
+					break
+				}
 			}
 			if ok == 0 {
 				continue
@@ -328,6 +339,16 @@ func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, pattern 
 
 // ReadDirºStrIntStr reads a directory with additional settings
 func ReadDirºStrIntStr(rt *Runtime, dirname string, flags int64, pattern string) (*core.Array, error) {
+	patterns := core.NewArray()
+	if len(pattern) > 0 {
+		patterns.Data = append(patterns.Data, pattern)
+	}
+	return ReadDirºStrArr(rt, dirname, flags, patterns, core.NewArray())
+}
+
+// ReadDirºStrArr reads a directory with additional settings
+func ReadDirºStrArr(rt *Runtime, dirname string, flags int64, patterns *core.Array,
+	ignore *core.Array) (*core.Array, error) {
 	var err error
 	if rt.Owner.Settings.IsPlayground {
 		if err := CheckPlaygroundLimits(rt.Owner, dirname, NoLimit); err != nil {
@@ -343,7 +364,7 @@ func ReadDirºStrIntStr(rt *Runtime, dirname string, flags int64, pattern string
 	if err != nil {
 		return ret, err
 	}
-	err = readDir(rt, ret, dirname, flags, pattern)
+	err = readDir(rt, ret, dirname, flags, patterns, ignore)
 	return ret, err
 }
 
