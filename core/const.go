@@ -28,6 +28,7 @@ const (
 	ConstVersion   = `VERSION`
 	ConstRecursive = `RECURSIVE`
 	ConstOnlyFiles = `ONLYFILES`
+	ConstOnlyDirs  = `ONLYDIRS`
 	ConstRegExp    = `REGEXP`
 
 	// NotIota means that constant doesn't use IOTA

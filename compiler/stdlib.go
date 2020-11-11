@@ -46,6 +46,7 @@ func InitStdlib(ws *core.Workspace) {
 	stdlib.NewConst(core.ConstRecursive, int64(vm.Recursive), false)
 	stdlib.NewConst(core.ConstOnlyFiles, int64(vm.OnlyFiles), false)
 	stdlib.NewConst(core.ConstRegExp, int64(vm.RegExp), false)
+	stdlib.NewConst(core.ConstOnlyDirs, int64(vm.OnlyDirs), false)
 
 	src := `
 	pub fn cmpobjfunc(obj,obj) int

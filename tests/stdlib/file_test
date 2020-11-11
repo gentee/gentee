@@ -1,3 +1,20 @@
+run arr {
+    arr ret    
+    str temp = TempDir(``, `gentee_test`)
+    str fdir = JoinPath(temp, `dir1`)
+    WriteFile(JoinPath(temp, `tmp`), `TEST`)
+    CreateDir(fdir)
+    CreateDir(JoinPath(fdir, `subdir`))
+    for item in ReadDir(temp, RECURSIVE | ONLYFILES | ONLYDIRS, ``) {
+        ret += item.Name
+    } 
+    for item in ReadDir(temp, RECURSIVE | ONLYDIRS, ``) {
+        ret += item.Name
+    } 
+    RemoveDir(temp)
+    return ret
+}
+===== [subdir dir1 tmp subdir dir1]
 run str {
     str temp = TempDir(``, `gentee_test`)
     str fname = temp + `/tmp`

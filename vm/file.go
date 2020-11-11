@@ -20,6 +20,7 @@ const (
 	Recursive = 0x01
 	OnlyFiles = 0x02
 	RegExp    = 0x04
+	OnlyDirs  = 0x08
 )
 
 func appendFile(rt *Runtime, filename string, data []byte) error {
@@ -302,6 +303,8 @@ func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, pattern 
 			if flags&OnlyFiles != 0 {
 				continue
 			}
+		} else if flags&OnlyDirs != 0 {
+			continue
 		}
 		if len(pattern) > 0 {
 			var ok int64
@@ -330,6 +333,10 @@ func ReadDirºStrIntStr(rt *Runtime, dirname string, flags int64, pattern string
 		if err := CheckPlaygroundLimits(rt.Owner, dirname, NoLimit); err != nil {
 			return nil, err
 		}
+	}
+	if flags&OnlyFiles != 0 && flags&OnlyDirs != 0 {
+		flags &^= OnlyFiles
+		flags &^= OnlyDirs
 	}
 	ret := core.NewArray()
 	dirname, err = filepath.Abs(dirname)
