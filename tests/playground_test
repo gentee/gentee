@@ -1,3 +1,11 @@
+run bool {
+    return IsEmptyDir(".")
+}
+===== true
+run  {
+    IsEmptyDir("..")
+}
+===== [2:5] [Playground] access denied [..]
 run {
     for i in 1..55 {
         HTTPGet(`https://www.eonza.com/`)

@@ -186,6 +186,7 @@ int(str) int;intºStr;e
 int(time) int;intºTime
 IsArray(obj) bool;IsArrayºObj
 IsArg(str) bool;IsArgºStr;r
+IsEmptyDir(str) bool;IsEmptyDir;er
 IsKeyAuto(map*,str) bool;IsKeyºMapStr
 IsMap(obj) bool;IsMapºObj
 IsNil(obj) bool;IsNil

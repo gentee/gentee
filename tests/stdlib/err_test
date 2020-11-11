@@ -1,3 +1,5 @@
+run : IsEmptyDir(`awer23`)
+===== [1:7] open awer23: no such file or directory
 run map.obj {
   obj o = "string"
   return map(o)

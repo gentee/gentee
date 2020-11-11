@@ -214,6 +214,26 @@ func GetCurDir() (string, error) {
 	return os.Getwd()
 }
 
+// IsEmptyDir returns true if the specified folder is empty
+func IsEmptyDir(rt *Runtime, path string) (ret int64, err error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err = CheckPlaygroundLimits(rt.Owner, path, NoLimit); err != nil {
+			return
+		}
+	}
+	var f *os.File
+	if f, err = os.Open(path); err != nil {
+		return
+	}
+	defer f.Close()
+	_, err = f.Readdir(1)
+
+	if err == io.EOF {
+		return 1, nil
+	}
+	return
+}
+
 // Md5FileºStr returns md5 hash of the file as a hex string
 func Md5FileºStr(rt *Runtime, filename string) (string, error) {
 	if rt.Owner.Settings.IsPlayground {

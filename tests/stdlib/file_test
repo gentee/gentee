@@ -158,9 +158,11 @@ run bool {
     CreateDir(subdir)
     buf b = {0, `data`, 0}
     buf b1
+    if !IsEmptyDir(subdir) : error(0, `IsEmptyDir true`)
     WriteFile(subfile, b)
     Rename(subfile, subfile + `1`)
     WriteFile(`rw.txt`, TEST)
+    if IsEmptyDir(subdir) : error(0, `IsEmptyDir false`)
     if ReadFile(`rw.txt`) != TEST : return false
     if *ReadFile(subfile + `1`, b1) != *b : return false
     ChDir(curDir)
