@@ -294,6 +294,8 @@ str(obj) str;strºObj
 str(obj,str) str;strºObjDef
 str(set) str;strºSet
 str(time) str;StrºTime
+StructDecode(buf,struct);StructDecode;e
+StructEncode(struct) buf;StructEncode;e
 Sub(float,float) float;SUBFLOAT         // float - float
 Sub(float,int) float;SubºFloatInt       // float - int
 Sub(int,float) float;SubºIntFloat       // int - float

@@ -48,6 +48,7 @@ func (unit *Unit) FindConst(name string) IObject {
 
 // FindFunc returns the function with the specified name and parameters
 func (unit *Unit) FindFunc(name string, params []*TypeObject) (IObject, bool) {
+	var isStruct bool
 	key := npFunc + name
 	keyAny := key
 	for _, v := range params {
@@ -63,12 +64,28 @@ func (unit *Unit) FindFunc(name string, params []*TypeObject) (IObject, bool) {
 		} else {
 			keyAny += npFunc + parName
 		}
+		isStruct = isStruct || v.Custom != nil
 	}
 	if obj := unit.FindObj(key); obj != nil {
 		return obj, false
 	}
 	if key != keyAny {
 		if obj := unit.FindObj(keyAny); obj != nil {
+			return obj, false
+		}
+	}
+	if isStruct {
+		key = npFunc + name
+		for _, v := range params {
+			var parName string
+			if v.Custom != nil {
+				parName = `struct`
+			} else {
+				parName = v.GetName()
+			}
+			key += npFunc + parName
+		}
+		if obj := unit.FindObj(key); obj != nil {
 			return obj, false
 		}
 	}

@@ -1,0 +1,38 @@
+struct tmp {
+    str head
+    arr.str list
+    int i
+}
+
+run str {
+  tmp t1 = {head: `HEADER`, list: {`one`, `two`}, i: -356}
+  tmp t2
+  buf bout = StructEncode(t1)
+  StructDecode(bout, t2)
+  return Format(`%d %v`, *bout, t2)
+}
+===== 12 tmp[head:HEADER list:[] i:-356]
+struct tmp {
+    buf bt
+    str s
+    bool b
+    float f
+    char ch
+    int i
+}
+
+run str {
+  tmp t1 = {bt: {0,255,4,5,67}, s: "test string", b: true, f: 67.345, ch: 'x', i: 2003232000021}
+  tmp t2
+  buf bo = StructEncode(t1)
+  StructDecode(bo, t2)
+  return Format(`%v`, t2)
+}
+===== tmp[bt:[0 255 4 5 67] s:test string b:1 f:67.345 ch:120 i:2003232000021]
+run bool {
+  time t = Now()
+  time tnew
+  StructDecode(StructEncode(t), tnew)
+  return t==tnew
+}
+===== true
