@@ -10,6 +10,8 @@ Add(int,int) int;ADD                            // int + int
 Add(str,char) str;AddºStrChar                   // str + char
 Add(str,str) str;ADDSTR                         // str + str
 AddHours(time,int) time;AddHoursºTimeInt;r
+AESDecrypt(str,buf) buf;AESDecryptBuf;e
+AESEncrypt(str,buf) buf;AESEncryptBuf;e
 AppendFile(str,buf);AppendFileºStrBuf;er
 AppendFile(str,str);AppendFileºStrStr;er
 Arg(str) str;ArgºStr;r
@@ -246,6 +248,7 @@ Progress(int,int);ProgressInc;r
 ProgressEnd(int);ProgressEnd;r
 ProgressStart(int,int,str,str) int;ProgressStart;r
 Random(int) int;Random
+RandomBuf(int) buf;RandomBuf;e
 ReadDir(str) arr.finfo;ReadDirºStr;re
 ReadDir(str,int,arr.str,arr.str) arr.finfo;ReadDirºStrArr;re
 ReadDir(str,int,str) arr.finfo;ReadDirºStrIntStr;re

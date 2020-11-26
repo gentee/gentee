@@ -93,6 +93,8 @@ const (
 	ErrPlayDepth
 	// ErrPlayFunc is returned on calling disabled function in Playground mode
 	ErrPlayFunc
+	// ErrDecode is returned if decoding error occurs
+	ErrDecode
 
 	// ErrEmbedded means golang error in embedded functions
 	ErrEmbedded = 254
@@ -166,6 +168,7 @@ var (
 		ErrPlayAllSize:  `[Playground] summary files size limit reached`,
 		ErrPlayDepth:    `[Playground] maximum depth of recursion has been reached`,
 		ErrPlayFunc:     `[Playground] calling the %s function is prohibited`,
+		ErrDecode:       `decoding error`,
 
 		ErrRuntime: `you have found a runtime bug. Let us know, please`,
 	}

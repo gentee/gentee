@@ -91,6 +91,7 @@ func StructDecode(input *core.Buffer, pstruct *Struct) (err error) {
 	)
 	bint := make([]byte, 0, binary.MaxVarintLen64+1)
 	buf := bytes.NewReader(input.Data)
+	errDecode := fmt.Errorf(ErrorText(ErrDecode))
 	getInt := func(size uint8) (x int64, err error) {
 		var (
 			n int
@@ -101,7 +102,7 @@ func StructDecode(input *core.Buffer, pstruct *Struct) (err error) {
 			}
 		}
 		if size > BININT {
-			return 0, fmt.Errorf(`OOOPS`)
+			return 0, errDecode
 		}
 		bint = bint[:size]
 		if err = binary.Read(buf, binary.LittleEndian, &bint); err != nil {
@@ -109,7 +110,7 @@ func StructDecode(input *core.Buffer, pstruct *Struct) (err error) {
 		}
 		x, n = binary.Varint(bint)
 		if n != int(size) {
-			return 0, fmt.Errorf("Varint did not consume all of in")
+			return 0, errDecode
 		}
 		return
 	}
@@ -128,7 +129,7 @@ func StructDecode(input *core.Buffer, pstruct *Struct) (err error) {
 			pstruct.Values[i] = num
 		case core.TYPESTR:
 			if dtype != BINSTR {
-				return fmt.Errorf("OOPS")
+				return errDecode
 			}
 			if num, err = getInt(0); err != nil {
 				return err
@@ -141,7 +142,7 @@ func StructDecode(input *core.Buffer, pstruct *Struct) (err error) {
 		case core.TYPEFLOAT:
 			var f float64
 			if dtype != BINFLOAT {
-				return fmt.Errorf("OOPS")
+				return errDecode
 			}
 			if err = binary.Read(buf, binary.LittleEndian, &f); err != nil {
 				return err
@@ -149,7 +150,7 @@ func StructDecode(input *core.Buffer, pstruct *Struct) (err error) {
 			pstruct.Values[i] = f
 		case core.TYPEBUF:
 			if dtype != BINBUF {
-				return fmt.Errorf("OOPS")
+				return errDecode
 			}
 			if num, err = getInt(0); err != nil {
 				return err

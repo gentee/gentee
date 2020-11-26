@@ -1,3 +1,18 @@
+run buf {
+    buf b = AESEncrypt(`test`, buf(`message`))
+    return AESDecrypt(`tes`, b)
+}
+===== [3:12] cipher: message authentication failed
+run str {
+    str sometext = `Тест message`
+    str pass = `gt563`
+    return str(AESDecrypt(pass, AESEncrypt(pass, buf(sometext))))
+}
+===== Тест message
+run int {
+    return *RandomBuf(0) + *RandomBuf(100)
+}
+===== 100
 run str {
     return Hex(Sha256(Md5(UnHex(`01020351672423a0b0f0`))))
 }
