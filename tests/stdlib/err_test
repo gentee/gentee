@@ -1,3 +1,8 @@
+run {
+  buf b = {1, 2, 3}
+  DecodeInt(b, 0)
+}
+===== [3:3] decoding error
 run : IsEmptyDir(`awer23`)
 ===== [1:7] open awer23: no such file or directory
 run map.obj {

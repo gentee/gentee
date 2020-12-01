@@ -6,6 +6,7 @@ package vm
 
 import (
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 
@@ -86,6 +87,22 @@ func DelºBufIntInt(buf *core.Buffer, off, length int64) (*core.Buffer, error) {
 	}
 	buf.Data = append(buf.Data[:off], buf.Data[off+length:]...)
 	return buf, nil
+}
+
+// EncodeºBufInt encodes int to buf
+func EncodeºBufInt(buf *core.Buffer, i int64) *core.Buffer {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(i))
+	buf.Data = append(buf.Data, b...)
+	return buf
+}
+
+// DecodeºBufInt decodes int from buf
+func DecodeºBufInt(buf *core.Buffer, offset int64) (int64, error) {
+	if offset < 0 || offset+8 > int64(len(buf.Data)) {
+		return 0, fmt.Errorf(ErrorText(ErrDecode))
+	}
+	return int64(binary.LittleEndian.Uint64(buf.Data[offset : offset+8])), nil
 }
 
 // HexºBuf encodes buf to hex string

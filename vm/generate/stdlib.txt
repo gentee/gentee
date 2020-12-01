@@ -120,15 +120,16 @@ CtxValue(str) str;CtxValueºStr;r
 Date(int,int,int) time;DateºInts;r
 DateTime(int,int,int,int,int,int) time;DateTimeºInts;r
 Days(time) int;DaysºTime
+DecodeInt(buf,int) int;DecodeºBufInt;e
 Del(buf,int,int) buf;DelºBufIntInt
 DelAuto(map*,str) map*;DelºMapStr
 Dir(str) str;Dir
 Download(str,str) int;Download;er
-Ext(str) str;Ext
 Div(float,float) float;DIVFLOAT;e       // float / float
 Div(float,int) float;DivºFloatInt;e     // float / int
 Div(int,float) float;DivºIntFloat;e     // int / float
 Div(int,int) int;DIV;e                  // int / int
+EncodeInt(buf,int) buf;EncodeºBufInt
 Equal(char,char) bool;EQ                // char == char
 Equal(float,float) bool;EQFLOAT         // float == float
 Equal(float,int) bool;EqualºFloatInt    // float == int
@@ -147,6 +148,7 @@ ExpStr(str,float) str;ExpStrºFloat
 ExpStr(str,int) str;ExpStrºInt
 ExpStr(str,obj) str;ExpStrºObj
 ExpStr(str,str) str;ADDSTR
+Ext(str) str;Ext
 FileInfo(str) finfo;FileInfoºStr;er
 FileMode(str) int;FileModeºStr;er
 Find(str,str) int;FindºStrStr

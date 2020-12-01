@@ -1,3 +1,17 @@
+run arr.int {
+  arr.int ai = {-1000456, -346, -16, 0, 7, 257, 1346734930, 568890303434}
+  buf b
+  for i in ai {
+    EncodeInt(b, i)
+  }
+  if *b != *ai * 8 : error(77,`b size`)
+  arr.int ret
+  for i in 0..(*ai-1) {
+    ret += DecodeInt(b, i*8)
+  }
+  return ret
+}
+===== [-1000456 -346 -16 0 7 257 1346734930 568890303434]
 run bool {
   buf b
   if !b? : b += `data`
