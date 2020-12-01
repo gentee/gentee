@@ -120,6 +120,20 @@ func InsertºBufIntBuf(buf *core.Buffer, off int64, b *core.Buffer) (*core.Buffe
 	return buf, nil
 }
 
+// SetLenºBuf sets the length of the buffer
+func SetLenºBuf(buf *core.Buffer, size int64) (*core.Buffer, error) {
+	if size < 0 {
+		return buf, fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	length := int64(len(buf.Data))
+	if size < length {
+		buf.Data = buf.Data[:size]
+	} else if size > length {
+		buf.Data = append(buf.Data, make([]byte, size-length)...)
+	}
+	return buf, nil
+}
+
 // strºBuf converts buffer to string
 func strºBuf(buf *core.Buffer) string {
 	return string(buf.Data)
@@ -145,4 +159,24 @@ func UnHexºStr(value string) (*core.Buffer, error) {
 	buf := core.NewBuffer()
 	buf.Data, err = hex.DecodeString(value)
 	return buf, err
+}
+
+// WriteºBuf writes one buffer to another
+func WriteºBuf(buf *core.Buffer, offset int64, input *core.Buffer) (*core.Buffer, error) {
+	length := int64(len(buf.Data))
+	ilen := int64(len(input.Data))
+	if offset < 0 || offset > length {
+		return buf, fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	count := ilen
+	if offset+ilen > length {
+		count = length - offset
+	}
+	for i := int64(0); i < count; i++ {
+		buf.Data[i+offset] = input.Data[i]
+	}
+	if count < ilen {
+		buf.Data = append(buf.Data, input.Data[count:]...)
+	}
+	return buf, nil
 }

@@ -278,6 +278,7 @@ SetEnv(str,str) str;SetEnv;er                // $name = str
 SetEnv(str,int) str;SetEnv;er	            // $name = int
 SetEnv(str,bool) str;SetEnvBool;er           // $name = bool
 SetFileTime(str,time);SetFileTimeºStrTime;er
+SetLen(buf,int) buf;SetLenºBuf;e
 Sha256(buf) buf;Sha256ºBuf
 Sha256(str) buf;Sha256ºStr
 Sha256File(str) str;Sha256FileºStr;er
@@ -332,6 +333,7 @@ WaitAll();WaitAll;re
 WaitDone();WaitDone;re
 WaitGroup(int);WaitGroup;re
 Weekday(time) int;WeekdayºTime;r
+Write(buf,int,buf) buf;WriteºBuf;e
 WriteFile(str,buf);WriteFileºStrBuf;er
 WriteFile(str,str);WriteFileºStrStr;er
 YearDay(time) int;YearDayºTime
