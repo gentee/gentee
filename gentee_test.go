@@ -89,7 +89,9 @@ func TestGentee(t *testing.T) {
 				continue
 			}
 			var settings Settings
-			//			settings.Cycle = 5
+			if filename == `err_test` {
+				settings.Cycle = 1000000
+			}
 			//			fmt.Println(`i`, src[i].Line, filename)
 			result, err := exec.Run(settings)
 			//			result, err := workspace.Run(unitID)

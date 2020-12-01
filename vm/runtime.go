@@ -48,8 +48,9 @@ func (rt *Runtime) Run(i int64) (result interface{}, err error) {
 				break
 			}
 		}
-		//fmt.Println(`errHandle`, pos, rt.Owner.Exec.Pos)
-		err = runtimeError(rt, pos, errPar, pars...)
+		if pos >= 0 { // otherwise, getting error from CATCH
+			err = runtimeError(rt, pos, errPar, pars...)
+		}
 		if k <= 0 {
 			i = end + 1
 			return
@@ -375,7 +376,7 @@ main:
 		case core.SETVAR:
 			var (
 				ptr     interface{}
-				err     error
+				errVar  error
 				typeRet int
 			)
 
@@ -554,23 +555,23 @@ main:
 					assign -= core.EMBEDFUNC
 					switch v := ptr.(type) {
 					case *int64:
-						iValue, err = EmbedFuncs[assign].Func.(core.AssignIntFunc)(
+						iValue, errVar = EmbedFuncs[assign].Func.(core.AssignIntFunc)(
 							v, iValue.(int64))
 					case *float64:
-						iValue, err = EmbedFuncs[assign].Func.(core.AssignFloatFunc)(
+						iValue, errVar = EmbedFuncs[assign].Func.(core.AssignFloatFunc)(
 							v, iValue.(float64))
 					case *string:
-						iValue, err = EmbedFuncs[assign].Func.(core.AssignStrFunc)(
+						iValue, errVar = EmbedFuncs[assign].Func.(core.AssignStrFunc)(
 							v, iValue)
 					default:
-						iValue, err = EmbedFuncs[assign].Func.(core.AssignAnyFunc)(
+						iValue, errVar = EmbedFuncs[assign].Func.(core.AssignAnyFunc)(
 							ptr, iValue)
 					}
 				} else if assign == core.INCDEC {
-					iValue, err = IncDecºInt(ptr.(*int64), iValue.(int64))
+					iValue, errVar = IncDecºInt(ptr.(*int64), iValue.(int64))
 				}
-				if err != nil {
-					errHandle(i, err)
+				if errVar != nil {
+					errHandle(i, errVar)
 					continue main
 				}
 			}
@@ -1348,6 +1349,9 @@ main:
 			}
 			i += int64(shift)
 			continue
+		case core.CATCH: // Error throw
+			errHandle(-1, err)
+			continue main
 		case core.IOTA:
 			rt.Owner.Consts[rt.Owner.Exec.Init[0]] = Const{
 				Type:  core.TYPEINT,

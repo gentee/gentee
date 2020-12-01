@@ -1,3 +1,64 @@
+func subfunc {
+   cat #= #cat + "0"
+   error(145, "Test error message")
+   cat #= #cat + "1"
+}
+
+func myfunc str {
+  try {
+    cat #= "2"
+    subfunc()
+    cat #= #cat + "3"
+  } catch err {
+      cat #= #cat + "[\{ErrID(err)}]"
+  }
+  cat #= #cat + "OOOPS"
+  return "myfunc"
+}
+run str {
+  str s
+  try {
+    s = myfunc()
+    error(150, "Wrong error")
+  }
+  catch err {
+    if ErrID(err) == 500 : recover
+    if ErrID(err) == 145 : error(57, #cat + ErrText(err))
+  }
+  error(150, "Skipped error")
+  return s
+} 
+===== [26:28] 20[145]Test error message
+func myfunc {
+  try {
+    int i
+    try {
+      error(145, "Test error message")
+    } catch err {
+      i = 10
+    }
+    error(146, "Skipped error message")
+  } catch err {}
+  error(147, "Skipped error message")
+}
+run str {
+  myfunc()
+  error(148, "Wrong error message")
+  return `OK`
+} 
+===== [5:7] Test error message
+run str {
+  try {
+    mark #= "0"
+    error(177, "Test error message")
+    mark #= #mark + "1"
+  } catch err {
+    mark #= #mark + "[\{ErrID(err)}]"
+  }
+  error(178, "Wrong error message")
+  return #mark
+} 
+===== [4:5] Test error message
 run {
   if true? :
 }

@@ -86,6 +86,8 @@ const (
 	StackLocret
 	// StackTry is the try statement
 	StackTry
+	// StackCatch is the try statement
+	StackCatch
 )
 
 // Token is a lexical token.

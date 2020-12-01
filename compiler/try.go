@@ -37,7 +37,7 @@ func coCatch(cmpl *compiler) error {
 	if err := checkUsedName(cmpl, token); err != nil {
 		return err
 	}
-	cmd := core.CmdBlock{ID: core.StackBlock, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
+	cmd := core.CmdBlock{ID: core.StackCatch, CmdCommon: core.CmdCommon{TokenID: uint32(cmpl.pos)},
 		ParCount: 1, Vars: []*core.TypeObject{cmpl.unit.FindType(`error`).(*core.TypeObject)},
 		VarNames: map[string]int{token: 0}}
 	appendCmd(cmpl, &cmd)

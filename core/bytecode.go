@@ -174,7 +174,8 @@ const (
 	EMBED     // & (embed id << 16) calls embedded func + int32 count for variadic funcs
 	// + [variadic types]
 	LOCAL // & (par count << 16)+ int32 offset
-	IOTA  // & (iota<<16)
+	CATCH
+	IOTA // & (iota<<16)
 
 	INDEX        // & (int32 count) + {(type input<<16) + result type}
 	ASSIGNPTR    // & (int16 type << 16)

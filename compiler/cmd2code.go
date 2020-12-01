@@ -479,10 +479,13 @@ func cmd2Code(linker *Linker, cmd core.ICmd, out *core.Bytecode) {
 			push(core.DELVARS)
 			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
 
-		case core.StackBlock, core.StackDefault:
+		case core.StackBlock, core.StackDefault, core.StackCatch:
 			initBlock(linker, cmdStack, out)
 			for _, item := range cmdStack.Children {
 				cmd2Code(linker, item, out)
+			}
+			if cmdStack.ID == core.StackCatch {
+				push(core.CATCH)
 			}
 			push(core.DELVARS)
 			linker.Blocks = linker.Blocks[:len(linker.Blocks)-1]
