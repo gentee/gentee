@@ -1,4 +1,27 @@
 run {
+  str temp = TempDir(``, `gentee_test`)
+  str fname = temp + `/tmp`
+  file f = OpenFile(fname, CREATE)
+  SetPos(f,0,6)
+  CloseFile(f)
+  RemoveDir(temp)
+}
+===== [5:3] invalid value of parameter(s)
+run {
+  try {
+  file f = OpenFile(`qqqw`, 0)
+  } catch err {
+    arr msg = Split(ErrText(err), `:`)
+    error(100, Substr( msg[0], *msg[0]-4, 4))
+  }
+}
+===== [6:5] qqqw
+run {
+  file f
+  CloseFile(f)
+}
+===== [3:3] invalid value of parameter(s)
+run {
   buf b = {1, 2, 3}
   DecodeInt(b, 0)
 }

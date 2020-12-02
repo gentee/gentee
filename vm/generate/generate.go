@@ -38,6 +38,8 @@ func str2type(in string) (ret string) {
 		ret = `core.TYPERANGE`
 	case `buf`:
 		ret = `core.TYPEBUF`
+	case `file`:
+		ret = `core.TYPEFILE`
 	case `fn`:
 		ret = `core.TYPEFUNC`
 	case `error`:

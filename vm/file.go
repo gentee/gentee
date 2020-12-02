@@ -8,6 +8,7 @@ import (
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -21,6 +22,10 @@ const (
 	OnlyFiles = 0x02
 	RegExp    = 0x04
 	OnlyDirs  = 0x08
+
+	FileCreate   = 0x01
+	FileTrunc    = 0x02
+	FileReadonly = 0x04
 )
 
 func appendFile(rt *Runtime, filename string, data []byte) error {
@@ -66,6 +71,17 @@ func ChModeºStr(rt *Runtime, name string, mode int64) error {
 		}
 	}
 	return os.Chmod(name, os.FileMode(mode))
+}
+
+func CloseFile(file *core.File) error {
+	if file == nil || file.Handle == nil {
+		return fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	if err := file.Handle.Close(); err != nil {
+		return err
+	}
+	file.Handle = nil
+	return nil
 }
 
 // CopyFileºStrStr copies a file
@@ -176,6 +192,19 @@ func fromFileInfo(fileInfo os.FileInfo, finfo *Struct) *Struct {
 	return finfo
 }
 
+// FileInfoºFile sets returns the finfo of the file
+func FileInfoºFile(rt *Runtime, file *core.File) (*Struct, error) {
+	finfo := NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT])
+	if file == nil || file.Handle == nil {
+		return finfo, fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	fileInfo, err := file.Handle.Stat()
+	if err != nil {
+		return finfo, err
+	}
+	return fromFileInfo(fileInfo, finfo), nil
+}
+
 // FileInfoºStr returns the finfo describing the named file.
 func FileInfoºStr(rt *Runtime, name string) (*Struct, error) {
 	if rt.Owner.Settings.IsPlayground {
@@ -266,6 +295,59 @@ func ObjºFinfo(finfo *Struct) *core.Obj {
 	val.SetIndex(`dir`, objºAny(finfo.Values[5]))
 	obj.Data = val
 	return obj
+}
+
+func OpenFileºStr(rt *Runtime, fname string, flags int64) (ret *core.File, err error) {
+	if fname, err = filepath.Abs(fname); err != nil {
+		return
+	}
+	if rt.Owner.Settings.IsPlayground {
+		var trunc int64
+		if (flags & FileTrunc) != 0 {
+			trunc = ClearSize
+		}
+		if err = CheckPlaygroundLimits(rt.Owner, fname, trunc); err != nil {
+			return
+		}
+	}
+	ret = core.NewFile()
+	var (
+		iFlags int
+		handle *os.File
+	)
+	if (flags & FileCreate) != 0 {
+		iFlags |= os.O_CREATE
+	}
+	if (flags & FileReadonly) != 0 {
+		iFlags |= os.O_RDONLY
+	} else {
+		iFlags |= os.O_RDWR
+	}
+	if handle, err = os.OpenFile(fname, iFlags, 0644); err != nil {
+		return
+	}
+	if (flags & FileTrunc) != 0 {
+		if err = handle.Truncate(0); err != nil {
+			return
+		}
+	}
+	ret.Name = fname
+	ret.Handle = handle
+	return
+}
+
+func ReadºFileInt(file *core.File, size int64) (*core.Buffer, error) {
+	if file == nil || file.Handle == nil {
+		return nil, fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	buf := core.NewBuffer()
+	buf.Data = make([]byte, size)
+	n, err := file.Handle.Read(buf.Data)
+	if err != nil && err == io.EOF {
+		err = nil
+	}
+	buf.Data = buf.Data[:n]
+	return buf, err
 }
 
 // ReadDirºStr reads a directory
@@ -504,6 +586,14 @@ func SetFileTimeºStrTime(rt *Runtime, name string, ftime *Struct) error {
 	return os.Chtimes(name, mtime, mtime)
 }
 
+// SetPosºFileIntInt sets the postion in the file
+func SetPosºFileIntInt(file *core.File, off int64, whence int64) (int64, error) {
+	if file == nil || file.Handle == nil || whence < 0 || whence > 2 {
+		return 0, fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	return file.Handle.Seek(off, int(whence))
+}
+
 // Sha256FileºStr returns sha256 hash of the file as a hex string
 func Sha256FileºStr(rt *Runtime, filename string) (string, error) {
 	if rt.Owner.Settings.IsPlayground {
@@ -540,6 +630,20 @@ func TempDirºStrStr(rt *Runtime, dir, prefix string) (string, error) {
 		}
 	}
 	return ioutil.TempDir(dir, prefix)
+}
+
+// WriteFileºFileBuf writes a buffer to a file
+func WriteFileºFileBuf(rt *Runtime, file *core.File, buf *core.Buffer) (*core.File, error) {
+	if file == nil || file.Handle == nil {
+		return file, fmt.Errorf(ErrorText(ErrInvalidParam))
+	}
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, file.Name, int64(len(buf.Data))); err != nil {
+			return file, err
+		}
+	}
+	_, err := file.Handle.Write(buf.Data)
+	return file, err
 }
 
 // WriteFileºStrBuf writes a buffer to a file

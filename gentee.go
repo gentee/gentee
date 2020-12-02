@@ -74,6 +74,8 @@ func str2type(in string) (ret uint16) {
 		ret = core.TYPERANGE
 	case `buf`:
 		ret = core.TYPEBUF
+	case `file`:
+		ret = core.TYPEFILE
 	case `fn`:
 		ret = core.TYPEFUNC
 	case `error`:

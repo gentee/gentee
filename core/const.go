@@ -30,6 +30,9 @@ const (
 	ConstOnlyFiles = `ONLYFILES`
 	ConstOnlyDirs  = `ONLYDIRS`
 	ConstRegExp    = `REGEXP`
+	ConstCreate    = `CREATE`
+	ConstTrunc     = `TRUNC`
+	ConstReadonly  = `READONLY`
 
 	// NotIota means that constant doesn't use IOTA
 	NotIota = -1

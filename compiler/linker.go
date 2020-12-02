@@ -247,6 +247,8 @@ func type2Code(itype *core.TypeObject, out *core.Bytecode) (retType core.Bcode) 
 		retType = core.TYPEMAP
 	case reflect.TypeOf(core.Buffer{}):
 		retType = core.TYPEBUF
+	case reflect.TypeOf(core.File{}):
+		retType = core.TYPEFILE
 	case reflect.TypeOf(core.Fn{}):
 		retType = core.TYPEFUNC
 	case reflect.TypeOf(core.RuntimeError{}):

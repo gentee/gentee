@@ -48,6 +48,10 @@ func InitStdlib(ws *core.Workspace) {
 	stdlib.NewConst(core.ConstRegExp, int64(vm.RegExp), false)
 	stdlib.NewConst(core.ConstOnlyDirs, int64(vm.OnlyDirs), false)
 
+	stdlib.NewConst(core.ConstCreate, int64(vm.FileCreate), false)
+	stdlib.NewConst(core.ConstTrunc, int64(vm.FileTrunc), false)
+	stdlib.NewConst(core.ConstReadonly, int64(vm.FileReadonly), false)
+
 	src := `
 	pub fn cmpobjfunc(obj,obj) int
 	

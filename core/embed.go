@@ -32,6 +32,8 @@ const (
 	DefAssignBitAndStructStruct = `AssignBitAndºStructStruct`
 	// DefAssignFnFn equals fn = fn
 	DefAssignFnFn = `AssignºFnFn`
+	// DefAssignFileFile equals file = file
+	DefAssignFileFile = `AssignºFileFile`
 	// DefAssignBitAndArrArr equals arr &= arr
 	DefAssignBitAndArrArr = `AssignBitAndºArrArr`
 	// DefAssignBitAndMapMap equals map &= map
@@ -53,6 +55,7 @@ var (
 		DefLenMap:                   true,
 		DefAssignIntInt:             true,
 		DefAssignStructStruct:       true,
+		DefAssignFileFile:           true,
 		DefAssignFnFn:               true,
 		DefAssignBitAndStructStruct: true,
 		DefAssignBitAndArrArr:       true,

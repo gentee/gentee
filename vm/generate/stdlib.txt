@@ -42,6 +42,7 @@ Assign(str,bool) str;AssignºStrBool             // str = bool
 Assign(str,int) str;AssignºStrInt               // str = int
 Assign(str,str) str;ASSIGN                      // str = str
 AssignºArrArr(arr*,arr*) arr*;ASSIGN            // arr = arr
+AssignºFileFile(file,file) file;ASSIGN          // file = file
 AssignºFnFn(fn,fn) fn;ASSIGN                    // fn = fn
 AssignºMapMap(map*,map*) map*;ASSIGN            // map = map
 AssignºStructStruct(struct,struct) struct;ASSIGN            // struct = struct
@@ -104,6 +105,7 @@ Ceil(float) int;CeilºFloat
 ChDir(str);ChDirºStr;er
 ChMode(str,int);ChModeºStr;er
 ClearCarriage(str) str;ClearCarriage 
+CloseFile(file);CloseFile;e
 Command(str);Command;er                  // $ str 
 CommandOutput(str) str;CommandOutput;er  // $ str 
 CopyFile(str,str) int;CopyFileºStrStr;er
@@ -149,6 +151,7 @@ ExpStr(str,int) str;ExpStrºInt
 ExpStr(str,obj) str;ExpStrºObj
 ExpStr(str,str) str;ADDSTR
 Ext(str) str;Ext
+FileInfo(file) finfo;FileInfoºFile;er
 FileInfo(str) finfo;FileInfoºStr;er
 FileMode(str) int;FileModeºStr;er
 Find(str,str) int;FindºStrStr
@@ -241,6 +244,7 @@ obj(int) obj;objºAny
 obj(map*) obj;objºArrMap;e
 obj(str) obj;objºAny
 Open(str);OpenºStr;er
+OpenFile(str,int) file;OpenFileºStr;er
 OpenWith(str,str);OpenWithºStr;er
 ParseTime(str,str) time;ParseTimeºStrStr;re
 Print() int;Print;ev
@@ -251,6 +255,7 @@ ProgressEnd(int);ProgressEnd;r
 ProgressStart(int,int,str,str) int;ProgressStart;r
 Random(int) int;Random
 RandomBuf(int) buf;RandomBuf;e
+Read(file,int) buf;ReadºFileInt;e
 ReadDir(str) arr.finfo;ReadDirºStr;re
 ReadDir(str,int,arr.str,arr.str) arr.finfo;ReadDirºStrArr;re
 ReadDir(str,int,str) arr.finfo;ReadDirºStrIntStr;re
@@ -279,6 +284,7 @@ SetEnv(str,int) str;SetEnv;er	            // $name = int
 SetEnv(str,bool) str;SetEnvBool;er           // $name = bool
 SetFileTime(str,time);SetFileTimeºStrTime;er
 SetLen(buf,int) buf;SetLenºBuf;e
+SetPos(file,int,int) int;SetPosºFileIntInt;e
 Sha256(buf) buf;Sha256ºBuf
 Sha256(str) buf;Sha256ºStr
 Sha256File(str) str;Sha256FileºStr;er
@@ -334,6 +340,7 @@ WaitDone();WaitDone;re
 WaitGroup(int);WaitGroup;re
 Weekday(time) int;WeekdayºTime;r
 Write(buf,int,buf) buf;WriteºBuf;e
+Write(file,buf) file;WriteFileºFileBuf;er
 WriteFile(str,buf);WriteFileºStrBuf;er
 WriteFile(str,str);WriteFileºStrStr;er
 YearDay(time) int;YearDayºTime

@@ -33,6 +33,7 @@ func InitTypes(ws *core.Workspace) {
 		{`set`, reflect.TypeOf(core.Set{}), `bool`},
 		{`keyval`, reflect.TypeOf(core.KeyValue{}), ``},
 		{`struct`, typeStruct, ``},
+		{`file`, reflect.TypeOf(core.File{}), ``},
 		{`fn`, reflect.TypeOf(core.Fn{}), ``},
 		{`thread`, reflect.TypeOf(int64(0)), ``},
 		{`error`, reflect.TypeOf(core.RuntimeError{}), ``},

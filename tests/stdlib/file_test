@@ -1,3 +1,29 @@
+run str {
+    str temp = TempDir(``, `gentee_test`)
+    str fname = temp + `/tmp`
+    file f = OpenFile(fname, CREATE)
+    Write(f, buf("some test string"))
+    SetPos(f, -15, 1)
+    buf b &= Read(f, 15)
+    CloseFile(f)
+    str out = str(b)
+    f = OpenFile(fname, TRUNC)
+    Write(f, buf("012345"))
+    Write(f, buf("67890"))
+    SetPos(f, 0, 0)
+    b &= Read(f, 8)
+    out += "=" + str(b)
+    Write(f, buf("финиш"))
+    finfo fi &= FileInfo(f)
+    out += "=" + str(fi.Size)
+    SetPos(f, 7, 0)
+    b &= Read(f, 28)
+    out += "=" + str(b)
+    CloseFile(f)
+    RemoveDir(temp)
+    return out
+}
+===== ome test string=01234567=18=7финиш
 run arr.str {
     arr.str ret
     arr.str files = {`01234.txt`, `тест.pdf`, `test.log`}

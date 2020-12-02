@@ -6,6 +6,7 @@ package core
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -45,6 +46,12 @@ type Buffer struct {
 // Set is []bool
 type Set struct {
 	Data []uint64
+}
+
+// File is a file structure
+type File struct {
+	Name   string
+	Handle *os.File
 }
 
 // Map is a map
@@ -239,6 +246,16 @@ func (buf *Buffer) SetIndex(index, value interface{}) int {
 	}
 	buf.Data[bindex] = byte(v)
 	return 0
+}
+
+// String interface for File
+func (file File) String() string {
+	return fmt.Sprint(file.Name)
+}
+
+// NewFile creates a new file object
+func NewFile() *File {
+	return &File{}
 }
 
 // String interface for Set

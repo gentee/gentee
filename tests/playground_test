@@ -1,3 +1,27 @@
+run  {
+    str data = Repeat("this is a test message", 20000)
+    file f = OpenFile("myfile.txt", CREATE)
+    for i in 1..25 {
+        Write(f, buf(data))
+    }
+    CloseFile(f)
+}
+===== [5:9] [Playground] file size limit reached [2 MB]
+run str {
+    WriteFile("myfile.txt", "test string")
+    file f = OpenFile("myfile.txt", CREATE)
+    buf b = Read(f,100)
+    Write(f, buf("append"))
+    SetPos(f,0,0)
+    b &= Read(f,100)
+    CloseFile(f)
+    return str(b)
+}
+===== test stringappend
+run {
+    file f = OpenFile("../myfile.txt", 0)
+}
+===== [2:14] [Playground] access denied [/tmp/myfile.txt]
 run bool {
     return IsEmptyDir(".")
 }

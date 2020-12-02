@@ -27,6 +27,16 @@ func CopyVar(rt *Runtime, ptr *interface{}, value interface{}) {
 		}
 		pfn.Func = vItem.Func
 		*ptr = pfn
+	case *core.File:
+		var pfile *core.File
+		if ptr == nil || *ptr == nil {
+			pfile = &core.File{}
+		} else {
+			pfile = (*ptr).(*core.File)
+		}
+		pfile.Name = vItem.Name
+		pfile.Handle = vItem.Handle
+		*ptr = pfile
 	case *Struct:
 		var pstruct *Struct
 		if ptr == nil || *ptr == nil {
@@ -128,6 +138,8 @@ func newValue(rt *Runtime, vtype int) interface{} {
 		return core.NewMap()
 	case core.TYPEBUF:
 		return core.NewBuffer()
+	case core.TYPEFILE:
+		return core.NewFile()
 	case core.TYPEFUNC:
 		return &Fn{}
 	case core.TYPEERROR:
