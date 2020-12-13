@@ -139,6 +139,16 @@ func strºBuf(buf *core.Buffer) string {
 	return string(buf.Data)
 }
 
+// Subbuf return subbuffer
+func Subbuf(buf *core.Buffer, off int64, size int64) (*core.Buffer, error) {
+	if off < 0 || off+size > int64(len(buf.Data)) {
+		return nil, fmt.Errorf(ErrorText(core.ErrInvalidParam))
+	}
+	ret := core.NewBuffer()
+	ret.Data = append(ret.Data, buf.Data[off:off+size]...)
+	return ret, nil
+}
+
 // sysBufNil return nil buffer
 func sysBufNil() *core.Buffer {
 	b := core.NewBuffer()

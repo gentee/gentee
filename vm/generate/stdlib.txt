@@ -312,6 +312,7 @@ Sub(float,float) float;SUBFLOAT         // float - float
 Sub(float,int) float;SubºFloatInt       // float - int
 Sub(int,float) float;SubºIntFloat       // int - float
 Sub(int,int) int;SUB                    // int - int
+Subbuf(buf,int,int) buf;Subbuf;e
 Substr(str,int,int) str;SubstrºStrIntInt;e
 suspend(thread);suspendºThread;er
 sysBufNil() buf;sysBufNil

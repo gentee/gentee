@@ -1,4 +1,9 @@
 run str {
+  buf b = buf("It is an original text")
+  return str(Subbuf(b, 0, 3) + Subbuf(b, 6, 3) + Subbuf(b, 18, 4))
+}
+===== It an text
+run str {
   buf b = buf("It is an original text").Write(0, buf("Ti")).Write(3, buf("si"))
   return str(Write(b, *b-4, buf("9876543")))
 }
