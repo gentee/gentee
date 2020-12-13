@@ -1,3 +1,8 @@
+run bool {
+    str out = HTTPPage(`https://www.eonza.com/`)
+    return *out > 0 && Find(out, `Eonza`) > 0
+}
+===== true
 run  {
     str data = Repeat("this is a test message", 20000)
     file f = OpenFile("myfile.txt", CREATE)

@@ -126,35 +126,11 @@ func HTTPGet(rt *Runtime, url string) (buf *core.Buffer, err error) {
 
 // HTTPPage issues a GET to the specified URL and returns a string result.
 func HTTPPage(rt *Runtime, url string) (string, error) {
-	var (
-		ret string
-		buf []byte
-	)
-	res, err := http.Get(url)
-	if err == nil {
-		if rt.Owner.Settings.IsPlayground {
-			out := bytes.NewBuffer(nil)
-			written, err := io.CopyN(out, res.Body, rt.Owner.Settings.Playground.SizeLimit)
-			if err != nil && err != io.EOF {
-				return ``, err
-			}
-			if written >= rt.Owner.Settings.Playground.SizeLimit {
-				return ``, fmt.Errorf(`%s [%d MB]`, ErrorText(ErrPlaySize),
-					rt.Owner.Settings.Playground.SizeLimit>>20)
-			}
-			if err = CheckPlaygroundLimits(rt.Owner, core.RandName(), written); err != nil {
-				return ``, err
-			}
-			ret = out.String()
-		} else {
-			buf, err = ioutil.ReadAll(res.Body)
-		}
-		res.Body.Close()
-		if err == nil {
-			ret = string(buf)
-		}
+	buf, err := HTTPGet(rt, url)
+	if err != nil {
+		return ``, err
 	}
-	return ret, err
+	return string(buf.Data), nil
 }
 
 // HTTPRequest send HTTP request to the specified URL and returns a string result.
