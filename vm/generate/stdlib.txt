@@ -9,6 +9,7 @@ Add(int,float) float;AddºIntFloat               // int + float
 Add(int,int) int;ADD                            // int + int
 Add(str,char) str;AddºStrChar                   // str + char
 Add(str,str) str;ADDSTR                         // str + str
+AddFileToZip(handle,str,str);AddFileToZip;er
 AddHours(time,int) time;AddHoursºTimeInt;r
 AESDecrypt(str,buf) buf;AESDecryptBuf;e
 AESEncrypt(str,buf) buf;AESEncryptBuf;e
@@ -107,11 +108,14 @@ ChDir(str);ChDirºStr;er
 ChMode(str,int);ChModeºStr;er
 ClearCarriage(str) str;ClearCarriage 
 CloseFile(file);CloseFile;e
+CloseUnzip(handle);CloseUnzip;e
+CloseZip(handle);CloseZip;e
 Command(str);Command;er                  // $ str 
 CommandOutput(str) str;CommandOutput;er  // $ str 
 CopyFile(str,str) int;CopyFileºStrStr;er
 CreateDir(str);CreateDirºStr;er
 CreateFile(str,bool);CreateFileºStrBool;er
+CreateZip(str) handle;CreateZip;er
 Ctx(str) str;CtxºStr;er
 CtxGet(str) str;CtxGetºStr;er
 CtxIs(str) bool;CtxIsºStr;r
@@ -246,6 +250,7 @@ obj(map*) obj;objºArrMap;e
 obj(str) obj;objºAny
 Open(str);OpenºStr;er
 OpenFile(str,int) file;OpenFileºStr;er
+OpenUnzip(str) handle;OpenUnzip;er
 OpenWith(str,str);OpenWithºStr;er
 ParseTime(str,str) time;ParseTimeºStrStr;re
 Print() int;Print;ev
@@ -264,6 +269,7 @@ ReadFile(str) str;ReadFileºStr;er
 ReadFile(str,buf) buf;ReadFileºStrBuf;er
 ReadFile(str,int,int) buf;ReadFileºStrIntInt;er
 ReadString(str) str;ReadString;er
+ReadUnzip(handle) arr.finfo;ReadUnzip;er
 RegExp(str,str) str;RegExpºStrStr;e
 Remove(str);RemoveºStr;er
 RemoveDir(str);RemoveDirºStr;er
@@ -334,6 +340,8 @@ UnHex(str) buf;UnHexºStr;e
 Unlock();Unlock;r
 UnSet(set, int) set;UnSetºSet;e
 UnsetEnv(str);UnsetEnv;er
+Unzip(handle,str,str);UnzipºUnzip;er
+Unzip(str,str);UnzipºStr;er
 Upper(str) str;UpperºStr
 UTC(time) time;UTCºTime;r
 wait(thread);waitºThread;er

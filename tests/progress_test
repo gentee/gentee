@@ -1,3 +1,23 @@
+run arr {
+    str temp = TempDir(``, `gentee_test`)
+    str zname = JoinPath(temp,`tmp.zip`)
+    str fname = JoinPath(temp,`file.txt`)
+    handle zip = CreateZip(zname)
+    WriteFile(fname, Repeat("What can you do?\r\n", 1000))
+    AddFileToZip(zip, fname, `my.txt`)
+    AddFileToZip(zip, fname, `my2.txt`)
+    AddFileToZip(zip, fname, `my3.txt`)
+    CloseZip(zip)
+    Unzip(zname, temp)
+    arr.finfo list = ReadDir(temp)
+    arr outlist
+    for i in list {
+        if HasPrefix(i.Name, `my`) : outlist += "\{i.Name} \{i.Size}"
+    }  
+    RemoveDir(temp)
+    return outlist
+}
+===== [my.txt 18000 my2.txt 18000 my3.txt 18000]
 run str {
     int total = 200
     int prog = ProgressStart(total, 100, `source`, ``)
@@ -28,4 +48,3 @@ run str {
     return `OK`
 }
 ===== OK
-

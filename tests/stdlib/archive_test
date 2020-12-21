@@ -1,0 +1,31 @@
+run arr {
+    str temp = TempDir(``, `gentee_test`)
+    str zname = JoinPath(temp,`tmp.zip`)
+    handle zip = CreateZip(zname)
+    str fname = JoinPath(temp,`file.txt`)
+    WriteFile(fname, Repeat("This is a test string", 1000))
+    str original = Md5File(fname)
+    AddFileToZip(zip, fname, `my.txt`)
+    AddFileToZip(zip, fname, `папка/copy.txt`)
+    AddFileToZip(zip, fname, `folder/test`)
+    str zdir = JoinPath(temp,`sub folder`)
+    CreateDir(zdir)
+    AddFileToZip(zip, zdir, ``)
+    CloseZip(zip)
+    handle uzip = OpenUnzip(zname)
+    arr.finfo list = ReadUnzip(uzip)
+    Unzip(uzip, `folder/test`, temp)
+    str created = Md5File(JoinPath(temp,`test`))
+    if original != created : error(100, `different md5 hash`)
+    CloseUnzip(uzip)
+    str outdir = JoinPath(temp,`all`)
+    CreateDir(outdir)
+    Unzip(zname, outdir)
+    arr.finfo olist = ReadDir(outdir)
+    arr outlist
+    for i in list : outlist += "\{i.Name} \{i.Size}"
+    for i in olist : outlist += "\{i.Name}"
+    RemoveDir(temp)
+    return outlist
+}
+=====  [my.txt 21000 папка/copy.txt 21000 folder/test 21000 sub folder/ 0 folder my.txt sub folder папка]

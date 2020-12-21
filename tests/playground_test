@@ -1,3 +1,9 @@
+run  {
+    handle zip = CreateZip(`myfile.zip`)
+    AddFileToZip(zip, `../myfile.txt`, `my.txt`)
+    CloseZip(zip)
+}
+===== [3:5] [Playground] access denied [../myfile.txt]
 run bool {
     str out = HTTPPage(`https://www.eonza.com/`)
     return *out > 0 && Find(out, `Eonza`) > 0
