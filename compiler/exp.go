@@ -241,6 +241,8 @@ func popBuf(cmpl *compiler) error {
 						obj = cmpl.unit.FindObj(core.DefAssignMap)
 					} else if left.GetResult().Original == reflect.TypeOf(core.File{}) {
 						obj = cmpl.unit.FindObj(core.DefAssignFileFile)
+					} else if left.GetResult().Original == reflect.TypeOf(nil) {
+						obj = cmpl.unit.FindObj(core.DefAssignHandleHandle)
 					}
 				}
 			} else if expBuf.Oper == tkBitAndEq {

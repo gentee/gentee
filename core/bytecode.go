@@ -90,6 +90,7 @@ const (
 	TYPESET    = 0x074
 	TYPEOBJ    = 0x084
 	TYPEFILE   = 0x094
+	TYPEHANDLE = 0x0A4
 	TYPESTRUCT = 0x104
 
 	BlBreak    = 0x0001

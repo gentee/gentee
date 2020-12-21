@@ -499,7 +499,7 @@ main:
 				case core.STACKSTR:
 					rt.SStr[root] = rt.SStr[top.Str-1]
 				default:
-					if rt.SAny[root] == rt.SAny[top.Any-1] {
+					if rt.SAny[root] == rt.SAny[top.Any-1] && rt.SAny[top.Any-1] != nil /*handle*/ {
 						errHandle(i, ErrAssignment)
 						continue main
 						//return nil, runtimeError(rt, i, ErrAssignment)

@@ -40,6 +40,8 @@ func str2type(in string) (ret string) {
 		ret = `core.TYPEBUF`
 	case `file`:
 		ret = `core.TYPEFILE`
+	case `handle`:
+		ret = `core.TYPEHANDLE`
 	case `fn`:
 		ret = `core.TYPEFUNC`
 	case `error`:

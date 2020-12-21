@@ -140,6 +140,8 @@ func newValue(rt *Runtime, vtype int) interface{} {
 		return core.NewBuffer()
 	case core.TYPEFILE:
 		return core.NewFile()
+	case core.TYPEHANDLE:
+		return nil
 	case core.TYPEFUNC:
 		return &Fn{}
 	case core.TYPEERROR:

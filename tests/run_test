@@ -1,3 +1,9 @@
+run handle {
+  handle h1
+  handle h2 = h1
+  return h2
+}
+===== <nil>
 func myfunc(str filename, str varname) {
   bool exist
   if !exist : return

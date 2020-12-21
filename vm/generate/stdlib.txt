@@ -44,6 +44,7 @@ Assign(str,str) str;ASSIGN                      // str = str
 AssignºArrArr(arr*,arr*) arr*;ASSIGN            // arr = arr
 AssignºFileFile(file,file) file;ASSIGN          // file = file
 AssignºFnFn(fn,fn) fn;ASSIGN                    // fn = fn
+AssignºHandleHandle(handle,handle) handle;ASSIGN    // handle = handle
 AssignºMapMap(map*,map*) map*;ASSIGN            // map = map
 AssignºStructStruct(struct,struct) struct;ASSIGN            // struct = struct
 Assign(thread,thread) thread;ASSIGN                         // thread = thread

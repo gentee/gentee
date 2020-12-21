@@ -34,6 +34,8 @@ const (
 	DefAssignFnFn = `AssignºFnFn`
 	// DefAssignFileFile equals file = file
 	DefAssignFileFile = `AssignºFileFile`
+	// DefAssignHandleHandle equals handle = handle
+	DefAssignHandleHandle = `AssignºHandleHandle`
 	// DefAssignBitAndArrArr equals arr &= arr
 	DefAssignBitAndArrArr = `AssignBitAndºArrArr`
 	// DefAssignBitAndMapMap equals map &= map
@@ -56,6 +58,7 @@ var (
 		DefAssignIntInt:             true,
 		DefAssignStructStruct:       true,
 		DefAssignFileFile:           true,
+		DefAssignHandleHandle:       true,
 		DefAssignFnFn:               true,
 		DefAssignBitAndStructStruct: true,
 		DefAssignBitAndArrArr:       true,
