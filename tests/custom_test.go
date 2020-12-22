@@ -225,7 +225,7 @@ func CustomProgress(prog *gentee.Progress) bool {
 		if prog.Status == 1 {
 			progressOut += ` ` + fmt.Sprint(int64(100.0*prog.Ratio))
 		}
-	} else if prog.Type == 200 {
+	} else if prog.Type >= 200 {
 		if prog.Status != 2 {
 			progressOut += ` Z` + fmt.Sprint(int64(100.0*prog.Ratio))
 		}
@@ -302,7 +302,7 @@ func TestCustom(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if progressOut != `+ 23012667 1 50% =+ 220000 0 50% = 20 40 60 80 100 Z0 Z33 Z66 Z100` {
+	if progressOut != `+ 23012667 1 50% =+ 220000 0 50% = 20 40 60 80 100 Z0 Z33 Z66 Z100 Z0 Z50 Z100` {
 		t.Error(`progress`, progressOut)
 		return
 	}

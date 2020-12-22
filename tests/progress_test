@@ -1,3 +1,14 @@
+run int {
+    str temp = TempDir(``, `gentee_test`)
+    str zname = JoinPath(temp,`tmp.zip`)
+    WriteFile(JoinPath(temp,`file1.txt`), Repeat("What can you do?\r\n", 1000))
+    WriteFile(JoinPath(temp,`file2.txt`), Repeat("What can you do?\r\n", 1000))
+    Zip(zname, temp)
+    arr.finfo list = ReadDir(temp)
+    RemoveDir(temp)
+    return *list
+}
+===== 3
 run arr {
     str temp = TempDir(``, `gentee_test`)
     str zname = JoinPath(temp,`tmp.zip`)

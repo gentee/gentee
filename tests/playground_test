@@ -1,4 +1,13 @@
 run  {
+    WriteFile(`file1.txt`, Repeat("OOOPS", 100))
+    WriteFile(`file2.txt`, Repeat("OOOPS", 100))
+    Zip(`myfile.zip`, ".")
+    finfo fi = FileInfo("myfile.zip")
+    if fi.Size == 0 : error(100, "Ooops")
+    Unzip(`myfile.zip`, "../out")
+}
+===== [7:5] [Playground] access denied [../out]
+run  {
     handle zip = CreateZip(`myfile.zip`)
     AddFileToZip(zip, `../myfile.txt`, `my.txt`)
     CloseZip(zip)

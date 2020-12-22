@@ -354,3 +354,5 @@ Write(file,buf) file;WriteFileºFileBuf;er
 WriteFile(str,buf);WriteFileºStrBuf;er
 WriteFile(str,str);WriteFileºStrStr;er
 YearDay(time) int;YearDayºTime
+Zip(str,str);ZipºStr;er
+

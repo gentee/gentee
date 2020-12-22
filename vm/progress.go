@@ -15,7 +15,8 @@ const (
 	ProgressCompress
 	ProgressDecompress
 
-	ProgressArchiveCounter = 200
+	ProgressCompressCounter   = 200
+	ProgressDecompressCounter = 201
 
 	ProgStatusStart  = 0
 	ProgStatusActive = 1

@@ -6,6 +6,7 @@ package vm
 
 import (
 	"archive/zip"
+	"compress/flate"
 	"io"
 	"os"
 	"path/filepath"
@@ -109,6 +110,9 @@ func CreateZip(rt *Runtime, filename string) (*ZipFile, error) {
 		return nil, err
 	}
 	archive := zip.NewWriter(zipfile)
+	archive.RegisterCompressor(zip.Deflate, func(out io.Writer) (io.WriteCloser, error) {
+		return flate.NewWriter(out, flate.BestCompression)
+	})
 	return &ZipFile{Name: filename, File: zipfile, Archive: archive}, nil
 }
 
@@ -202,7 +206,7 @@ func UnzipºStr(rt *Runtime, zipfile string, dir string) error {
 		prog    *Progress
 	)
 	if rt.Owner.Settings.ProgressHandle != nil {
-		prog = NewProgress(rt, int64(len(zfile.Archive.File)), ProgressArchiveCounter)
+		prog = NewProgress(rt, int64(len(zfile.Archive.File)), ProgressDecompressCounter)
 		prog.Start(zipfile, ``)
 	}
 	for i, fhead := range zfile.Archive.File {
@@ -241,4 +245,65 @@ func UnzipºUnzip(rt *Runtime, zfile *UnzipFile, filename string, dir string) er
 		}
 	}
 	return nil
+}
+
+// ZipºStr packs a file or directory
+func ZipºStr(rt *Runtime, zipfile string, path string) error {
+	var (
+		err   error
+		finfo os.FileInfo
+	)
+	if rt.Owner.Settings.IsPlayground {
+		if err = CheckPlaygroundLimits(rt.Owner, path, NoLimit); err != nil {
+			return err
+		}
+	}
+	list := core.NewArray()
+	if path, err = filepath.Abs(path); err != nil {
+		return err
+	}
+	if finfo, err = os.Stat(path); err != nil {
+		return err
+	}
+	if finfo.IsDir() {
+		if err = readDir(rt, list, path, Recursive, core.NewArray(), core.NewArray()); err != nil {
+			return err
+		}
+	}
+	zfile, err := CreateZip(rt, zipfile)
+	if err != nil {
+		return err
+	}
+	if finfo.IsDir() {
+		var (
+			prog *Progress
+		)
+		if rt.Owner.Settings.ProgressHandle != nil {
+			prog = NewProgress(rt, int64(len(list.Data)), ProgressCompressCounter)
+			prog.Start(zipfile, ``)
+		}
+		for _, item := range list.Data {
+			ifile := item.(*Struct)
+			dir := ifile.Values[5].(string)
+			name := ifile.Values[0].(string)
+			zippath := strings.Trim(strings.ReplaceAll(strings.TrimPrefix(dir, path), `\\`, `/`), `/`)
+			if len(zippath) > 0 {
+				zippath += `/`
+			}
+			if err = AddFileToZip(rt, zfile, filepath.Join(dir, name), zippath+name); err != nil {
+				return err
+			}
+			if rt.Owner.Settings.ProgressHandle != nil {
+				prog.Increment(1)
+			}
+		}
+		if rt.Owner.Settings.ProgressHandle != nil {
+			prog.Complete()
+		}
+	} else {
+		if err = AddFileToZip(rt, zfile, path, filepath.Base(path)); err != nil {
+			return err
+		}
+	}
+	return CloseZip(zfile)
 }
