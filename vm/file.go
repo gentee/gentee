@@ -108,7 +108,10 @@ func CopyFileºStrStr(rt *Runtime, src, dest string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer destFile.Close()
+	defer func() {
+		destFile.Close()
+		os.Chtimes(dest, finfo.ModTime(), finfo.ModTime())
+	}()
 	var (
 		prog   *Progress
 		reader io.Reader

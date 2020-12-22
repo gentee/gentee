@@ -284,7 +284,10 @@ func untarFile(rt *Runtime, tr *tar.Reader, dest string, header *tar.Header, gzf
 	if err != nil {
 		return err
 	}
-	defer target.Close()
+	defer func() {
+		target.Close()
+		os.Chtimes(dest, header.FileInfo().ModTime(), header.FileInfo().ModTime())
+	}()
 	var (
 		prog   *Progress
 		writer io.Writer
@@ -386,7 +389,10 @@ func unzipByIndex(rt *Runtime, zfile *UnzipFile, index int, dir string) error {
 	if err != nil {
 		return err
 	}
-	defer target.Close()
+	defer func() {
+		target.Close()
+		os.Chtimes(dest, fhead.FileInfo().ModTime(), fhead.FileInfo().ModTime())
+	}()
 	var (
 		prog   *Progress
 		writer io.Writer
