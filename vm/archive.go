@@ -5,8 +5,11 @@
 package vm
 
 import (
+	"archive/tar"
 	"archive/zip"
 	"compress/flate"
+	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -154,6 +157,214 @@ func ReadUnzip(rt *Runtime, zfile *UnzipFile) (*core.Array, error) {
 	return ret, nil
 }
 
+func addFileToTarGz(rt *Runtime, tw *tar.Writer, fname string, path string, gzfile string) error {
+	var (
+		finfo   os.FileInfo
+		tarhead *tar.Header
+		err     error
+	)
+	file, err := os.Open(fname)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if finfo, err = file.Stat(); err != nil {
+		return err
+	}
+	if finfo.IsDir() {
+		path += `/`
+	} else {
+		if rt.Owner.Settings.IsPlayground {
+			if err := CheckPlaygroundLimits(rt.Owner, gzfile, finfo.Size()); err != nil {
+				return err
+			}
+		}
+	}
+	tarhead, err = tar.FileInfoHeader(finfo, ``)
+	tarhead.Name = path
+	if err := tw.WriteHeader(tarhead); err != nil {
+		return err
+	}
+	var (
+		prog   *Progress
+		reader io.Reader
+	)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog = NewProgress(rt, finfo.Size(), ProgressCompress)
+		prog.Start(fname, gzfile)
+		reader = NewProgressReader(file, prog)
+	} else {
+		reader = file
+	}
+	_, err = io.Copy(tw, reader)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog.Complete()
+	}
+	return nil
+}
+
+// TarGz packs a file or directory to tar.gz
+func TarGz(rt *Runtime, gzfile string, path string) error {
+	var (
+		err   error
+		finfo os.FileInfo
+		gw    *gzip.Writer
+	)
+	if rt.Owner.Settings.IsPlayground {
+		if err = CheckPlaygroundLimits(rt.Owner, path, NoLimit); err != nil {
+			return err
+		}
+		if err = CheckPlaygroundLimits(rt.Owner, gzfile, NoLimit); err != nil {
+			return err
+		}
+	}
+	list := core.NewArray()
+	if path, err = filepath.Abs(path); err != nil {
+		return err
+	}
+	if finfo, err = os.Stat(path); err != nil {
+		return err
+	}
+	if finfo.IsDir() {
+		if err = readDir(rt, list, path, Recursive, core.NewArray(), core.NewArray()); err != nil {
+			return err
+		}
+	}
+	file, err := os.Create(gzfile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if gw, err = gzip.NewWriterLevel(file, gzip.BestCompression); err != nil {
+		return err
+	}
+	defer gw.Close()
+
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
+	if finfo.IsDir() {
+		var (
+			prog *Progress
+		)
+		if rt.Owner.Settings.ProgressHandle != nil {
+			prog = NewProgress(rt, int64(len(list.Data)), ProgressCompressCounter)
+			prog.Start(gzfile, ``)
+		}
+		for _, item := range list.Data {
+			ifile := item.(*Struct)
+			dir := ifile.Values[5].(string)
+			name := ifile.Values[0].(string)
+			zippath := strings.Trim(strings.ReplaceAll(strings.TrimPrefix(dir, path), `\\`, `/`), `/`)
+			if len(zippath) > 0 {
+				zippath += `/`
+			}
+			if err = addFileToTarGz(rt, tw, filepath.Join(dir, name), zippath+name, gzfile); err != nil {
+				return err
+			}
+			if rt.Owner.Settings.ProgressHandle != nil {
+				prog.Increment(1)
+			}
+		}
+		if rt.Owner.Settings.ProgressHandle != nil {
+			prog.Complete()
+		}
+	} else {
+		if err = addFileToTarGz(rt, tw, path, filepath.Base(path), gzfile); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func untarFile(rt *Runtime, tr *tar.Reader, dest string, header *tar.Header, gzfile string) error {
+	target, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+		header.FileInfo().Mode())
+	if err != nil {
+		return err
+	}
+	defer target.Close()
+	var (
+		prog   *Progress
+		writer io.Writer
+	)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog = NewProgress(rt, header.Size, ProgressDecompress)
+		prog.Start(gzfile, dest)
+		writer = NewProgressWriter(target, prog)
+	} else {
+		writer = target
+	}
+	_, err = io.Copy(writer, tr)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog.Complete()
+	}
+	return err
+}
+
+// UnTarGz unpacks a .tar.gz file to the specified folder
+func UnTarGz(rt *Runtime, gzfile string, dir string) error {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, gzfile, NoLimit); err != nil {
+			return err
+		}
+	}
+	file, err := os.Open(gzfile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	gzReader, err := gzip.NewReader(file)
+	defer gzReader.Close()
+	if err != nil {
+		return err
+	}
+	tarReader := tar.NewReader(gzReader)
+	var prevDir string
+
+	for true {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		folder := filepath.Dir(strings.TrimRight(header.Name, `/`))
+		path := dir
+		if len(folder) > 0 {
+			path = filepath.Join(dir, folder)
+			if prevDir != path {
+				if err = CreateDirºStr(rt, path); err != nil {
+					return err
+				}
+				prevDir = path
+			}
+		}
+		dest := filepath.Join(path, filepath.Base(strings.TrimRight(header.Name, `/`)))
+		if rt.Owner.Settings.IsPlayground {
+			if err := CheckPlaygroundLimits(rt.Owner, dest, header.Size); err != nil {
+				return err
+			}
+		}
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if err = os.MkdirAll(dest, header.FileInfo().Mode()); err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			if err = untarFile(rt, tarReader, dest, header, gzfile); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("UnTarGz: uknown type: %d in %s", header.Typeflag, header.Name)
+		}
+	}
+	return nil
+}
+
 func unzipByIndex(rt *Runtime, zfile *UnzipFile, index int, dir string) error {
 	fhead := zfile.Archive.File[index]
 	dest := filepath.Join(dir, filepath.Base(strings.TrimRight(fhead.Name, `/`)))
@@ -163,8 +374,7 @@ func unzipByIndex(rt *Runtime, zfile *UnzipFile, index int, dir string) error {
 		}
 	}
 	if fhead.FileInfo().IsDir() {
-		os.MkdirAll(dest, fhead.Mode())
-		return nil
+		return os.MkdirAll(dest, fhead.Mode())
 	}
 	rfile, err := fhead.Open()
 	if err != nil {
@@ -179,16 +389,16 @@ func unzipByIndex(rt *Runtime, zfile *UnzipFile, index int, dir string) error {
 	defer target.Close()
 	var (
 		prog   *Progress
-		reader io.Reader
+		writer io.Writer
 	)
 	if rt.Owner.Settings.ProgressHandle != nil {
-		prog = NewProgress(rt, int64(fhead.CompressedSize64), ProgressDecompress)
+		prog = NewProgress(rt, int64(fhead.UncompressedSize64), ProgressDecompress)
 		prog.Start(zfile.Name, dest)
-		reader = NewProgressReader(rfile, prog)
+		writer = NewProgressWriter(target, prog)
 	} else {
-		reader = rfile
+		writer = target
 	}
-	_, err = io.Copy(target, reader)
+	_, err = io.Copy(writer, rfile)
 	if rt.Owner.Settings.ProgressHandle != nil {
 		prog.Complete()
 	}

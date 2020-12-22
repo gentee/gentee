@@ -1,6 +1,31 @@
 run int {
     arr outlist
     str temp = TempDir(``, `gentee_test`)
+    str zname = JoinPath(temp,`tmp.tar.gz`)
+    str fname = JoinPath(temp,`file.txt`)
+    str zdir1 = JoinPath(temp,`sub folder`)
+    str zdir2 = JoinPath(temp,`директория`)
+    str zdir3 = JoinPath(zdir2,`next level`)
+    WriteFile(fname, Repeat("Another test string", 100))
+    CreateDir(zdir1)
+    WriteFile(JoinPath(zdir1,`русс`), Repeat("Тестовое сообщение", 100))
+    WriteFile(JoinPath(zdir1,`ooops`), Repeat("OOOPS ooops", 100))
+    CreateDir(zdir3)
+    CreateDir(JoinPath(zdir2, `empty`))
+    WriteFile(JoinPath(zdir2,`tests`), Repeat("What would you like to do?\n", 100))
+    WriteFile(JoinPath(zdir3,`deep file`), Repeat("That's all right\r\n", 100))
+    TarGz(zname, temp)
+    TarGz(JoinPath(temp,`onefile.tar.gz`), fname)
+    UnTarGz(zname, JoinPath(temp, `unpack`))
+    arr ignore
+    arr.finfo list = ReadDir(JoinPath(temp, `unpack`), RECURSIVE, ignore, ignore)
+    RemoveDir(temp)
+    return *list
+}
+=====  9
+run int {
+    arr outlist
+    str temp = TempDir(``, `gentee_test`)
     str zname = JoinPath(temp,`tmp.zip`)
     str fname = JoinPath(temp,`file.txt`)
     str zdir1 = JoinPath(temp,`sub folder`)

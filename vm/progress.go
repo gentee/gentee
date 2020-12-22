@@ -44,6 +44,11 @@ type ProgressReader struct {
 	reader io.Reader
 }
 
+type ProgressWriter struct {
+	*Progress
+	writer io.Writer
+}
+
 func NewProgress(rt *Runtime, total int64, ptype int64) *Progress {
 	return &Progress{
 		ID:     rand.Uint32(),
@@ -60,8 +65,23 @@ func NewProgressReader(reader io.Reader, progress *Progress) *ProgressReader {
 	}
 }
 
+func NewProgressWriter(writer io.Writer, progress *Progress) *ProgressWriter {
+	return &ProgressWriter{
+		Progress: progress,
+		writer:   writer,
+	}
+}
+
 func (progress *ProgressReader) Read(data []byte) (n int, err error) {
 	n, err = progress.reader.Read(data)
+	if err == nil && n > 0 {
+		progress.Increment(int64(n))
+	}
+	return n, err
+}
+
+func (progress *ProgressWriter) Write(data []byte) (n int, err error) {
+	n, err = progress.writer.Write(data)
 	if err == nil && n > 0 {
 		progress.Increment(int64(n))
 	}

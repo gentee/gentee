@@ -229,7 +229,20 @@ func CustomProgress(prog *gentee.Progress) bool {
 		if prog.Status != 2 {
 			progressOut += ` Z` + fmt.Sprint(int64(100.0*prog.Ratio))
 		}
-	} else if prog.Type != 2 && prog.Type != 3 /*ProgressDecompress && ProgressCompress*/ {
+	} else if prog.Type == 3 { // ProgressDecompress
+		if prog.Status == 0 {
+			progressOut += fmt.Sprintf(`[D %d `, prog.Total)
+			prog.Custom = int(0)
+		} else if prog.Status == 2 {
+			progressOut += `]`
+		} else {
+			percent := int64(100.0 * prog.Ratio)
+			if percent >= 50 && prog.Custom.(int) == 0 {
+				prog.Custom = int(1)
+				progressOut += `50% `
+			}
+		}
+	} else if prog.Type != 2 { // ProgressCompress
 		if prog.Status == 0 {
 			progressOut += fmt.Sprintf(`+ %d %d `, prog.Total, prog.Type)
 			prog.Custom = int(0)
@@ -302,7 +315,7 @@ func TestCustom(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if progressOut != `+ 23012667 1 50% =+ 220000 0 50% = 20 40 60 80 100 Z0 Z33 Z66 Z100 Z0 Z50 Z100` {
+	if progressOut != `+ 23012667 1 50% =+ 220000 0 50% = 20 40 60 80 100 Z0[D 18000 50% ] Z33[D 18000 50% ] Z66[D 18000 50% ] Z100 Z0 Z50 Z100 Z0 Z50 Z100[D 19000 50% ][D 18000 50% ]` {
 		t.Error(`progress`, progressOut)
 		return
 	}

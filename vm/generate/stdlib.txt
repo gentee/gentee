@@ -324,6 +324,7 @@ Substr(str,int,int) str;SubstrºStrIntInt;e
 suspend(thread);suspendºThread;er
 sysBufNil() buf;sysBufNil
 sysRun(str,bool,buf,buf,buf,arr.str);sysRun;er
+TarGz(str,str);TarGz;er
 TempDir() str;TempDir
 TempDir(str, str) str;TempDirºStrStr;er
 terminate(thread);terminateºThread;er
@@ -340,6 +341,7 @@ UnHex(str) buf;UnHexºStr;e
 Unlock();Unlock;r
 UnSet(set, int) set;UnSetºSet;e
 UnsetEnv(str);UnsetEnv;er
+UnTarGz(str,str);UnTarGz;er
 Unzip(handle,str,str);UnzipºUnzip;er
 Unzip(str,str);UnzipºStr;er
 Upper(str) str;UpperºStr

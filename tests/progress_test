@@ -1,4 +1,20 @@
 run int {
+    arr outlist
+    str temp = TempDir(``, `gentee_test`)
+    str zname = JoinPath(temp,`tmp.tar.gz`)
+    str fname = JoinPath(temp,`file1.txt`)
+    str fname2 = JoinPath(temp,`file2.txt`)
+    WriteFile(fname, Repeat("Another test string", 1000))
+    WriteFile(fname2, Repeat("That's all right\r\n", 1000))
+    TarGz(zname, temp)
+    UnTarGz(zname, JoinPath(temp, `unpack`))
+    arr ignore
+    arr.finfo list = ReadDir(JoinPath(temp, `unpack`), 0, ignore, ignore)
+    RemoveDir(temp)
+    return *list
+}
+=====  2
+run int {
     str temp = TempDir(``, `gentee_test`)
     str zname = JoinPath(temp,`tmp.zip`)
     WriteFile(JoinPath(temp,`file1.txt`), Repeat("What can you do?\r\n", 1000))
