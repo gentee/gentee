@@ -36,6 +36,13 @@ type GzFile struct {
 	TarWriter *tar.Writer
 }
 
+type UntargzFile struct {
+	Name      string
+	File      *os.File
+	GzReader  *gzip.Reader
+	TarReader *tar.Reader
+}
+
 type Pack interface {
 	FileName() string
 	Header(finfo os.FileInfo, packname string) (io.Writer, error)

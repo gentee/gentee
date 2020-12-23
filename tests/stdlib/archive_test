@@ -1,5 +1,5 @@
 run arr {
-    str temp = `/home/ak/Загрузки` //TempDir(``, `gentee_test`)
+    str temp = /*`/home/ak/Загрузки` */TempDir(``, `gentee_test`)
     str gzname = JoinPath(temp,`tmp.tar.gz`)
     handle gz = CreateTarGz(gzname)
     str fname = JoinPath(temp,`file.txt`)
@@ -24,8 +24,8 @@ run arr {
     Unzip(zname, outdir)
     arr.finfo olist = ReadDir(outdir)
     for i in list : outlist += "\{i.Name} \{i.Size}"
-    for i in olist : outlist += "\{i.Name}"
-    RemoveDir(temp)*/
+    for i in olist : outlist += "\{i.Name}"*/
+    RemoveDir(temp)
     return outlist
 }
 =====  []
