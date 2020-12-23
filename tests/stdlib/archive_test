@@ -1,4 +1,4 @@
-run int {
+run str {
     arr outlist
     str temp = TempDir(``, `gentee_test`)
     str zname = JoinPath(temp,`tmp.tar.gz`)
@@ -16,13 +16,19 @@ run int {
     WriteFile(JoinPath(zdir3,`deep file`), Repeat("That's all right\r\n", 100))
     TarGz(zname, temp)
     TarGz(JoinPath(temp,`onefile.tar.gz`), fname)
-    UnTarGz(zname, JoinPath(temp, `unpack`))
+    str unpack = JoinPath(temp, `unpack`)
+    UnTarGz(zname, unpack)
     arr ignore
-    arr.finfo list = ReadDir(JoinPath(temp, `unpack`), RECURSIVE, ignore, ignore)
+    arr.finfo list = ReadDir(unpack, RECURSIVE, ignore, ignore)
     RemoveDir(temp)
-    return *list
+    str out = str(*list)
+    for item in list {
+        str tmp = ArchiveName(list[0], Dir(unpack))
+        out += ?(tmp == Right(FileInfoToPath(list[0]), *tmp), `1`, `0`) 
+    }
+    return out
 }
-=====  9
+=====  9111111111
 run int {
     arr outlist
     str temp = TempDir(``, `gentee_test`)
@@ -57,12 +63,12 @@ run arr {
     str fname = JoinPath(temp,`file.txt`)
     WriteFile(fname, Repeat("This is a test string", 1000))
     str original = Md5File(fname)
-    AddFileToZip(zip, fname, `my.txt`)
-    AddFileToZip(zip, fname, `папка/copy.txt`)
-    AddFileToZip(zip, fname, `folder/test`)
+    CompressFile(zip, fname, `my.txt`)
+    CompressFile(zip, fname, `папка/copy.txt`)
+    CompressFile(zip, fname, `folder/test`)
     str zdir = JoinPath(temp,`sub folder`)
     CreateDir(zdir)
-    AddFileToZip(zip, zdir, ``)
+    CompressFile(zip, zdir, ``)
     CloseZip(zip)
     handle uzip = OpenUnzip(zname)
     arr.finfo list = ReadUnzip(uzip)

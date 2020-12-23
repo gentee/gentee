@@ -50,3 +50,8 @@ func MatchPath(pattern, fname string) (int64, error) {
 	}
 	return 0, err
 }
+
+// FileInfoToPath return the full name of the file from finfo
+func FileInfoToPath(finfo *Struct) string {
+	return filepath.Join(finfo.Values[5].(string), finfo.Values[0].(string))
+}

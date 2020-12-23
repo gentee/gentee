@@ -9,7 +9,7 @@ run  {
 ===== [7:5] [Playground] access denied [../out]
 run  {
     handle zip = CreateZip(`myfile.zip`)
-    AddFileToZip(zip, `../myfile.txt`, `my.txt`)
+    CompressFile(zip, `../myfile.txt`, `my.txt`)
     CloseZip(zip)
 }
 ===== [3:5] [Playground] access denied [../myfile.txt]

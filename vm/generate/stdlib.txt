@@ -9,7 +9,6 @@ Add(int,float) float;AddºIntFloat               // int + float
 Add(int,int) int;ADD                            // int + int
 Add(str,char) str;AddºStrChar                   // str + char
 Add(str,str) str;ADDSTR                         // str + str
-AddFileToZip(handle,str,str);AddFileToZip;er
 AddHours(time,int) time;AddHoursºTimeInt;r
 AESDecrypt(str,buf) buf;AESDecryptBuf;e
 AESEncrypt(str,buf) buf;AESEncryptBuf;e
@@ -22,6 +21,7 @@ ArgCount() int;ArgCount;r
 Args() arr.str;Args;r
 Args(str) arr.str;ArgsºStr;r
 ArgsTail() arr.str;ArgsTail;r
+ArchiveName(finfo,str) str;ArchiveName
 arr(obj) arr.obj;arrºObj;e
 arr(set) arr.int;arrºSet
 arrstr(obj) arr.str;arrstrºObj;e
@@ -112,6 +112,7 @@ CloseUnzip(handle);CloseUnzip;e
 CloseZip(handle);CloseZip;e
 Command(str);Command;er                  // $ str 
 CommandOutput(str) str;CommandOutput;er  // $ str 
+CompressFile(handle,str,str);CompressFile;er
 CopyFile(str,str) int;CopyFileºStrStr;er
 CreateDir(str);CreateDirºStr;er
 CreateFile(str,bool);CreateFileºStrBool;er
@@ -158,6 +159,7 @@ ExpStr(str,str) str;ADDSTR
 Ext(str) str;Ext
 FileInfo(file) finfo;FileInfoºFile;er
 FileInfo(str) finfo;FileInfoºStr;er
+FileInfoToPath(finfo) str;FileInfoToPath
 FileMode(str) int;FileModeºStr;er
 Find(str,str) int;FindºStrStr
 FindFirstRegExp(str,str) arr.str;FindFirstRegExpºStrStr;e
