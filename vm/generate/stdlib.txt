@@ -108,7 +108,7 @@ ChDir(str);ChDirºStr;er
 ChMode(str,int);ChModeºStr;er
 ClearCarriage(str) str;ClearCarriage 
 CloseFile(file);CloseFile;e
-CloseUnzip(handle);CloseUnzip;e
+CloseTarGz(handle);CloseTarGz;e
 CloseZip(handle);CloseZip;e
 Command(str);Command;er                  // $ str 
 CommandOutput(str) str;CommandOutput;er  // $ str 
@@ -116,6 +116,7 @@ CompressFile(handle,str,str);CompressFile;er
 CopyFile(str,str) int;CopyFileºStrStr;er
 CreateDir(str);CreateDirºStr;er
 CreateFile(str,bool);CreateFileºStrBool;er
+CreateTarGz(str) handle;CreateTarGz;er
 CreateZip(str) handle;CreateZip;er
 Ctx(str) str;CtxºStr;er
 CtxGet(str) str;CtxGetºStr;er
@@ -226,7 +227,8 @@ Lower(str) str;LowerºStr
 LShift(int,int) int;LSHIFT;e            // int << int
 map(obj) map.obj;mapºObj;e
 Match(str,str) bool;MatchºStrStr;e
-MatchPath(str, str) bool;MatchPath;e
+MatchPath(str,str) bool;MatchPath;e
+MatchPath(str,str,bool) bool;MatchPathºStrBool;e
 Max(float,float) float;MaxºFloatFloat
 Max(int,int) int;MaxºIntInt
 Md5(buf) buf;Md5ºBuf
@@ -252,7 +254,6 @@ obj(map*) obj;objºArrMap;e
 obj(str) obj;objºAny
 Open(str);OpenºStr;er
 OpenFile(str,int) file;OpenFileºStr;er
-OpenUnzip(str) handle;OpenUnzip;er
 OpenWith(str,str);OpenWithºStr;er
 ParseTime(str,str) time;ParseTimeºStrStr;re
 Print() int;Print;ev
@@ -271,7 +272,7 @@ ReadFile(str) str;ReadFileºStr;er
 ReadFile(str,buf) buf;ReadFileºStrBuf;er
 ReadFile(str,int,int) buf;ReadFileºStrIntInt;er
 ReadString(str) str;ReadString;er
-ReadUnzip(handle) arr.finfo;ReadUnzip;er
+ReadZip(str) arr.finfo;ReadZip;er
 RegExp(str,str) str;RegExpºStrStr;e
 Remove(str);RemoveºStr;er
 RemoveDir(str);RemoveDirºStr;er
@@ -341,11 +342,11 @@ Type(obj) str;Type
 UnBase64(str) buf;UnBase64ºStr;e
 UnHex(str) buf;UnHexºStr;e
 Unlock();Unlock;r
+UnpackZip(str,str);UnpackZip;er
+UnpackZip(str,str,arr.str,arr.str);UnpackZipºStr;er
 UnSet(set, int) set;UnSetºSet;e
 UnsetEnv(str);UnsetEnv;er
 UnTarGz(str,str);UnTarGz;er
-Unzip(handle,str,str);UnzipºUnzip;er
-Unzip(str,str);UnzipºStr;er
 Upper(str) str;UpperºStr
 UTC(time) time;UTCºTime;r
 wait(thread);waitºThread;er

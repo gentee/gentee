@@ -1,4 +1,14 @@
 run str {
+  str ret 
+  ret += ?( MatchPath(`*.txt`, `myfile.txt`, false), `1`, `0`)
+  ret += ?( MatchPath(`*.pdf`, `path/my.pdf`, false), `0`, `1`)
+  ret += ?( MatchPath(`tmp`, `/home/user/tmp/my.txt`, true), `1`, `0`)
+  ret += ?( MatchPath(`/home/*`, `/home/myfile.pdf`, false), `1`, `0`)
+  ret += ?( MatchPath(`/\/user\//`, `/home/user/myfile`, false), `1`, `0`)
+  return ret
+}
+===== 11111
+run str {
   str s = AbsPath(`myfile.txt`)
   str ret
   if *Dir(s) > 0 {

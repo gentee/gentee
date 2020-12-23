@@ -4,7 +4,7 @@ run  {
     Zip(`myfile.zip`, ".")
     finfo fi = FileInfo("myfile.zip")
     if fi.Size == 0 : error(100, "Ooops")
-    Unzip(`myfile.zip`, "../out")
+    UnpackZip(`myfile.zip`, "../out")
 }
 ===== [7:5] [Playground] access denied [../out]
 run  {

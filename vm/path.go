@@ -55,3 +55,28 @@ func MatchPath(pattern, fname string) (int64, error) {
 func FileInfoToPath(finfo *Struct) string {
 	return filepath.Join(finfo.Values[5].(string), finfo.Values[0].(string))
 }
+
+// MatchPathºStrBool reports whether name matches the specified file name pattern or regexp.
+func MatchPathºStrBool(pattern string, filename string, regex int64) (ok int64, err error) {
+	if len(pattern) == 0 {
+		return 1, nil
+	}
+	var (
+		isRegex bool
+	)
+	isRegex = regex == 1
+	if !isRegex {
+		if len(pattern) > 2 && pattern[0] == '/' && pattern[len(pattern)-1] == '/' {
+			isRegex = true
+			pattern = pattern[1 : len(pattern)-1]
+		}
+	}
+	if isRegex {
+		if ok, err = MatchºStrStr(filename, pattern); err != nil {
+			return
+		}
+	} else if ok, err = MatchPath(pattern, filename); err != nil {
+		return
+	}
+	return
+}

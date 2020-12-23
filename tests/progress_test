@@ -35,7 +35,7 @@ run arr {
     CompressFile(zip, fname, `my2.txt`)
     CompressFile(zip, fname, `my3.txt`)
     CloseZip(zip)
-    Unzip(zname, temp)
+    UnpackZip(zname, temp)
     arr.finfo list = ReadDir(temp)
     arr outlist
     for i in list {

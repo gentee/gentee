@@ -19,14 +19,21 @@ import (
 )
 
 type UnzipFile struct {
-	Name    string
-	Archive *zip.ReadCloser
+	Name   string
+	Reader *zip.ReadCloser
 }
 
 type ZipFile struct {
-	Name    string
-	File    *os.File
-	Archive *zip.Writer
+	Name   string
+	File   *os.File
+	Writer *zip.Writer
+}
+
+type GzFile struct {
+	Name      string
+	File      *os.File
+	GzWriter  *gzip.Writer
+	TarWriter *tar.Writer
 }
 
 type Pack interface {
@@ -49,7 +56,26 @@ func (zf *ZipFile) Header(finfo os.FileInfo, packname string) (io.Writer, error)
 	} else {
 		header.Method = zip.Deflate
 	}
-	return zf.Archive.CreateHeader(header)
+	return zf.Writer.CreateHeader(header)
+}
+
+func (gzf *GzFile) FileName() string {
+	return gzf.Name
+}
+
+func (gzf *GzFile) Header(finfo os.FileInfo, packname string) (io.Writer, error) {
+	tarhead, err := tar.FileInfoHeader(finfo, ``)
+	if err != nil {
+		return nil, err
+	}
+	if finfo.IsDir() {
+		packname += "/"
+	}
+	tarhead.Name = packname
+	if err = gzf.TarWriter.WriteHeader(tarhead); err != nil {
+		return nil, err
+	}
+	return gzf.TarWriter, nil
 }
 
 func ArchiveName(finfo *Struct, root string) string {
@@ -110,14 +136,19 @@ func CompressFile(rt *Runtime, pack Pack, filename, packname string) error {
 	return err
 }
 
-// CloseUnzip closes the opened zip file
-func CloseUnzip(zfile *UnzipFile) (err error) {
-	return zfile.Archive.Close()
+// CloseTarGz closes the created tar.gz file
+func CloseTarGz(gzfile *GzFile) (err error) {
+	if err = gzfile.TarWriter.Close(); err == nil {
+		if err = gzfile.GzWriter.Close(); err == nil {
+			err = gzfile.File.Close()
+		}
+	}
+	return
 }
 
 // CloseZip closes the created zip file
 func CloseZip(zfile *ZipFile) (err error) {
-	if err = zfile.Archive.Close(); err == nil {
+	if err = zfile.Writer.Close(); err == nil {
 		err = zfile.File.Close()
 	}
 	return
@@ -138,11 +169,29 @@ func CreateZip(rt *Runtime, filename string) (*ZipFile, error) {
 	archive.RegisterCompressor(zip.Deflate, func(out io.Writer) (io.WriteCloser, error) {
 		return flate.NewWriter(out, flate.BestCompression)
 	})
-	return &ZipFile{Name: filename, File: zipfile, Archive: archive}, nil
+	return &ZipFile{Name: filename, File: zipfile, Writer: archive}, nil
 }
 
-// OpenUnzip opens zip file and returns its handle
-func OpenUnzip(rt *Runtime, zipfile string) (*UnzipFile, error) {
+// CreateTarGz creates tar.gz file and returns its handle
+func CreateTarGz(rt *Runtime, filename string) (*GzFile, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, filename, NoLimit); err != nil {
+			return nil, err
+		}
+	}
+	gzfile, err := os.Create(filename)
+	if err != nil {
+		return nil, err
+	}
+	var gw *gzip.Writer
+	if gw, err = gzip.NewWriterLevel(gzfile, gzip.BestCompression); err != nil {
+		return nil, err
+	}
+	return &GzFile{Name: filename, File: gzfile, GzWriter: gw, TarWriter: tar.NewWriter(gw)}, nil
+}
+
+// openUnzip opens zip file and returns its handle
+func openUnzip(rt *Runtime, zipfile string) (*UnzipFile, error) {
 	if rt.Owner.Settings.IsPlayground {
 		if err := CheckPlaygroundLimits(rt.Owner, zipfile, NoLimit); err != nil {
 			return nil, err
@@ -152,8 +201,31 @@ func OpenUnzip(rt *Runtime, zipfile string) (*UnzipFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &UnzipFile{Name: zipfile, Archive: archive}, nil
+	return &UnzipFile{Name: zipfile, Reader: archive}, nil
 }
+
+// closeUnzip closes the opened zip file
+func closeUnzip(zfile *UnzipFile) (err error) {
+	return zfile.Reader.Close()
+}
+
+// ReadZip returns the file list of zip
+func ReadZip(rt *Runtime, zipfile string) (*core.Array, error) {
+	var err error
+	zf, err := openUnzip(rt, zipfile)
+	ret := core.NewArray()
+	for _, finfo := range zf.Reader.File {
+		fi := fromFileInfo(finfo.FileInfo(), NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT]))
+		fi.Values[0] = strings.TrimRight(finfo.Name, `/`)
+		ret.Data = append(ret.Data, fi)
+	}
+	if err = closeUnzip(zf); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+//=====================================
 
 func fromZipInfo(fileInfo *zip.File, finfo *Struct) *Struct {
 	finfo.Values[0] = fileInfo.Name
@@ -167,130 +239,6 @@ func fromZipInfo(fileInfo *zip.File, finfo *Struct) *Struct {
 	}
 	finfo.Values[5] = ``
 	return finfo
-}
-
-// ReadUnzip returns the file list of zip
-func ReadUnzip(rt *Runtime, zfile *UnzipFile) (*core.Array, error) {
-	ret := core.NewArray()
-	for _, finfo := range zfile.Archive.File {
-		ret.Data = append(ret.Data, fromZipInfo(finfo,
-			NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT])))
-	}
-	return ret, nil
-}
-
-func addFileToTarGz(rt *Runtime, tw *tar.Writer, fname string, path string, gzfile string) error {
-	var (
-		finfo   os.FileInfo
-		tarhead *tar.Header
-		err     error
-	)
-	file, err := os.Open(fname)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	if finfo, err = file.Stat(); err != nil {
-		return err
-	}
-	if finfo.IsDir() {
-		path += `/`
-	} else {
-		if rt.Owner.Settings.IsPlayground {
-			if err := CheckPlaygroundLimits(rt.Owner, gzfile, finfo.Size()); err != nil {
-				return err
-			}
-		}
-	}
-	tarhead, err = tar.FileInfoHeader(finfo, ``)
-	tarhead.Name = path
-	if err := tw.WriteHeader(tarhead); err != nil {
-		return err
-	}
-	var (
-		prog   *Progress
-		reader io.Reader
-	)
-	if rt.Owner.Settings.ProgressHandle != nil {
-		prog = NewProgress(rt, finfo.Size(), ProgressCompress)
-		prog.Start(fname, gzfile)
-		reader = NewProgressReader(file, prog)
-	} else {
-		reader = file
-	}
-	_, err = io.Copy(tw, reader)
-	if rt.Owner.Settings.ProgressHandle != nil {
-		prog.Complete()
-	}
-	return nil
-}
-
-// TarGz packs a file or directory to tar.gz
-func TarGz(rt *Runtime, gzfile string, path string) error {
-	var (
-		err  error
-		gw   *gzip.Writer
-		list *core.Array
-	)
-	if rt.Owner.Settings.IsPlayground {
-		if err = CheckPlaygroundLimits(rt.Owner, gzfile, NoLimit); err != nil {
-			return err
-		}
-	}
-	if path, err = filepath.Abs(path); err != nil {
-		return err
-	}
-	if list, err = archiveList(rt, path); err != nil {
-		return err
-	}
-	file, err := os.Create(gzfile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if gw, err = gzip.NewWriterLevel(file, gzip.BestCompression); err != nil {
-		return err
-	}
-	defer gw.Close()
-
-	tw := tar.NewWriter(gw)
-	defer tw.Close()
-
-	if len(list.Data) != 1 {
-		var (
-			prog *Progress
-		)
-		if rt.Owner.Settings.ProgressHandle != nil {
-			prog = NewProgress(rt, int64(len(list.Data)), ProgressCompressCounter)
-			prog.Start(gzfile, ``)
-		}
-		for _, item := range list.Data {
-			ifile := item.(*Struct)
-			dir := ifile.Values[5].(string)
-			name := ifile.Values[0].(string)
-			zippath := strings.Trim(strings.ReplaceAll(strings.TrimPrefix(dir, path), `\\`, `/`), `/`)
-			if len(zippath) > 0 {
-				zippath += `/`
-			}
-			if err = addFileToTarGz(rt, tw, filepath.Join(dir, name), zippath+name, gzfile); err != nil {
-				return err
-			}
-			if rt.Owner.Settings.ProgressHandle != nil {
-				prog.Increment(1)
-			}
-		}
-		if rt.Owner.Settings.ProgressHandle != nil {
-			prog.Complete()
-		}
-	} else {
-		ifile := list.Data[0].(*Struct)
-		name := ifile.Values[0].(string)
-		if err = addFileToTarGz(rt, tw, filepath.Join(ifile.Values[5].(string), name), name, gzfile); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func untarFile(rt *Runtime, tr *tar.Reader, dest string, header *tar.Header, gzfile string) error {
@@ -383,76 +331,79 @@ func UnTarGz(rt *Runtime, gzfile string, dir string) error {
 	return nil
 }
 
-func unzipByIndex(rt *Runtime, zfile *UnzipFile, index int, dir string) error {
-	fhead := zfile.Archive.File[index]
-	dest := filepath.Join(dir, filepath.Base(strings.TrimRight(fhead.Name, `/`)))
+//================================
+
+// TarGz packs a file or directory to tar.gz
+func TarGz(rt *Runtime, targzfile string, path string) error {
+	var (
+		err  error
+		list *core.Array
+	)
+	if path, err = filepath.Abs(path); err != nil {
+		return err
+	}
+	if list, err = archiveList(rt, path); err != nil {
+		return err
+	}
+	gzfile, err := CreateTarGz(rt, targzfile)
+	if err != nil {
+		return err
+	}
+	if err = packFiles(rt, gzfile, list, path); err != nil {
+		return err
+	}
+	return CloseTarGz(gzfile)
+}
+
+// UnpackZip unpacks a zip file to the specified folder
+func UnpackZip(rt *Runtime, zipfile string, dir string) error {
+	empty := core.NewArray()
+	return UnpackZipºStr(rt, zipfile, dir, empty, empty)
+}
+
+// UnpackZipºStr unpacks a zip file to the specified folder
+func UnpackZipºStr(rt *Runtime, zipfile string, dir string, patterns *core.Array,
+	ignore *core.Array) error {
+	var (
+		err error
+	)
 	if rt.Owner.Settings.IsPlayground {
-		if err := CheckPlaygroundLimits(rt.Owner, dest, int64(fhead.UncompressedSize64)); err != nil {
+		if err = CheckPlaygroundLimits(rt.Owner, dir, NoLimit); err != nil {
 			return err
 		}
 	}
-	if fhead.FileInfo().IsDir() {
-		return os.MkdirAll(dest, fhead.Mode())
-	}
-	rfile, err := fhead.Open()
-	if err != nil {
+	if dir, err = filepath.Abs(dir); err != nil {
 		return err
 	}
-	defer rfile.Close()
-
-	target, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fhead.Mode())
-	if err != nil {
-		return err
-	}
-	defer func() {
-		target.Close()
-		os.Chtimes(dest, fhead.FileInfo().ModTime(), fhead.FileInfo().ModTime())
-	}()
-	var (
-		prog   *Progress
-		writer io.Writer
-	)
-	if rt.Owner.Settings.ProgressHandle != nil {
-		prog = NewProgress(rt, int64(fhead.UncompressedSize64), ProgressDecompress)
-		prog.Start(zfile.Name, dest)
-		writer = NewProgressWriter(target, prog)
-	} else {
-		writer = target
-	}
-	_, err = io.Copy(writer, rfile)
-	if rt.Owner.Settings.ProgressHandle != nil {
-		prog.Complete()
-	}
-	return err
-}
-
-// UnzipºStr unzip a zip file to the specified folder
-func UnzipºStr(rt *Runtime, zipfile string, dir string) error {
-	zfile, err := OpenUnzip(rt, zipfile)
+	zfile, err := openUnzip(rt, zipfile)
 	if err != nil {
 		return err
 	}
 	var (
-		prevDir string
-		prog    *Progress
+		prog *Progress
 	)
+	created := make(map[string]bool)
 	if rt.Owner.Settings.ProgressHandle != nil {
-		prog = NewProgress(rt, int64(len(zfile.Archive.File)), ProgressDecompressCounter)
+		prog = NewProgress(rt, int64(len(zfile.Reader.File)), ProgressDecompressCounter)
 		prog.Start(zipfile, ``)
 	}
-	for i, fhead := range zfile.Archive.File {
-		folder := filepath.Dir(strings.TrimRight(fhead.Name, `/`))
-		path := dir
-		if len(folder) > 0 {
-			path = filepath.Join(dir, folder)
-			if prevDir != path {
-				if err = CreateDirºStr(rt, path); err != nil {
-					return err
-				}
-				prevDir = path
-			}
+	for _, fhead := range zfile.Reader.File {
+		var path string
+		name := fhead.Name
+		if ok, err := matchName(name, patterns, ignore); err != nil {
+			return err
+		} else if !ok {
+			continue
 		}
-		if err := unzipByIndex(rt, zfile, i, path); err != nil {
+		if path, err = prepareDecompress(rt, name, fhead.FileInfo(), dir, created); err != nil {
+			return err
+		}
+		reader, err := fhead.Open()
+		if err != nil {
+			return err
+		}
+		defer reader.Close()
+		if err = unpackFile(rt, fhead.FileInfo(), reader, path); err != nil {
 			return err
 		}
 		if rt.Owner.Settings.ProgressHandle != nil {
@@ -462,20 +413,7 @@ func UnzipºStr(rt *Runtime, zipfile string, dir string) error {
 	if rt.Owner.Settings.ProgressHandle != nil {
 		prog.Complete()
 	}
-	return CloseUnzip(zfile)
-}
-
-// UnzipºUnzip unzip the specified file from the open zip archive
-func UnzipºUnzip(rt *Runtime, zfile *UnzipFile, filename string, dir string) error {
-	for i, finfo := range zfile.Archive.File {
-		if filename == finfo.Name {
-			if err := unzipByIndex(rt, zfile, i, dir); err != nil {
-				return err
-			}
-			break
-		}
-	}
-	return nil
+	return closeUnzip(zfile)
 }
 
 // ZipºStr packs a file or directory
@@ -529,6 +467,36 @@ func archiveList(rt *Runtime, path string) (*core.Array, error) {
 	return list, nil
 }
 
+func matchName(filename string, patterns *core.Array, ignore *core.Array) (bool, error) {
+	var (
+		ok  int64
+		err error
+	)
+	for _, item := range ignore.Data {
+		if pattern := item.(string); len(pattern) > 0 {
+			if ok, err = MatchPathºStrBool(pattern, filename, 0); err != nil {
+				return false, err
+			} else if ok != 0 {
+				return false, nil
+			}
+		}
+	}
+	if len(patterns.Data) > 0 {
+		for _, item := range patterns.Data {
+			if ok, err = MatchPathºStrBool(item.(string), filename, 0); err != nil {
+				return false, err
+			}
+			if ok != 0 {
+				break
+			}
+		}
+		if ok == 0 {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
 func packFiles(rt *Runtime, pack Pack, list *core.Array, path string) error {
 	var err error
 	if len(list.Data) != 1 {
@@ -555,6 +523,58 @@ func packFiles(rt *Runtime, pack Pack, list *core.Array, path string) error {
 		ifile := list.Data[0].(*Struct)
 		name := ifile.Values[0].(string)
 		err = CompressFile(rt, pack, filepath.Join(ifile.Values[5].(string), name), name)
+	}
+	return err
+}
+
+func prepareDecompress(rt *Runtime, filename string, finfo os.FileInfo, dir string,
+	created map[string]bool) (path string, err error) {
+	folder := filepath.Dir(strings.TrimRight(filename, `/`))
+	path = dir
+	if len(folder) > 0 {
+		path = filepath.Join(dir, folder)
+		if !created[path] {
+			if err = CreateDirºStr(rt, path); err != nil {
+				return
+			}
+			created[path] = true
+		}
+	}
+	path = filepath.Join(path, finfo.Name())
+	if rt.Owner.Settings.IsPlayground {
+		if err = CheckPlaygroundLimits(rt.Owner, path, finfo.Size()); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func unpackFile(rt *Runtime, finfo os.FileInfo, reader io.Reader, dest string) error {
+	if finfo.IsDir() {
+		return os.MkdirAll(dest, finfo.Mode())
+	}
+	target, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, finfo.Mode())
+	if err != nil {
+		return err
+	}
+	defer func() {
+		target.Close()
+		os.Chtimes(dest, finfo.ModTime(), finfo.ModTime())
+	}()
+	var (
+		prog   *Progress
+		writer io.Writer
+	)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog = NewProgress(rt, finfo.Size(), ProgressDecompress)
+		prog.Start(dest, dest)
+		writer = NewProgressWriter(target, prog)
+	} else {
+		writer = target
+	}
+	_, err = io.Copy(writer, reader)
+	if rt.Owner.Settings.ProgressHandle != nil {
+		prog.Complete()
 	}
 	return err
 }
