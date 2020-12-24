@@ -471,7 +471,7 @@ func matchName(filename string, patterns *core.Array, ignore *core.Array) (bool,
 	)
 	for _, item := range ignore.Data {
 		if pattern := item.(string); len(pattern) > 0 {
-			if ok, err = MatchPathºStrBool(pattern, filename, 0); err != nil {
+			if ok, err = MatchPath(pattern, filename); err != nil {
 				return false, err
 			} else if ok != 0 {
 				return false, nil
@@ -480,7 +480,7 @@ func matchName(filename string, patterns *core.Array, ignore *core.Array) (bool,
 	}
 	if len(patterns.Data) > 0 {
 		for _, item := range patterns.Data {
-			if ok, err = MatchPathºStrBool(item.(string), filename, 0); err != nil {
+			if ok, err = MatchPath(item.(string), filename); err != nil {
 				return false, err
 			}
 			if ok != 0 {

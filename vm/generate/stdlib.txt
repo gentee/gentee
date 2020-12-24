@@ -227,7 +227,6 @@ LShift(int,int) int;LSHIFT;e            // int << int
 map(obj) map.obj;mapºObj;e
 Match(str,str) bool;MatchºStrStr;e
 MatchPath(str,str) bool;MatchPath;e
-MatchPath(str,str,bool) bool;MatchPathºStrBool;e
 Max(float,float) float;MaxºFloatFloat
 Max(int,int) int;MaxºIntInt
 Md5(buf) buf;Md5ºBuf

@@ -378,18 +378,31 @@ func readDir(rt *Runtime, ret *core.Array, dirname string, flags int64, patterns
 	if err != nil {
 		return err
 	}
-	var isRegex int64
-	if flags&RegExp != 0 {
-		isRegex = 1
+	isRegex := flags&RegExp != 0
+
+	match := func(pattern string, name string) (bool, error) {
+		var (
+			ok  int64
+			err error
+		)
+		if isRegex {
+			ok, err = MatchºStrStr(name, pattern)
+		} else {
+			ok, err = MatchPath(pattern, name)
+		}
+		if ok == 0 {
+			return false, err
+		}
+		return true, err
 	}
 main:
 	for _, fileInfo := range fileList {
-		var ok int64
+		var ok bool
 		for _, item := range ignore.Data {
 			if pattern := item.(string); len(pattern) > 0 {
-				if ok, err = MatchPathºStrBool(pattern, fileInfo.Name(), isRegex); err != nil {
+				if ok, err = match(pattern, fileInfo.Name()); err != nil {
 					return err
-				} else if ok != 0 {
+				} else if ok {
 					continue main
 				}
 			}
@@ -409,14 +422,14 @@ main:
 		}
 		if len(patterns.Data) > 0 {
 			for _, item := range patterns.Data {
-				if ok, err = MatchPathºStrBool(item.(string), fileInfo.Name(), isRegex); err != nil {
+				if ok, err = match(item.(string), fileInfo.Name()); err != nil {
 					return err
 				}
-				if ok != 0 {
+				if ok {
 					break
 				}
 			}
-			if ok == 0 {
+			if !ok {
 				continue
 			}
 		}

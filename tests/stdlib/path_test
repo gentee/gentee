@@ -1,10 +1,10 @@
 run str {
   str ret 
-  ret += ?( MatchPath(`*.txt`, `myfile.txt`, false), `1`, `0`)
-  ret += ?( MatchPath(`*.pdf`, `path/my.pdf`, false), `0`, `1`)
-  ret += ?( MatchPath(`tmp`, `/home/user/tmp/my.txt`, true), `1`, `0`)
-  ret += ?( MatchPath(`/home/*`, `/home/myfile.pdf`, false), `1`, `0`)
-  ret += ?( MatchPath(`/\/user\//`, `/home/user/myfile`, false), `1`, `0`)
+  ret += ?( MatchPath(`*.txt`, `myfile.txt`), `1`, `0`)
+  ret += ?( MatchPath(`*.pdf`, `path/my.pdf`), `0`, `1`)
+  ret += ?( Match(`/home/user/tmp/my.txt`, `tmp`), `1`, `0`)
+  ret += ?( MatchPath(`/home/*`, `/home/myfile.pdf`), `1`, `0`)
+  ret += ?( MatchPath(`/\/user\//`, `/home/user/myfile`), `1`, `0`)
   return ret
 }
 ===== 11111
