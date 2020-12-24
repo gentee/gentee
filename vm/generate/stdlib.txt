@@ -160,7 +160,6 @@ ExpStr(str,str) str;ADDSTR
 Ext(str) str;Ext
 FileInfo(file) finfo;FileInfoºFile;er
 FileInfo(str) finfo;FileInfoºStr;er
-FileInfoToPath(finfo) str;FileInfoToPath
 FileMode(str) int;FileModeºStr;er
 Find(str,str) int;FindºStrStr
 FindFirstRegExp(str,str) arr.str;FindFirstRegExpºStrStr;e
@@ -255,6 +254,7 @@ obj(str) obj;objºAny
 Open(str);OpenºStr;er
 OpenFile(str,int) file;OpenFileºStr;er
 OpenWith(str,str);OpenWithºStr;er
+Path(finfo) str;FileInfoToPath
 ParseTime(str,str) time;ParseTimeºStrStr;re
 Print() int;Print;ev
 Println() int;Println;ev

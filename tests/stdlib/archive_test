@@ -53,7 +53,7 @@ run str {
     str out = str(*list)
     for item in list {
         str tmp = ArchiveName(list[0], Dir(unpack))
-        out += ?(tmp == Right(FileInfoToPath(list[0]), *tmp), `1`, `0`) 
+        out += ?(tmp == Right(Path(list[0]), *tmp), `1`, `0`) 
     }
     return out
 }
