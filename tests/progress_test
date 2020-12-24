@@ -7,7 +7,7 @@ run int {
     WriteFile(fname, Repeat("Another test string", 1000))
     WriteFile(fname2, Repeat("That's all right\r\n", 1000))
     TarGz(zname, temp)
-    UnTarGz(zname, JoinPath(temp, `unpack`))
+    UnpackTarGz(zname, JoinPath(temp, `unpack`))
     arr ignore
     arr.finfo list = ReadDir(JoinPath(temp, `unpack`), 0, ignore, ignore)
     RemoveDir(temp)

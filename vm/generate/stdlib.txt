@@ -272,6 +272,7 @@ ReadFile(str) str;ReadFileºStr;er
 ReadFile(str,buf) buf;ReadFileºStrBuf;er
 ReadFile(str,int,int) buf;ReadFileºStrIntInt;er
 ReadString(str) str;ReadString;er
+ReadTarGz(str) arr.finfo;ReadTarGz;er
 ReadZip(str) arr.finfo;ReadZip;er
 RegExp(str,str) str;RegExpºStrStr;e
 Remove(str);RemoveºStr;er
@@ -342,11 +343,12 @@ Type(obj) str;Type
 UnBase64(str) buf;UnBase64ºStr;e
 UnHex(str) buf;UnHexºStr;e
 Unlock();Unlock;r
+UnpackTarGz(str,str);UnpackTarGz;er
+UnpackTarGz(str,str,arr.str,arr.str);UnpackTarGzºStr;er
 UnpackZip(str,str);UnpackZip;er
 UnpackZip(str,str,arr.str,arr.str);UnpackZipºStr;er
 UnSet(set, int) set;UnSetºSet;e
 UnsetEnv(str);UnsetEnv;er
-UnTarGz(str,str);UnTarGz;er
 Upper(str) str;UpperºStr
 UTC(time) time;UTCºTime;r
 wait(thread);waitºThread;er

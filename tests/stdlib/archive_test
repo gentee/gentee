@@ -1,5 +1,5 @@
 run arr {
-    str temp = /*`/home/ak/Загрузки` */TempDir(``, `gentee_test`)
+    str temp = TempDir(``, `gentee_test`)
     str gzname = JoinPath(temp,`tmp.tar.gz`)
     handle gz = CreateTarGz(gzname)
     str fname = JoinPath(temp,`file.txt`)
@@ -12,23 +12,21 @@ run arr {
     CreateDir(zdir)
     CompressFile(gz, zdir, ``)
     CloseTarGz(gz)
-    arr outlist
-/*    handle uzip = OpenUnzip(zname)
-    arr.finfo list = ReadUnzip(uzip)
-    Unzip(uzip, `folder/test`, temp)
-    str created = Md5File(JoinPath(temp,`test`))
+    arr outlist empty
+    arr.finfo list = ReadTarGz(gzname)
+    arr ulist = {`folder/test`}
+    UnpackTarGz(gzname, temp, ulist, empty)
+    str created = Md5File(JoinPath(temp,`folder`, `test`))
     if original != created : error(100, `different md5 hash`)
-    CloseUnzip(uzip)
     str outdir = JoinPath(temp,`all`)
-    CreateDir(outdir)
-    Unzip(zname, outdir)
+    UnpackTarGz(gzname, outdir)
     arr.finfo olist = ReadDir(outdir)
     for i in list : outlist += "\{i.Name} \{i.Size}"
-    for i in olist : outlist += "\{i.Name}"*/
+    for i in olist : outlist += "\{i.Name}"
     RemoveDir(temp)
     return outlist
 }
-=====  []
+===== [my.txt 21000 папка/copy.txt 21000 folder/test 21000 sub folder 0 folder my.txt sub folder папка]
 run str {
     arr outlist
     str temp = TempDir(``, `gentee_test`)
@@ -48,7 +46,7 @@ run str {
     TarGz(zname, temp)
     TarGz(JoinPath(temp,`onefile.tar.gz`), fname)
     str unpack = JoinPath(temp, `unpack`)
-    UnTarGz(zname, unpack)
+    UnpackTarGz(zname, unpack)
     arr ignore
     arr.finfo list = ReadDir(unpack, RECURSIVE, ignore, ignore)
     RemoveDir(temp)

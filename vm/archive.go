@@ -216,129 +216,75 @@ func closeUnzip(zfile *UnzipFile) (err error) {
 	return zfile.Reader.Close()
 }
 
+// openUntargz opens tar.gz file and returns its handle
+func openUntargz(rt *Runtime, gzfile string) (*UntargzFile, error) {
+	if rt.Owner.Settings.IsPlayground {
+		if err := CheckPlaygroundLimits(rt.Owner, gzfile, NoLimit); err != nil {
+			return nil, err
+		}
+	}
+	file, err := os.Open(gzfile)
+	if err != nil {
+		return nil, err
+	}
+	gzReader, err := gzip.NewReader(file)
+	if err != nil {
+		return nil, err
+	}
+	return &UntargzFile{Name: gzfile, File: file, GzReader: gzReader,
+		TarReader: tar.NewReader(gzReader)}, nil
+}
+
+// closeUntargz closes the opened gz file
+func closeUntargz(gzfile *UntargzFile) (err error) {
+	if err = gzfile.GzReader.Close(); err == nil {
+		err = gzfile.File.Close()
+	}
+	return
+}
+
+// ReadTarGz gets the list of files in the .tar.gz file
+func ReadTarGz(rt *Runtime, filename string) (*core.Array, error) {
+	gzfile, err := openUntargz(rt, filename)
+	if err != nil {
+		return nil, err
+	}
+	ret := core.NewArray()
+	for true {
+		header, err := gzfile.TarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		switch header.Typeflag {
+		case tar.TypeDir, tar.TypeReg:
+			fi := fromFileInfo(header.FileInfo(), NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT]))
+			fi.Values[0] = strings.TrimRight(header.Name, `/`)
+			ret.Data = append(ret.Data, fi)
+		default:
+			return nil, fmt.Errorf("ReadTarGz: uknown type: %d in %s", header.Typeflag, header.Name)
+		}
+	}
+	return ret, closeUntargz(gzfile)
+}
+
 // ReadZip returns the file list of zip
 func ReadZip(rt *Runtime, zipfile string) (*core.Array, error) {
 	var err error
 	zf, err := openUnzip(rt, zipfile)
+	if err != nil {
+		return nil, err
+	}
 	ret := core.NewArray()
 	for _, finfo := range zf.Reader.File {
 		fi := fromFileInfo(finfo.FileInfo(), NewStruct(rt, &rt.Owner.Exec.Structs[FINFOSTRUCT]))
 		fi.Values[0] = strings.TrimRight(finfo.Name, `/`)
 		ret.Data = append(ret.Data, fi)
 	}
-	if err = closeUnzip(zf); err != nil {
-		return nil, err
-	}
-	return ret, nil
+	return ret, closeUnzip(zf)
 }
-
-//=====================================
-
-func fromZipInfo(fileInfo *zip.File, finfo *Struct) *Struct {
-	finfo.Values[0] = fileInfo.Name
-	finfo.Values[1] = int64(fileInfo.UncompressedSize64)
-	finfo.Values[2] = int64(0)
-	fromTime(finfo.Values[3].(*Struct), fileInfo.Modified)
-	if fileInfo.FileInfo().IsDir() {
-		finfo.Values[4] = int64(1)
-	} else {
-		finfo.Values[4] = int64(0)
-	}
-	finfo.Values[5] = ``
-	return finfo
-}
-
-func untarFile(rt *Runtime, tr *tar.Reader, dest string, header *tar.Header, gzfile string) error {
-	target, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		header.FileInfo().Mode())
-	if err != nil {
-		return err
-	}
-	defer func() {
-		target.Close()
-		os.Chtimes(dest, header.FileInfo().ModTime(), header.FileInfo().ModTime())
-	}()
-	var (
-		prog   *Progress
-		writer io.Writer
-	)
-	if rt.Owner.Settings.ProgressHandle != nil {
-		prog = NewProgress(rt, header.Size, ProgressDecompress)
-		prog.Start(gzfile, dest)
-		writer = NewProgressWriter(target, prog)
-	} else {
-		writer = target
-	}
-	_, err = io.Copy(writer, tr)
-	if rt.Owner.Settings.ProgressHandle != nil {
-		prog.Complete()
-	}
-	return err
-}
-
-// UnTarGz unpacks a .tar.gz file to the specified folder
-func UnTarGz(rt *Runtime, gzfile string, dir string) error {
-	if rt.Owner.Settings.IsPlayground {
-		if err := CheckPlaygroundLimits(rt.Owner, gzfile, NoLimit); err != nil {
-			return err
-		}
-	}
-	file, err := os.Open(gzfile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	gzReader, err := gzip.NewReader(file)
-	defer gzReader.Close()
-	if err != nil {
-		return err
-	}
-	tarReader := tar.NewReader(gzReader)
-	var prevDir string
-
-	for true {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-		folder := filepath.Dir(strings.TrimRight(header.Name, `/`))
-		path := dir
-		if len(folder) > 0 {
-			path = filepath.Join(dir, folder)
-			if prevDir != path {
-				if err = CreateDirºStr(rt, path); err != nil {
-					return err
-				}
-				prevDir = path
-			}
-		}
-		dest := filepath.Join(path, filepath.Base(strings.TrimRight(header.Name, `/`)))
-		if rt.Owner.Settings.IsPlayground {
-			if err := CheckPlaygroundLimits(rt.Owner, dest, header.Size); err != nil {
-				return err
-			}
-		}
-
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if err = os.MkdirAll(dest, header.FileInfo().Mode()); err != nil {
-				return err
-			}
-		case tar.TypeReg:
-			if err = untarFile(rt, tarReader, dest, header, gzfile); err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("UnTarGz: uknown type: %d in %s", header.Typeflag, header.Name)
-		}
-	}
-	return nil
-}
-
-//================================
 
 // TarGz packs a file or directory to tar.gz
 func TarGz(rt *Runtime, targzfile string, path string) error {
@@ -360,6 +306,50 @@ func TarGz(rt *Runtime, targzfile string, path string) error {
 		return err
 	}
 	return CloseTarGz(gzfile)
+}
+
+// UnpackTarGz unpacks a .tar.gz file to the specified folder
+func UnpackTarGz(rt *Runtime, filename string, dir string) error {
+	empty := core.NewArray()
+	return UnpackTarGzºStr(rt, filename, dir, empty, empty)
+}
+
+// UnpackTarGzºStr unpacks a .tar.gz file to the specified folder
+func UnpackTarGzºStr(rt *Runtime, filename string, dir string, patterns *core.Array,
+	ignore *core.Array) error {
+	gzfile, err := openUntargz(rt, filename)
+	if err != nil {
+		return err
+	}
+	created := make(map[string]bool)
+	for true {
+		header, err := gzfile.TarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		var path string
+		name := header.Name
+		if ok, err := matchName(name, patterns, ignore); err != nil {
+			return err
+		} else if !ok {
+			continue
+		}
+		if path, err = prepareDecompress(rt, name, header.FileInfo(), dir, created); err != nil {
+			return err
+		}
+		switch header.Typeflag {
+		case tar.TypeDir, tar.TypeReg:
+			if err = unpackFile(rt, header.FileInfo(), gzfile.TarReader, path); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("UnpackTarGz: uknown type: %d in %s", header.Typeflag, header.Name)
+		}
+	}
+	return closeUntargz(gzfile)
 }
 
 // UnpackZip unpacks a zip file to the specified folder
@@ -409,13 +399,13 @@ func UnpackZipºStr(rt *Runtime, zipfile string, dir string, patterns *core.Arra
 		if err != nil {
 			return err
 		}
-		defer reader.Close()
 		if err = unpackFile(rt, fhead.FileInfo(), reader, path); err != nil {
 			return err
 		}
 		if rt.Owner.Settings.ProgressHandle != nil {
 			prog.Increment(1)
 		}
+		reader.Close()
 	}
 	if rt.Owner.Settings.ProgressHandle != nil {
 		prog.Complete()
