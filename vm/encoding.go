@@ -12,7 +12,7 @@ import (
 	"github.com/gentee/gentee/core"
 )
 
-func ifaceToObj(val interface{}) (*core.Obj, error) {
+func IfaceToObj(val interface{}) (*core.Obj, error) {
 	var err error
 	ret := core.NewObj()
 	switch v := val.(type) {
@@ -20,35 +20,70 @@ func ifaceToObj(val interface{}) (*core.Obj, error) {
 		ret.Data = v
 	case string:
 		ret.Data = v
+	case int:
+		ret.Data = v
+	case int64:
+		ret.Data = v
+	case float64:
+		ret.Data = v
 	case json.Number:
 		if ret.Data, err = v.Int64(); err != nil {
 			if ret.Data, err = v.Float64(); err != nil {
 				ret.Data = v.String()
 			}
 		}
-	case []interface{}:
+	case []string:
 		data := core.NewArray()
 		data.Data = make([]interface{}, len(v))
 		for i, item := range v {
-			iobj, err := ifaceToObj(item)
-			if err != nil {
-				return nil, err
-			}
+			iobj := core.NewObj()
+			iobj.Data = item
 			data.Data[i] = iobj
 		}
 		ret.Data = data
+	case []interface{}:
+		data := core.NewArray()
+		data.Data = make([]interface{}, 0, len(v))
+		for _, item := range v {
+			if item == nil {
+				continue
+			}
+			iobj, err := IfaceToObj(item)
+			if err != nil {
+				return nil, err
+			}
+			data.Data = append(data.Data, iobj)
+		}
+		ret.Data = data
 	case map[string]interface{}:
-		var i int
 		data := core.NewMap()
-		data.Keys = make([]string, len(v))
+		data.Keys = make([]string, 0, len(v))
 		for key, vi := range v {
-			data.Keys[i] = key
-			iobj, err := ifaceToObj(vi)
+			if vi == nil {
+				continue
+			}
+			data.Keys = append(data.Keys, key)
+			iobj, err := IfaceToObj(vi)
 			if err != nil {
 				return nil, err
 			}
 			data.Data[key] = iobj
-			i++
+		}
+		ret.Data = data
+	case map[interface{}]interface{}:
+		data := core.NewMap()
+		data.Keys = make([]string, 0, len(v))
+		for key, vi := range v {
+			if vi == nil {
+				continue
+			}
+			ikey := fmt.Sprint(key)
+			data.Keys = append(data.Keys, ikey)
+			iobj, err := IfaceToObj(vi)
+			if err != nil {
+				return nil, err
+			}
+			data.Data[ikey] = iobj
 		}
 		ret.Data = data
 	default:
@@ -65,7 +100,7 @@ func JsonToObj(input string) (ret *core.Obj, err error) {
 	if err = d.Decode(&v); err != nil {
 		return
 	}
-	return ifaceToObj(v)
+	return IfaceToObj(v)
 }
 
 func objToIface(obj *core.Obj) (ret interface{}) {

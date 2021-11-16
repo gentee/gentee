@@ -1,4 +1,19 @@
 const {
+  S = `{
+       "int": 1234,
+       "str": "value",
+       "undef": null,
+      "list": [{"on": null, "off": 34},
+          {
+              "q": "OK", "t": null
+          }]
+  }`
+}
+run str {
+return Json(JsonToObj(S))
+}
+===== {"int":1234,"list":[{"off":34},{"q":"OK"}],"str":"value"}
+const {
     S = `{
          "int": 1234,
          "str": "value",

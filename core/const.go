@@ -1,4 +1,4 @@
-// Copyright 2018 Alexey Krivonogov. All rights reserved.
+// Copyright 2018-21 Alexey Krivonogov. All rights reserved.
 // Use of this source code is governed by a MIT license
 // that can be found in the LICENSE file.
 
@@ -38,7 +38,7 @@ const (
 	NotIota = -1
 
 	// Version is the current version of the compiler
-	Version = `1.20.0+2`
+	Version = `1.21.0`
 )
 
 // NewConst adds a new ConstObject to Unit
