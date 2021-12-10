@@ -15,7 +15,15 @@ run str {
 }
 ===== Test environmenttrueOK101
 run str {
-    return SplitCmdLine(`param1 "second par" "qwert\"y" 100 'oo ps'
+    return SplitCmdLine(`\q -p="C:\pa th\file" "qw 'e r t' y" /oo/ps 'par 2'`).Join(`+`)
+}
+===== \q+-p="C:\pa th\file"+qw 'e r t' y+/oo/ps+par 2
+run str {
+    return SplitCmdLine(`\p рус -n -p="тест" "c:\мои док\file.txt"  "" 'A "B C" D'`).Join(`+`)
+}
+===== \p+рус+-n+-p="тест"+c:\мои док\file.txt++A "B C" D
+run str {
+    return SplitCmdLine(`param1 "second par" 'qwert"y' 100 'oo ps'
 -lastparam`).Join(`=`)
 }
 ===== param1=second par=qwert"y=100=oo ps=-lastparam

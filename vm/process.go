@@ -13,8 +13,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/shlex"
-
 	"github.com/gentee/gentee/core"
 )
 
@@ -168,17 +166,57 @@ func IsArgºStr(rt *Runtime, flag string) int64 {
 }
 
 // SplitCmdLine splits the command line parameters to the array of strings
-func SplitCmdLine(cmdline string) (ret *core.Array, err error) {
-	var pars []string
+func SplitCmdLine(cmdline string) (ret *core.Array) {
+	var (
+		isQuote       bool
+		quote, ch     rune
+		off, i, shift int
+	)
 	ret = core.NewArray()
-	pars, err = shlex.Split(cmdline)
-	if err != nil {
-		return
+
+	for i, ch = range cmdline {
+		switch ch {
+		case '\n', ' ':
+			if !isQuote {
+				if off < i {
+					ret.Data = append(ret.Data, strings.TrimSpace(cmdline[off:i]))
+					shift = 0
+				}
+				off = i + 1
+			}
+		case '"', '\'':
+			if isQuote {
+				if ch == quote {
+					isQuote = false
+					ret.Data = append(ret.Data, strings.TrimSpace(cmdline[off:i+shift]))
+					shift = 0
+					off = i + 1
+				}
+			} else if i == off {
+				isQuote = true
+				quote = ch
+				off = i + 1
+			} else {
+				isQuote = true
+				quote = ch
+				shift = 1
+			}
+		}
 	}
-	for _, par := range pars {
-		ret.Data = append(ret.Data, par)
+	if off < i {
+		ret.Data = append(ret.Data, strings.TrimSpace(cmdline[off:]))
 	}
 	return
+	/*	var pars []string
+		ret = core.NewArray()
+		pars, err = shlex.Split(cmdline)
+		if err != nil {
+			return
+		}
+		for _, par := range pars {
+			ret.Data = append(ret.Data, par)
+		}
+		return*/
 }
 
 // sysRun executes the process.
