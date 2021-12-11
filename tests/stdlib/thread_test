@@ -1,3 +1,21 @@
+func myfunc{
+    CtxSet("out", str(ThreadData()))
+    SetThreadData(obj("result"))
+}
+
+run str {
+  SetThreadData(obj("data"))
+  WaitGroup(1)
+  go {
+    SetThreadData(obj("subfunc"))
+    myfunc()
+    CtxSet("ret", str(ThreadData()))
+    WaitDone()
+  }
+  WaitAll()
+  return str(ThreadData()) + Ctx("#out# #ret#")
+}
+===== datasubfunc result
 run int {
   for i in 1..10 {
     go (ind: i) {

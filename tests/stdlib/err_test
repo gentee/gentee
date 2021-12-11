@@ -1,4 +1,16 @@
 run {
+  SetThreadData(obj(0))
+  obj o = ThreadData()
+  go {
+    obj o = ThreadData()
+  }
+}
+===== [5:13] thread data equals nil
+run {
+  obj o = ThreadData()
+}
+===== [2:11] thread data equals nil
+run {
   str temp = TempDir(``, `gentee_test`)
   str fname = temp + `/tmp`
   file f = OpenFile(fname, CREATE)

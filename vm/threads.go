@@ -236,3 +236,16 @@ func WaitGroup(rt *Runtime, count int64) error {
 	rt.Owner.WaitCount = count
 	return nil
 }
+
+// ThreadData returns Data parameter of the thread
+func ThreadData(rt *Runtime) (*core.Obj, error) {
+	if rt.Data == nil {
+		return nil, fmt.Errorf(`thread data equals nil`)
+	}
+	return rt.Data, nil
+}
+
+// SetThreadData sets Data parameter of the thread
+func SetThreadData(rt *Runtime, obj *core.Obj) {
+	rt.Data = obj
+}

@@ -295,6 +295,7 @@ SetEnv(str,bool) str;SetEnvBool;er           // $name = bool
 SetFileTime(str,time);SetFileTimeºStrTime;er
 SetLen(buf,int) buf;SetLenºBuf;e
 SetPos(file,int,int) int;SetPosºFileIntInt;e
+SetThreadData(obj);SetThreadData;r
 Sha256(buf) buf;Sha256ºBuf
 Sha256(str) buf;Sha256ºStr
 Sha256File(str) str;Sha256FileºStr;er
@@ -334,6 +335,7 @@ terminate(thread);terminateºThread;er
 time(int) time;timeºInt;r
 Toggle(set,int) bool;ToggleºSetInt
 Trace() arr.trace;Trace;r
+ThreadData() obj;ThreadData;er
 Trim(str,str) str;TrimºStr
 TrimLeft(str,str) str;TrimLeftºStr
 TrimRight(str,str) str;TrimRightºStr

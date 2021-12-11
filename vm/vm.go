@@ -83,6 +83,8 @@ type Runtime struct {
 	Thread   Thread
 	ThreadID int64
 	Optional *[]OptValue
+	Data     *core.Obj   // gentee embedded object
+	Custom   interface{} // embedded structure
 	// These are stacks for different types
 	SInt   [STACKSIZE]int64       // int, char, bool
 	SFloat [STACKSIZE]float64     // float
