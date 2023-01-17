@@ -73,6 +73,10 @@ func (c *Cli) exec() error {
 	switch {
 	case c.args.Ver:
 		c.exec_Ver()
+	case c.args.Execute != "":
+		return c.exec_RunString(w, c.args.Execute)
+	case c.args.Stdin:
+		return c.exec_RunStdin(w)
 	default:
 		return c.exec_RunFile(w)
 	}
@@ -81,6 +85,46 @@ func (c *Cli) exec() error {
 
 func (c *Cli) exec_Ver() {
 	fmt.Println(gentee.Version())
+}
+
+func (c *Cli) exec_RunString(w io.Writer, str string) error {
+	params := flag.Args()
+	var (
+		result   interface{}
+		unitID   int
+		exec     *gentee.Exec
+		settings gentee.Settings
+		err      error
+	)
+	exec, unitID, err = c.workspace.Compile(str, "stdin")
+	if err != nil {
+		return codedError(err, errCompile)
+	}
+	settings.CmdLine = params
+	result, err = exec.Run(settings)
+	if err != nil {
+		return codedError(err, errRun)
+	}
+	resultStr := fmt.Sprint(result)
+	if c.args.TestMode {
+		ret := c.workspace.Unit(unitID).GetHeader(`result`)
+		if len(ret) > 0 && ret == strings.TrimSpace(resultStr) {
+			return nil
+		}
+		return codedError(fmt.Errorf(`different test result %s`, resultStr), errResult)
+	}
+	if result != nil {
+		fmt.Fprintf(w, resultStr)
+	}
+	return nil
+
+}
+func (c *Cli) exec_RunStdin(w io.Writer) error {
+	bts, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return err
+	}
+	return c.exec_RunString(w, string(bts))
 }
 
 func (c *Cli) exec_RunFile(w io.Writer) error {
@@ -127,8 +171,5 @@ func (c *Cli) exec_RunFile(w io.Writer) error {
 
 func main() {
 	cli := new(Cli).Init()
-	if cli.args.Ver {
-		return
-	}
 	cli.Exec()
 }
