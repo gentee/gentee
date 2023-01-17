@@ -52,18 +52,14 @@ func (c *CommandArgs) Completion() {
 	for _, v := range envr {
 		envName = append(envName, strings.Split(v, "=")[0])
 	}
-	//cmd := complete.FlagSet(flag.CommandLine)
 	cmd := &complete.Command{
 		Flags: map[string]complete.Predictor{
 			"env": envName,
-			"t":   predict.Nothing,
-			"ver": predict.Nothing,
-			"e":   predict.Nothing,
-			"p":   predict.Nothing,
 		},
-		Args: predict.Files("*.*"),
 	}
-	complete.Complete(flag.CommandLine.Name(), cmd)
+	// Run the completion - provide it with the binary name.
+	cmd.Complete("gentee")
+	complete.CommandLine()
 }
 
 func (c *Cli) Exec() {
