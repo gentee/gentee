@@ -25,17 +25,17 @@ syn keyword genteeBif ReadString
 syn keyword genteeBif Ctx CtxGet Ctxls CtxSet CtxValue
 syn keyword genteeBif AESDecrypt AESEncrypt Md5 RandomBuf Sha256
 syn keyword genteeBif Json JsonToObj StructDecode StructEncode
-syn keyword genteeBif AppendFile ChDir ChdMode CloseFile CopyFile CreateDir CreateFile ExistFile FileInfo FileMode GetCurDir IsEmptyDir Md5File obj OpenFile Read ReadDir ReadFile Remove RemoveDir Rename SetFileTime SetPos Sha256File TempDir TempDir Write WriteFile
+syn keyword genteeBif AppendFile ChDir ChdMode CloseFile CopyFile CreateDir CreateFile ExistFile FileInfo FileMode GetCurDir IsEmptyDir Md5File OpenFile Read ReadDir ReadFile Remove RemoveDir Rename SetFileTime SetPos Sha256File TempDir TempDir Write WriteFile
 syn keyword genteeBif Ceil Floor Max Min Round
 syn keyword genteeBif Abs Max Min Random
 syn keyword genteeBif Del IsKey Key
 syn keyword genteeBif Lock resume SetThreadData sleep suspend terminate ThreadData Unlock wait WaitAll WaitDone WaitGroup
 syn keyword genteeBif Download HeadInfo HTTPGet HTTPPage HTTPRequest
-syn keyword genteeBif arr arrstr IsArray IsMap IsNil item Sort Type
+syn keyword genteeBif arrstr IsArray IsMap IsNil item Sort Type
 syn keyword genteeBif AbsPath BaseName Dir Ext JoinPath MatchPath Path
 syn keyword genteeBif Arg ArgCount Args IsArg Open OpenWith Run SplitCmdLine Start
 syn keyword genteeBif FindFirstRegExp FindRegExp Match RegExp ReplaceRegExp
-syn keyword genteeBif error ErrID errText ErrTrace exit Progress ProgressEnd ProgressStart Trace
+syn keyword genteeBif ErrID errText ErrTrace exit Progress ProgressEnd ProgressStart Trace
 syn keyword genteeBif Set Toggle UnSet
 syn keyword genteeBif Find Format HasPrefix HasSuffix Left Lines Lower Repeat Replace Right Size Split Substr Trim TrimLeft TrimRight TrimSpace Upper
 syn keyword genteeBif GetEnv SetEnv UnsetEnv
