@@ -7,7 +7,7 @@ endif
 
 syn region genteeString start=+L\="+ skip=+\\\\\|\\"+ end=+"+ contains=@Spell
 
-syn keyword genteeClause run
+syn keyword genteeStatement const run
 
 
 syn keyword genteeBif CYCLE DEPTH IOTA SCRIPT VERSION
@@ -60,7 +60,8 @@ syn match       genteeFloat          display contained "\d\+e[-+]\=\d\=\>"
 syn match       genteeFloat          display "\(\.[0-9_]\+\)\(e[-+]\=[0-9_]\+\)\=[fl]\=i\=\>"
 
 " Literals
-syn region      genteeString         start=+L\="+ skip=+\\\\\|\\"+ end=+"+ contains=@Spell
+syn region      genteeString            start=+"+  end=+"+
+syn region      genteeRawString         start=+`+ end=+`+
 
 syn match       genteeSpecial        display contained "\\\(x\x\+\|\o\{1,3}\|.\|$\)"
 syn match       genteeCharacter      "L\='[^\\]'"
@@ -77,7 +78,10 @@ syn keyword     genteeConditional    if else switch while
 syn keyword     genteeBranch         goto break continue
 syn keyword     genteeLabel          case default
 syn keyword     genteeRepeat         for
-syn keyword     genteeType      struct func
+syn keyword     genteeType const var
+syn keyword     genteeType           struct
+syn match       genteeType              /\>func\>/
+syn match       genteeStatement /^func\>/
 syn keyword     genteeType           int float bool str char arr map buf set obj handle
 
 syn keyword     genteeTodo           contained TODO FIXME XXX
@@ -113,6 +117,7 @@ hi def link genteeFloat         Float
 hi def link genteeOct           Number
 hi def link genteeOctZero       Number
 hi def link genteeString        String
+hi def link genteeRawString        String
 hi def link genteeSpecial       Special
 hi def link genteeCharacter     Character
 
