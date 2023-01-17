@@ -10,7 +10,7 @@ syn region genteeString start=+L\="+ skip=+\\\\\|\\"+ end=+"+ contains=@Spell
 syn keyword genteeClause run
 
 
-syn keyword genteeBif CYCLE DEPTH IOTA SCRIPT VERSIOn
+syn keyword genteeBif CYCLE DEPTH IOTA SCRIPT VERSION
 
 syn keyword genteeBif typename
 
