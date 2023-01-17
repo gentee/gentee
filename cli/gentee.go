@@ -108,7 +108,7 @@ func (c *Cli) exec_RunString(w io.Writer, str string) error {
 		settings gentee.Settings
 		err      error
 	)
-	exec, unitID, err = c.workspace.Compile(str, "stdin")
+	exec, unitID, err = c.workspace.Compile(str, "input")
 	if err != nil {
 		return codedError(err, errCompile)
 	}
