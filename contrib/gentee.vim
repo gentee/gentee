@@ -7,7 +7,39 @@ endif
 
 syn region genteeString start=+L\="+ skip=+\\\\\|\\"+ end=+"+ contains=@Spell
 
-syn keyword genteeStatement run
+syn keyword genteeClause run
+
+
+syn keyword genteeBif CYCLE DEPTH IOTA SCRIPT VERSIOn
+
+syn keyword genteeBif typename
+
+syn keyword genteeBif Join Reverse Slice Sort
+
+syn keyword genteeBif ArchiveName CloseTarGz CloseZip CreateTarGz CreateZip CompressFile ReadTarGz ReadZip TzGz UnpackTarGz UnpackZip Zip
+syn keyword genteeBif Base64 DecodeInt Del EncodeInt Hex Insert SetLen Subbuf UnBase64 UnHex Write
+syn keyword genteeBif ClearCarriage
+syn keyword genteeBif Print
+syn keyword genteeBif Println
+syn keyword genteeBif ReadString
+syn keyword genteeBif Ctx CtxGet Ctxls CtxSet CtxValue
+syn keyword genteeBif AESDecrypt AESEncrypt Md5 RandomBuf Sha256
+syn keyword genteeBif Json JsonToObj StructDecode StructEncode
+syn keyword genteeBif AppendFile ChDir ChdMode CloseFile CopyFile CreateDir CreateFile ExistFile FileInfo FileMode GetCurDir IsEmptyDir Md5File obj OpenFile Read ReadDir ReadFile Remove RemoveDir Rename SetFileTime SetPos Sha256File TempDir TempDir Write WriteFile
+syn keyword genteeBif Ceil Floor Max Min Round
+syn keyword genteeBif Abs Max Min Random
+syn keyword genteeBif Del IsKey Key
+syn keyword genteeBif Lock resume SetThreadData sleep suspend terminate ThreadData Unlock wait WaitAll WaitDone WaitGroup
+syn keyword genteeBif Download HeadInfo HTTPGet HTTPPage HTTPRequest
+syn keyword genteeBif arr arrstr IsArray IsMap IsNil item Sort Type
+syn keyword genteeBif AbsPath BaseName Dir Ext JoinPath MatchPath Path
+syn keyword genteeBif Arg ArgCount Args IsArg Open OpenWith Run SplitCmdLine Start
+syn keyword genteeBif FindFirstRegExp FindRegExp Match RegExp ReplaceRegExp
+syn keyword genteeBif error ErrID errText ErrTrace exit Progress ProgressEnd ProgressStart Trace
+syn keyword genteeBif Set Toggle UnSet
+syn keyword genteeBif Find Format HasPrefix HasSuffix Left Lines Lower Repeat Replace Right Size Split Substr Trim TrimLeft TrimRight TrimSpace Upper
+syn keyword genteeBif GetEnv SetEnv UnsetEnv
+syn keyword genteeBif AddHours Date DateTime Days Format Now ParseTime UTC Weekday YearDay
 
 " Numerals
 syn case ignore
@@ -39,8 +71,9 @@ syn match       genteeFloat          display contained "\d\+\.\d*\(e[-+]\=\d\+\)
 syn match       genteeFloat          display contained "\d\+e[-+]\=\d\=\>"
 syn match       genteeFloat          display "\(\.[0-9_]\+\)\(e[-+]\=[0-9_]\+\)\=[fl]\=i\=\>"
 
+syn keyword genteeStatement return
 syn keyword     genteeClause         import package
-syn keyword     genteeConditional    if else switch
+syn keyword     genteeConditional    if else switch while
 syn keyword     genteeBranch         goto break continue
 syn keyword     genteeLabel          case default
 syn keyword     genteeRepeat         for
@@ -50,11 +83,12 @@ syn keyword     genteeType           int float bool str char arr map buf set obj
 syn keyword     genteeTodo           contained TODO FIXME XXX
 syn match       genteeLineComment    "\/\/.*" contains=@Spell,genteeTodo
 syn match       genteeLineComment    "^#!.*$" contains=@Spell,genteeTodo
+syn match       genteeLineComment "^# .*$" contains=@Spell,genteeTodo
 
 syn match       genteeCommentSkip    "^[ \t]*\*\($\|[ \t]\+\)"
 syn region      genteeComment        start="/\*"  end="\*/" contains=@Spell,genteeTodo
-syn region      genteeComment        start="||\`"  end="\`" contains=@Spell,genteeTodo
-syn region      genteeComment        start="||\""  end="\"" contains=@Spell,genteeTodo
+syn region      genteeComment        start="||\s\`"  end="\`" contains=@Spell,genteeTodo
+syn region      genteeComment        start="||\s\""  end="\"" contains=@Spell,genteeTodo
 
 
 hi def link genteeStatement     Statement

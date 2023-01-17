@@ -8,13 +8,13 @@
 run {
     int high j
     str out
-    set sieve 
-    
+    set sieve
+
     || `This program uses "The Sieve of Eratosthenes" for finding prime numbers.
        `
     high = int( ReadString("Enter the high limit number ( < 100000 ): "))
     if high > 100000 : high = 100000
- 	
+
     for i in 2..high/2 {
         if !sieve[ i ] {
             j = i + i
