@@ -19,7 +19,7 @@ run {
       Fibonacci number (Xn = Xn-1 + Xn-2)
       Factorial of n   (n! = 1*2*3*...*n)
     `
-    int sum 
+    int sum
     int pprev = 1
     int prev = 1
     for i in 3..50 {
@@ -30,7 +30,7 @@ run {
     ||`50th Fibonacci number = %{sum} (not recursive)
       50th Fibonacci number = %{fibonacci( 1, 1, 50)} (recursive)
     `
-    
+
     int fact = 1
     for i in 1..15 : fact *= i
     ||"15! = \{fact} (not recursive)
