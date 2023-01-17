@@ -126,6 +126,11 @@ func (re *RuntimeError) Error() string {
 	return ErrFormat(si.Path, si.Line, si.Pos, re.Message)
 }
 
+func (re *RuntimeError) Is(err error) bool {
+	_, ok := err.(*RuntimeError)
+	return ok
+}
+
 var (
 	errText = map[int]string{
 		ErrRunIndex:     `invalid name of Run`,
