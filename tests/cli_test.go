@@ -52,7 +52,7 @@ func TestCli(t *testing.T) {
 	}
 	os.Setenv(`GOPATH`, gopath)
 	outputFile := os.ExpandEnv(`${GOPATH}/bin/gentee`)
-	cmd = exec.Command(`go`, `build`, `-o`, outputFile, `../cli/gentee.go`)
+	cmd = exec.Command(`go`, `build`, `-o`, outputFile, `../cli`)
 	if err = cmd.Run(); err != nil {
 		t.Error(err)
 		return
@@ -60,7 +60,7 @@ func TestCli(t *testing.T) {
 
 	call := func(want string, params ...string) error {
 		cmd := exec.Command(outputFile, params...)
-		stdout, err := cmd.CombinedOutput()
+		stdout, err := cmd.Output() //cmd.CombinedOutput()
 		out := strings.Replace(string(stdout), `\`, `/`, -1)
 		if err != nil {
 			return getWant(out, want)
@@ -85,38 +85,38 @@ func TestCli(t *testing.T) {
 			[]string{`cmdline.g`, `-i:10`, `-`, `-two`, `'three four'`, `five`}},
 		{`один+*.два+.три+Welcome+"-option"+"-"truetrue`,
 			[]string{`cmdline.g`, `один`, `*.два`, `.три`, `Welcome`, `"-option"`, `"-"`}},
-		{"ok 777\n", []string{`ok.g`}},
+		{"ok 777", []string{`ok.g`}},
 		{"test", []string{`runname.g`}},
 		{core.Version, []string{`-ver`}},
 		{``, []string{`nothing.g`}},
 		{core.Version, []string{`const.g`}},
 		{"ERROR #3: .../tests/scripts/traceerror.g [2:13] divided by zero\n" +
 			".../tests/scripts/traceerror.g [5:5] run -> myfunc\n" +
-			".../tests/scripts/traceerror.g [2:13] myfunc -> Div", []string{`traceerror.g`}},
+			".../tests/scripts/traceerror.g [2:13] myfunc -> Div\n", []string{`traceerror.g`}},
 		{"ERROR #300: .../tests/scripts/customerror.g [3:24] Σ custom error №5\n" +
 			".../tests/scripts/customerror.g [9:12] run -> myerr\n" +
-			".../tests/scripts/customerror.g [3:24] myerr -> error", []string{`customerror.g`}},
-		{"ERROR: .../tests/scripts/err-a.g [6:5] duplicate of c_func has been found after include/import",
+			".../tests/scripts/customerror.g [3:24] myerr -> error\n", []string{`customerror.g`}},
+		{"ERROR: .../tests/scripts/err-a.g [6:5] duplicate of c_func has been found after include/import\n",
 			[]string{`err-a.g`}},
 		{``, []string{`-t`, `a.g`}},
 		{``, []string{`-t`, `d.g`}},
-		{"ERROR: .../tests/scripts/err-b.g [6:12] function c_func(int) has not been found",
+		{"ERROR: .../tests/scripts/err-b.g [6:12] function c_func(int) has not been found\n",
 			[]string{`err-b.g`}},
 		{``, []string{`-t`, `f.g`}},
-		{"ERROR: .../tests/scripts/err-c.g [7:12] function e_func(int, int) has not been found",
+		{"ERROR: .../tests/scripts/err-c.g [7:12] function e_func(int, int) has not been found\n",
 			[]string{`err-c.g`}},
-		{"ERROR: .../tests/scripts/err-d.g [7:7] function Assign(int, et) has not been found",
+		{"ERROR: .../tests/scripts/err-d.g [7:7] function Assign(int, et) has not been found\n",
 			[]string{`err-d.g`}},
-		{"ERROR: .../tests/scripts/err-e.g [6:12] unknown identifier EINT",
+		{"ERROR: .../tests/scripts/err-e.g [6:12] unknown identifier EINT\n",
 			[]string{`err-e.g`}},
-		{"ERROR: .../tests/scripts/err-f.g [6:5] unknown identifier myf",
+		{"ERROR: .../tests/scripts/err-f.g [6:5] unknown identifier myf\n",
 			[]string{`err-f.g`}},
 		{"ERROR #3: .../tests/scripts/err_thread.g [2:14] divided by zero\n" +
 			".../tests/scripts/err_thread.g [7:17] thread -> divZero\n" +
-			".../tests/scripts/err_thread.g [2:14] divZero -> Div",
+			".../tests/scripts/err_thread.g [2:14] divZero -> Div\n",
 			[]string{`thread1.g`}},
 		{"ERROR #1000: .../tests/scripts/err_thread.g [14:9] This is an error message\n" +
-			".../tests/scripts/err_thread.g [14:9] thread -> error",
+			".../tests/scripts/err_thread.g [14:9] thread -> error\n",
 			[]string{`thread2.g`}},
 	}
 	for _, item := range testList {
@@ -125,9 +125,9 @@ func TestCli(t *testing.T) {
 				item.params[i] = `scripts/` + v
 			}
 		}
-		if len(item.want) > 0 {
-			item.want += "\n"
-		}
+		/*		if len(item.want) > 0 {
+				item.want += "\n"
+			}*/
 		if err = call(item.want, item.params...); err != nil {
 			t.Error(err)
 			return

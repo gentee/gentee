@@ -96,7 +96,7 @@ func (c *Cli) exec() error {
 }
 
 func (c *Cli) exec_Ver() {
-	fmt.Println(gentee.Version())
+	fmt.Print(gentee.Version())
 }
 
 func (c *Cli) exec_RunString(w io.Writer, str string) error {
@@ -176,7 +176,7 @@ func (c *Cli) exec_RunFile(w io.Writer) error {
 		return codedError(fmt.Errorf(`different test result %s`, resultStr), errResult)
 	}
 	if result != nil {
-		fmt.Fprintf(w, resultStr)
+		fmt.Fprint(w, resultStr)
 	}
 	return nil
 }
