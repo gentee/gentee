@@ -77,7 +77,7 @@ syn keyword     genteeClause         import package
 syn keyword     genteeConditional    if else switch while
 syn keyword     genteeBranch         goto break continue
 syn keyword     genteeLabel          case default
-syn keyword     genteeRepeat         for
+syn keyword     genteeRepeat         for in
 syn keyword     genteeType const var
 syn keyword     genteeType           struct
 syn match       genteeType              /\>func\>/
@@ -93,6 +93,7 @@ syn match       genteeCommentSkip    "^[ \t]*\*\($\|[ \t]\+\)"
 syn region      genteeComment        start="/\*"  end="\*/" contains=@Spell,genteeTodo
 syn region      genteeComment        start="||\s\`"  end="\`" contains=@Spell,genteeTodo
 syn region      genteeComment        start="||\s\""  end="\"" contains=@Spell,genteeTodo
+
 
 
 hi def link genteeStatement     Statement
