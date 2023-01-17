@@ -32,7 +32,6 @@ type CommandArgs struct {
 
 	Execute string
 	Stdin   bool
-	Output  string
 }
 
 func (c *CommandArgs) Parse() *CommandArgs {
@@ -41,7 +40,6 @@ func (c *CommandArgs) Parse() *CommandArgs {
 	flag.BoolVar(&c.Ver, "ver", false, "print version")
 	flag.StringVar(&c.Execute, "e", "", "Execute the string")
 	flag.BoolVar(&c.Stdin, "p", false, "read from stdin")
-	flag.StringVar(&c.Output, "o", "", "output to file (default stdout)")
 	flag.Parse()
 	return c
 }
@@ -62,14 +60,6 @@ func (c *Cli) Exec() {
 
 func (c *Cli) exec() error {
 	w := os.Stdout
-	if c.args.Output != "" {
-		fp, err := os.OpenFile(c.args.Output, os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0o640)
-		if err != nil {
-			return err
-		}
-		defer fp.Close()
-		w = fp
-	}
 	switch {
 	case c.args.Ver:
 		c.exec_Ver()
