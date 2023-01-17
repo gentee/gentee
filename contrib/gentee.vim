@@ -82,7 +82,7 @@ syn keyword     genteeType const var
 syn keyword     genteeType           struct
 syn match       genteeType              /\>func\>/
 syn match       genteeStatement /^func\>/
-syn keyword     genteeType           int float bool str char arr map buf set obj handle
+syn keyword     genteeType           int float bool str char arr map buf set obj handle time
 
 syn keyword     genteeTodo           contained TODO FIXME XXX
 syn match       genteeLineComment    "\/\/.*" contains=@Spell,genteeTodo
